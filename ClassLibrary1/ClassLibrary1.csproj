@@ -61,5 +61,15 @@
     <Compile Include="MyLoad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\1.dwg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\ClassLibrary1.dll" />
+    <Content Include="bin\Debug\ClassLibrary1.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Release\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

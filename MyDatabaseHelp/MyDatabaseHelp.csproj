@@ -57,5 +57,17 @@
     <Compile Include="DBHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\accoremgd.dll" />
+    <Content Include="bin\Debug\AcCui.dll" />
+    <Content Include="bin\Debug\acdbmgd.dll" />
+    <Content Include="bin\Debug\acmgd.dll" />
+    <Content Include="bin\Debug\AdWindows.dll" />
+    <Content Include="bin\Debug\MyDatabaseHelp.dll" />
+    <Content Include="bin\Debug\MyDatabaseHelp.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Release\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
