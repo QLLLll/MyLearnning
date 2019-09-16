@@ -1,0 +1,151 @@
+﻿<Window x:Class="PluginSample.BpDesignDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:local="clr-namespace:PluginSample"
+        mc:Ignorable="d" 
+        d:DesignHeight="600" d:DesignWidth="800"
+        Height="600" Width="800"
+        Title="边坡设计" FontSize="14" FontFamily="宋体">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="文件(_F)">
+                <MenuItem Header="保存(_S)" Click="SaveParams"/>
+                <MenuItem Header="读取(_L)" Click="LoadParams"/>
+                <Separator/>
+                <MenuItem Header="关闭(_C)" Click="CloseWindow"/>
+            </MenuItem>
+        </Menu>
+        <Grid DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="250"/>
+            </Grid.ColumnDefinitions>
+            <Canvas Background="Black"></Canvas>
+            <Image Name="PreviewImage" Stretch="Uniform"
+                   MouseWheel="PreviewImage_MouseWheel"></Image>
+            <GridSplitter Grid.Column="1" Width="7" HorizontalAlignment="Left">
+                <GridSplitter.Template>
+                    <ControlTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition Height="0.2*"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Background="LightGray"/>
+                            <Grid Grid.Row="1" Background="Gray"/>
+                            <Grid Grid.Row="2" Background="LightGray"/>
+                        </Grid>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
+            <Grid Grid.Column="1" Margin="7 0 0 0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Margin="5" Click="Preview">预览</Button>
+                    <Button Grid.Column="1" Margin="5" Click="Insert">插入</Button>
+                    <Button IsCancel="True" IsDefault="True" Margin="5" Panel.ZIndex="-1"/>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">路肩宽</TextBlock>
+                    <TextBlock Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">路肩高程</TextBlock>
+                    <TextBlock Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">出入口高程</TextBlock>
+                    <TextBlock Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">边坡级数</TextBlock>
+                    <TextBlock Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">一级坡率</TextBlock>
+                    <TextBlock Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">一级坡高</TextBlock>
+                    <TextBlock Grid.Row="6" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">二级坡率</TextBlock>
+                    <TextBlock Grid.Row="7" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">二级坡高</TextBlock>
+                    <TextBlock Grid.Row="8" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,12,7,12">三级坡率</TextBlock>
+                    <TextBlock Grid.Row="9" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,12,7,12">绘图比例</TextBlock>
+                    <TextBox VerticalContentAlignment="Center" Grid.Column="1" Grid.Row="0" Margin="5" Text="{Binding Path=Lujiankuan}"/>
+                    <TextBox VerticalContentAlignment="Center" Grid.Column="1" Grid.Row="1" Margin="5" Text="{Binding Path=Lujiangaocheng}"/>
+                    <TextBox VerticalContentAlignment="Center" Grid.Column="1" Grid.Row="2" Margin="5" Text="{Binding Path=Churukougaocheng}"/>
+                    <ComboBox Grid.Column="1" Grid.Row="3" Margin="5" VerticalContentAlignment="Center"
+                              SelectedIndex="{Binding Path=Bianpojishu}">
+                        <ComboBoxItem Visibility="Collapsed">0</ComboBoxItem>
+                        <ComboBoxItem>1</ComboBoxItem>
+                        <ComboBoxItem>2</ComboBoxItem>
+                        <ComboBoxItem>3</ComboBoxItem>
+                    </ComboBox>
+                    <Grid Grid.Column="1" Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">1:</TextBlock>
+                        <ComboBox Grid.Column="1" Grid.Row="3" Margin="5" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding Path=kPolv}"
+                                  SelectedIndex="{Binding Path=Yijipolvi}"/>
+                    </Grid>
+                    <TextBox Grid.Column="1" Grid.Row="5" Margin="5" 
+                             VerticalContentAlignment="Center"
+                             IsEnabled="{Binding Path=HasErjibianpo}"
+                             Text="{Binding Path=Yijipogao}"/>
+                    <Grid Grid.Column="1" Grid.Row="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">1:</TextBlock>
+                        <ComboBox Grid.Column="1" Grid.Row="3" Margin="5" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding Path=kPolv}"
+                                  IsEnabled="{Binding Path=HasErjibianpo}"
+                                  SelectedIndex="{Binding Path=Erjipolvi}"/>
+                    </Grid>
+                    <TextBox Grid.Column="1" Grid.Row="7" Margin="5"
+                             VerticalContentAlignment="Center"
+                             IsEnabled="{Binding Path=HasSanjibianpo}"
+                             Text="{Binding Path=Erjipogao}"/>
+                    <Grid Grid.Column="1" Grid.Row="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">1:</TextBlock>
+                        <ComboBox Grid.Column="1" Grid.Row="3" Margin="5" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding Path=kPolv}"
+                                  IsEnabled="{Binding Path=HasSanjibianpo}"
+                                  SelectedIndex="{Binding Path=Sanjipolvi}"/>
+                    </Grid>
+                    <Grid Grid.Column="1" Grid.Row="9">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5">1:</TextBlock>
+                        <ComboBox Grid.Column="1" Grid.Row="3" Margin="5" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding Path=kBili}"
+                                  SelectedIndex="{Binding Path=Huitubilii}"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</Window>
