@@ -94,6 +94,7 @@ namespace JigOperation
 
             Autodesk.AutoCAD.DatabaseServices.Polyline pyLine = new Autodesk.AutoCAD.DatabaseServices.Polyline();
 
+
             var bsPointRes = ed.GetPoint(new PromptPointOptions("\n请输入圆心"));
 
             if (bsPointRes.Status == PromptStatus.OK)
@@ -135,22 +136,17 @@ namespace JigOperation
 
 
                         Point3d cPoint3d = new Point3d((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2, 0);
-                        //dimAlign.DynamicDimension = true;
 
                         dimAlign.XLine1Point = pt1;
                         dimAlign.XLine2Point = pt2;
 
-
-
-                        dimAlign.DimLinePoint = cPoint3d + vec3d2.GetNormal() * 0.5;
+                        dimAlign.DimLinePoint = cPoint3d + vec3d2 * 0.5;
 
                         dimAlign.DimensionText = null;
-                        dimAlign.DimensionStyle = ObjectId.Null;
-                        //dimAlign.DimensionStyle = DBHelper.GetSymbol(doc.Database.DimStyleTableId, "Standard");
 
+                        dimAlign.DimensionStyle = ObjectId.Null;
                     });
                     dimAlign.ToSpace();
-
                     dimAlign = new AlignedDimension();
 
                     var status = donut.Drag();
@@ -166,10 +162,7 @@ namespace JigOperation
                 }
 
                 pyLine.ToSpace();
-
             }
-
-
         }
 
         public void Initialize()
