@@ -94,14 +94,11 @@ namespace JigOperation
 
             Autodesk.AutoCAD.DatabaseServices.Polyline pyLine = new Autodesk.AutoCAD.DatabaseServices.Polyline();
 
-            Point3d pt1 = new Point3d();
 
             var bsPointRes = ed.GetPoint(new PromptPointOptions("\n请输入圆心"));
 
             if (bsPointRes.Status == PromptStatus.OK)
             {
-
-                pt1 = bsPointRes.Value;
 
                 pyLine.AddVertexAt(pyLine.NumberOfVertices, new Point2d(bsPointRes.Value.X, bsPointRes.Value.Y), 0, 0, 0);
                 var jigPtOpts = new JigPromptPointOptions();
@@ -110,83 +107,72 @@ namespace JigOperation
 
                 var donut = new JigHelper();
 
-                donut.SetEntities(new Entity[] { pyLine,dimAlign });
+                donut.SetEntities(new Entity[] { pyLine, dimAlign });
 
                 for (int i = 1; i < int.MaxValue; i++)
                 {
 
                     donut.PrapareForNextInput(jigPtOpts, "\n请输入下一个点");
 
-                   
-                        donut.SetUpdate(jig =>
+
+                    donut.SetUpdate(jig =>
+                    {
+
+                        if (pyLine.NumberOfVertices == i)
                         {
+                            pyLine.AddVertexAt(pyLine.NumberOfVertices, new Point2d(jig.Point.X, jig.Point.Y), 0, 0, 0);
+                        }
+                        else
+                        {
+                            pyLine.SetPointAt(i, new Point2d(jig.Point.X, jig.Point.Y));
+                        }
 
-                            if (pyLine.NumberOfVertices == i)
-                            {
-                                pyLine.AddVertexAt(pyLine.NumberOfVertices, new Point2d(jig.Point.X, jig.Point.Y), 0, 0, 0);
-                            }
-                            else
-                            {
-                                pyLine.SetPointAt(i, new Point2d(jig.Point.X, jig.Point.Y));
-                            }
-                           if (i >= 1)
-                            {
+                        Point3d pt1 = pyLine.GetPoint3dAt(i - 1);
+                        Point3d pt2 = pyLine.GetPoint3dAt(i);
 
-
-                                Point3d pt2 = jig.Point;
-
-                                var vec3d = pt1 - pt2;
-                                var vec3d2 = vec3d.RotateBy(Math.PI / 2, Vector3d.ZAxis);
-
-                             
-
-                                Point3d cPoint3d = new Point3d((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2, 0);
-
-                                dimAlign.XLine1Point = pt1;
-                                dimAlign.XLine2Point= pt2;
+                        var vec3d = pt1 - pt2;
+                        var vec3d2 = vec3d.RotateBy(Math.PI / 2, Vector3d.ZAxis);
 
 
 
-                                dimAlign.DimLinePoint = cPoint3d + vec3d2 * 2.5;
+                        Point3d cPoint3d = new Point3d((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2, 0);
 
-                                dimAlign.DimensionText = null;
+                        dimAlign.XLine1Point = pt1;
+                        dimAlign.XLine2Point = pt2;
 
-                                dimAlign.TextStyleId = DBHelper.GetSymbol(doc.Database.DimStyleTableId, "Standard");
+                        dimAlign.DimLinePoint = cPoint3d + vec3d2 * 0.5;
 
-                                pt1 = pt2;
-                            }
-                        });
-                   
+                        dimAlign.DimensionText = null;
 
-                var status = donut.Drag();
-                if (status == PromptStatus.Cancel)
-                {
-                    break;
+                        dimAlign.DimensionStyle = ObjectId.Null;
+                    });
+                    dimAlign.ToSpace();
+                    dimAlign = new AlignedDimension();
+
+                    var status = donut.Drag();
+                    if (status == PromptStatus.Cancel)
+                    {
+                        break;
+                    }
+                    else if (status != PromptStatus.OK)
+                    {
+                        return;
+                    }
+
                 }
-                else if (status != PromptStatus.OK)
-                {
-                    return;
-                }
-                   
-                }
-                dimAlign.ToSpace();
+
                 pyLine.ToSpace();
-               
-
-
             }
+        }
 
+        public void Initialize()
+        {
 
+        }
+
+        public void Terminate()
+        {
+
+        }
     }
-
-    public void Initialize()
-    {
-
-    }
-
-    public void Terminate()
-    {
-
-    }
-}
 }

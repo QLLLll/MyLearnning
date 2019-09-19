@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginSample", "PluginSampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JigOperation", "JigOperation\JigOperation.csproj", "{42976A6C-1A61-4C83-A585-76774C073152}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JigLineOperation20", "JigLineOperation20\JigLineOperation20.csproj", "{0A5DFF6D-2346-4CC5-920B-592D94BF57F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,10 @@ Global
 		{42976A6C-1A61-4C83-A585-76774C073152}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42976A6C-1A61-4C83-A585-76774C073152}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42976A6C-1A61-4C83-A585-76774C073152}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A5DFF6D-2346-4CC5-920B-592D94BF57F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A5DFF6D-2346-4CC5-920B-592D94BF57F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A5DFF6D-2346-4CC5-920B-592D94BF57F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A5DFF6D-2346-4CC5-920B-592D94BF57F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
