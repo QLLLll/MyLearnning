@@ -31,9 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="accoremgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\accoremgd.dll</HintPath>
-    </Reference>
     <Reference Include="AcCui">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\AcCui.dll</HintPath>
     </Reference>

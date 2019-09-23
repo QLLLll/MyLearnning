@@ -9,7 +9,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 
-namespace JigLineOperation20
+namespace example1
 {
     /// <summary>
     /// 数据库操作辅助类。
@@ -273,7 +273,7 @@ namespace JigLineOperation20
                     return tbl[record.Name];
                 }
 
-                id = tbl.Add(record);
+              	id=  tbl.Add(record);
                 trans.AddNewlyCreatedDBObject(record, true);
 
                 trans.Commit();
@@ -708,6 +708,5 @@ namespace JigLineOperation20
                 trans.Commit();
             }
         }
-
- }
+    }
 }
