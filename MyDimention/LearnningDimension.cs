@@ -10,6 +10,8 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 
+using DotNetARX;
+
 namespace MyDimention
 {
     public class LearnningDimension
@@ -102,6 +104,60 @@ namespace MyDimention
 
                 acTrans.Commit();
             }
+
+        }
+
+
+        [CommandMethod("Dimtest")]
+        public void Dimtest()
+        {
+
+
+            //创建要标注的图形 
+            Line line1 = new Line(new Point3d(30, 20, 0), new Point3d(120, 20, 0));
+            Line line2 = new Line(new Point3d(120, 20, 0), new Point3d(120, 40, 0));
+            Line line3 = new Line(new Point3d(120, 40, 0), new Point3d(90, 80, 0));
+            Line line4 = new Line(new Point3d(90, 80, 0), new Point3d(30, 80, 0));
+            Arc arc = new Arc(new Point3d(30, 50, 0), 30, Math.PI / 2, Math.PI * 3 / 2);
+            Circle cir1 = new Circle(new Point3d(30, 50, 0), Vector3d.ZAxis, 15);
+            Circle cir2 = new Circle(new Point3d(70, 50, 0), Vector3d.ZAxis, 10);
+
+            Entity[] entities = new Entity[] { line1, line2, line3, line4, arc, cir1, cir2 };
+
+            List<Dimension> dims = new List<Dimension>();
+
+            RotatedDimension dimRotated1 = new RotatedDimension();
+
+            dimRotated1.XLine1Point = line1.StartPoint;
+            dimRotated1.XLine2Point = line1.EndPoint;
+            dimRotated1.DimLinePoint = GeTools.MidPoint(line1.StartPoint, line1.EndPoint)
+                .PolarPoint(-Math.PI / 2, 10);
+            dimRotated1.DimensionText = "<>mm";
+            dims.Add(dimRotated1);
+
+            //转角标注(垂直)
+            RotatedDimension dimRotated2 = new RotatedDimension();
+            dimRotated2.Rotation = Math.PI / 2;
+            dimRotated2.XLine1Point = line2.StartPoint;
+            dimRotated2.XLine2Point = line2.EndPoint;
+            dimRotated2.DimLinePoint = GeTools.MidPoint(
+                line2.StartPoint, line2.EndPoint)
+                .PolarPoint(0, 10);
+            dims.Add(dimRotated2);
+
+            //转角标注(尺寸公差标注)
+            RotatedDimension dimRotated3 = new RotatedDimension();
+            dimRotated3.XLine1Point = line4.StartPoint;
+            dimRotated3.XLine2Point = line4.EndPoint;
+            dimRotated3.DimLinePoint = GeTools.MidPoint(
+                line4.StartPoint, line4.EndPoint).PolarPoint(
+                Math.PI / 2, 10);
+            dimRotated3.DimensionText = TextTools.StackText(
+                "<>", "+0.026", "-0.025", StackType.Tolerance, 0.7);
+            dims.Add(dimRotated3);
+
+
+            entities.ToSpace();
 
         }
     }

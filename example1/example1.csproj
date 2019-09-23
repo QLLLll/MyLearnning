@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{76FB7AB2-B7D4-4E7F-BD2D-452B657B5E22}</ProjectGuid>
+    <ProjectGuid>{4052742D-33C0-4EBC-A975-EB11D83E2263}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MyDimention</RootNamespace>
-    <AssemblyName>MyDimention</AssemblyName>
+    <RootNamespace>example1</RootNamespace>
+    <AssemblyName>example1</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -33,39 +33,46 @@
   <ItemGroup>
     <Reference Include="accoremgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\accoremgd.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="AcCui">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\AcCui.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="acdbmgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acdbmgd.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="acmgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acmgd.dll</HintPath>
-      <Private>False</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Presentation" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandClass.cs" />
     <Compile Include="DBHelper.cs" />
-    <Compile Include="LearnningDimension.cs" />
+    <Compile Include="EntityHelper.cs" />
+    <Compile Include="Param.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserDialog.xaml.cs">
+      <DependentUpon>UserDialog.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\2010\DotNetARX.csproj">
-      <Project>{5ddfcada-bea4-402c-b3e4-5c7f83c2f09e}</Project>
-      <Name>DotNetARX</Name>
-    </ProjectReference>
+    <Page Include="UserDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
