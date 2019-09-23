@@ -77,6 +77,11 @@ namespace example1
             AlignedDimension alignDim5 = new AlignedDimension(Point3d.Origin - Vector3d.XAxis * param.C, Point3d.Origin,
                 Point3d.Origin - Vector3d.YAxis * 0.5, null, ObjectId.Null);
 
+            LineAngularDimension2 langularDim = new LineAngularDimension2(new Point3d(p2ds[3].X, p2ds[3].Y, 0), new Point3d(p2ds[2].X, p2ds[2].Y, 0),
+                new Point3d(p2ds[3].X, p2ds[3].Y, 0), new Point3d(p2ds[4].X, p2ds[4].Y, 0),
+                new Point3d(p2ds[3].X - 0.8, p2ds[3].Y + 0.8, 0), null, ObjectId.Null
+                );
+
             Xline xline = new Xline()
             {
                 BasePoint = new Point3d(0, param.A * 0.5, 0),
@@ -106,7 +111,7 @@ namespace example1
 
             return new Entity[]
             {
-                pline0,alignDim1,alignDim2,alignDim3,alignDim4,alignDim5,d1,hatch,xline
+                pline0,alignDim1,alignDim2,alignDim3,alignDim4,alignDim5,d1,hatch,langularDim,xline
             };
 
         }

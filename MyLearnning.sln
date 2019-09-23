@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetARX", "2010\DotNetARX
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "example1", "example1\example1.csproj", "{4052742D-33C0-4EBC-A975-EB11D83E2263}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineResearch", "LineResearch\LineResearch.csproj", "{A545ECD7-41A4-497C-9985-09708561CBDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{4052742D-33C0-4EBC-A975-EB11D83E2263}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4052742D-33C0-4EBC-A975-EB11D83E2263}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4052742D-33C0-4EBC-A975-EB11D83E2263}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A545ECD7-41A4-497C-9985-09708561CBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A545ECD7-41A4-497C-9985-09708561CBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A545ECD7-41A4-497C-9985-09708561CBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A545ECD7-41A4-497C-9985-09708561CBDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
