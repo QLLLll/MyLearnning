@@ -20,7 +20,7 @@ namespace LineResearch
 
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
-
+            var db = doc.Database;
             ed.WriteMessage("请选择PolyLine\n");
 
             var selectRes = ed.GetSelection(new SelectionFilter(new[] { new TypedValue((int)DxfCode.Start, "POLYLINE") }));
@@ -41,29 +41,47 @@ namespace LineResearch
                     {
 
                         Point3dCollection p3dcoll = new Point3dCollection();
-                        System.Collections.IEnumerator enumerator = pl3d.GetEnumerator();
+                        //System.Collections.IEnumerator enumerator = pl3d.GetEnumerator();
 
-                        for (int i = 0; i < pl3d.Length; i++)
+                        //for (int i = 0; i < pl3d.Length; i++)
+                        //{
+
+                        //    if (i % 4 == 0)
+                        //    {
+                        //        enumerator.MoveNext();
+                        //        object o = enumerator.Current;
+
+                        //        Point3d p =(Point3d)o;
+
+                        //        p3dcoll.Add(p);
+                        //    }
+                        //    else
+                        //    {
+                        //        enumerator.MoveNext();
+                        //    }
+                        //    p3dcoll.Add(pl3d.EndPoint);
+                        //}
+                        using (var trans = db.TransactionManager.StartTransaction())
                         {
-
-                            if (i % 4 == 0)
+                            
+                            int m = 0;
+                            foreach (ObjectId objId in pl3d)
                             {
-                                enumerator.MoveNext();
-                                object o = enumerator.Current;
+                                if (m % 4 == 0)
+                                {
 
-                                Point3d p =(Point3d)o;
+                                    var vertex3d = trans.GetObject(objId, OpenMode.ForRead) as PolylineVertex3d;
 
-                                p3dcoll.Add(p);
+                                    p3dcoll.Add(vertex3d.Position);
+                                }
+                                m++;
+
                             }
-                            else
-                            {
-                                enumerator.MoveNext();
-                            }
-                            p3dcoll.Add(pl3d.EndPoint);
-
                         }
+                       
+                      
                         Polyline3d p3dNew = new Polyline3d(pl3d.PolyType, p3dcoll, pl3d.Closed);
-                        p3dNew.EndPoint = pl3d.EndPoint;
+                        //p3dNew.EndPoint = pl3d.EndPoint;
                         listPl.Add(p3dNew);
                     }
 
