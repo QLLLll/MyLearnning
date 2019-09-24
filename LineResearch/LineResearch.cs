@@ -21,7 +21,19 @@ namespace LineResearch
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
             var db = doc.Database;
-            ed.WriteMessage("请选择PolyLine\n");
+
+            var intOpts = new PromptIntegerOptions("\n请输入每隔多少cm进行点的合并");
+
+            var intRes = ed.GetInteger(intOpts);
+
+            int intCmeter = 5;
+
+            if (intRes.Status == PromptStatus.OK)
+            {
+
+                intCmeter = intRes.Value;
+
+            }
 
             var selectRes = ed.GetSelection(new SelectionFilter(new[] { new TypedValue((int)DxfCode.Start, "POLYLINE") }));
 
@@ -32,7 +44,16 @@ namespace LineResearch
 
                 List<Polyline3d> listPl = new List<Polyline3d>();
 
-                List<Polyline3d> listPlold= MyForeach(selectSet);
+                List<Polyline3d> listPlold = MyForeach(selectSet);
+
+                Point3dCollection p3dcoll = new Point3dCollection();
+
+                if (null == listPlold || listPlold.Count < 1)
+                {
+                    return;
+                }
+
+                var pl3d1 = listPlold[0];
 
                 foreach (var pl3d in listPlold)
                 {
@@ -40,60 +61,117 @@ namespace LineResearch
                     if (pl3d != null)
                     {
 
-                        Point3dCollection p3dcoll = new Point3dCollection();
-                        //System.Collections.IEnumerator enumerator = pl3d.GetEnumerator();
-
-                        //for (int i = 0; i < pl3d.Length; i++)
-                        //{
-
-                        //    if (i % 4 == 0)
-                        //    {
-                        //        enumerator.MoveNext();
-                        //        object o = enumerator.Current;
-
-                        //        Point3d p =(Point3d)o;
-
-                        //        p3dcoll.Add(p);
-                        //    }
-                        //    else
-                        //    {
-                        //        enumerator.MoveNext();
-                        //    }
-                        //    p3dcoll.Add(pl3d.EndPoint);
-                        //}
                         using (var trans = db.TransactionManager.StartTransaction())
                         {
-                            
-                            int m = 0;
+                           
                             foreach (ObjectId objId in pl3d)
                             {
-                                if (m % 4 == 0)
-                                {
 
-                                    var vertex3d = trans.GetObject(objId, OpenMode.ForRead) as PolylineVertex3d;
+                                var vertex3d = trans.GetObject(objId, OpenMode.ForRead) as PolylineVertex3d;
 
-                                    p3dcoll.Add(vertex3d.Position);
-                                }
-                                m++;
+                                p3dcoll.Add(vertex3d.Position);
 
                             }
                         }
-                       
-                      
-                        Polyline3d p3dNew = new Polyline3d(pl3d.PolyType, p3dcoll, pl3d.Closed);
-                        //p3dNew.EndPoint = pl3d.EndPoint;
-                        listPl.Add(p3dNew);
                     }
 
                 }
-            
+
+                Polyline pline = new Polyline();
+
+                List<Arc> listArc = new List<Arc>();
+
+                for (int i = 0; i < p3dcoll.Count; i++)
+                {
+                    int startIndex = i;
+
+                    Point2d pit1 = new Point2d(p3dcoll[i].X, p3dcoll[i].Y);
+                    Point2d pit2 = Point2d.Origin;
+                    Point2d pit3 = Point2d.Origin;
+
+                    if (i + 1 < p3dcoll.Count)
+                    {
+                        pit2 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
+                        i = i + 1;
+
+                    }
+
+                    if (i + 1 < p3dcoll.Count)
+                    {
+                        pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
+                        i = i + 1;
+                    }
+
+                    double length = (pit2 - pit1).Length + (pit3 - pit2).Length;
+
+                    int mid = 0;
+
+                    while (length < intCmeter)
+                    {
+
+                        pit2 = pit3;
+
+                        pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
+
+                        i = i + 1;
+
+                        mid++;
+
+                        length = (pit2 - pit1).Length + (pit3 - pit2).Length;
+                    }
+                    Point2d pitMid = Point2d.Origin;
+
+                    if (mid/2 > 0)
+                    {
+                        pitMid = new Point2d(p3dcoll[startIndex + mid / 2].X, p3dcoll[startIndex + mid / 2].Y);
+                    }
+                    else
+                    {
+                        pitMid = pit2;
+                    }
+
+                    pline.AddVertexAt(pline.NumberOfVertices, pit1, 0, 0, 0);
+                    pline.AddVertexAt(pline.NumberOfVertices, pitMid, 0, 0, 0);
+                    pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
+
+                    var vertex1 = pit1-pitMid;
+                    var vertex2 = pit3 - pitMid;
+
+                    if(vertex1.GetAngleTo(vertex2)!=0|| vertex1.GetAngleTo(vertex2) != Math.PI)
+                    {
+                        Point2d pitCenter = Point2d.Origin;
+
+                        double x = 0.0;
+                        double y = 0.0;
+
+                        GetArcCenter(pit1.X, pit1.Y, pitMid.X, pitMid.Y, pit3.X, pit3.Y, out x, out y);
+
+                        pitCenter = new Point2d(x, y);
+
+                        double radius = (pitCenter - pit1).Length;
+
+                        double startAngle = (pit3 - Point2d.Origin).GetAngleTo(Vector2d.XAxis);
+
+                        double endAngle = (pit1 - Point2d.Origin).GetAngleTo(Vector2d.XAxis);
+
+
+                        Arc arc = new Arc(new Point3d(pitCenter.X,pitCenter.Y,0), radius, startAngle, endAngle);
+
+
+                        listArc.Add(arc);
+                    }
+
+                }
+                pline.Closed = true;
+                pline.ColorIndex = pl3d1.ColorIndex;
 
                 var newDoc = Application.DocumentManager.Add("");
                 using (var lock1 = newDoc.LockDocument())
                 {
                     var newDb = newDoc.Database;
 
-                    listPl.ToSpace(newDb);
+                    pline.ToSpace(newDb);
+                    listArc.ToSpace();
                 }
 
             }
@@ -102,6 +180,7 @@ namespace LineResearch
         public List<Polyline3d> MyForeach(SelectionSet selected,
                    Database db = null)
         {
+
             db = db ?? Application.DocumentManager.MdiActiveDocument.Database;
             List<Polyline3d> list = new List<Polyline3d>();
             using (var trans = db.TransactionManager.StartTransaction())
@@ -117,6 +196,30 @@ namespace LineResearch
 
             return list;
         }
+
+        public void GetArcCenter(double a1,double b1,double a2,double b2,double a3,double b3,out double p,out double q)
+        {
+
+            double u = (Math.Pow(a1, 2) - Math.Pow(a2, 2)
+                + Math.Pow(b1, 2) - Math.Pow(b2, 2))
+                / (2 * (a1 - a2));
+
+            double v=(Math.Pow(a1, 2)- Math.Pow(a3, 2) 
+                + Math.Pow(b1, 2) - Math.Pow(b3, 2))
+                / (2 * (a1 - a3));
+
+            double k1 = (b1 - b2) / (a1 - a2);
+
+            double k2 = (b1 - b3) / (a1 - a3);
+
+            q = (u - v) / (k1 - k2);
+
+            p = v - (u - v) * k2 / (k1 - k2);
+
+        }
+
+
+
     }
 }
 
