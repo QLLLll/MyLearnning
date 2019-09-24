@@ -45,7 +45,7 @@ namespace LineResearch
 
                         for (int i = 0; i < pl3d.Length; i++)
                         {
-
+                           
                             if (i % 4 == 0)
                             {
                                 enumerator.MoveNext();
