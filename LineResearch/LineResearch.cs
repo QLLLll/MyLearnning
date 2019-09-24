@@ -78,7 +78,7 @@ namespace LineResearch
                 }
 
                 Polyline pline = new Polyline();
-
+                Point3dCollection p3dColl2 = new Point3dCollection();
                 List<Arc> listArc = new List<Arc>();
 
                 for (int i = 0; i < p3dcoll.Count; i++)
@@ -102,10 +102,7 @@ namespace LineResearch
                         i = i + 1;
                     }
 
-                  
-
-                    double length = Math.Sqrt(Math.Pow(pit2.X - pit1.X, 2) + Math.Pow(pit2.Y - pit1.Y, 2))
-                        + Math.Sqrt(Math.Pow(pit3.X - pit2.X, 2) + Math.Pow(pit3.Y - pit2.Y, 2));
+                    double length = (pit2 - pit1).Length + (pit3 - pit2).Length;
 
                     int mid = 0;
 
@@ -113,12 +110,10 @@ namespace LineResearch
                     {
 
                         pit2 = pit3;
-                        if (i + 1 < p3dcoll.Count)
-                        {
-                            pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
 
-                            i = i + 1;
-                        }
+                        pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
+
+                        i = i + 1;
 
                         mid++;
 
@@ -135,55 +130,54 @@ namespace LineResearch
                         pitMid = pit2;
                     }
 
+                    pline.AddVertexAt(pline.NumberOfVertices, pit1, 0, 0, 0);
+                    pline.AddVertexAt(pline.NumberOfVertices, pitMid, 0, 0, 0);
+                    pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
 
+                    p3dColl2.Add(new Point3d(pit1.X, pit1.Y, 0));
+                    p3dColl2.Add(new Point3d(pitMid.X, pitMid.Y, 0));
+                    p3dColl2.Add(new Point3d(pit3.X, pit3.Y, 0));
 
                     var vertex1 = pit1 - pitMid;
                     var vertex2 = pit3 - pitMid;
 
-                    if (vertex1.GetAngleTo(vertex2) != 0 || vertex1.GetAngleTo(vertex2) != Math.PI)
-                    {
-                        Point2d pitCenter = Point2d.Origin;
+                    //if (vertex1.GetAngleTo(vertex2) != 0 || vertex1.GetAngleTo(vertex2) != Math.PI)
+                    //{
+                    //    Point2d pitCenter = Point2d.Origin;
 
-                        double x = 0.0;
-                        double y = 0.0;
+                    //    double x = 0.0;
+                    //    double y = 0.0;
 
-                        GetArcCenter(pit1.X, pit1.Y, pitMid.X, pitMid.Y, pit3.X, pit3.Y, out x, out y);
+                    //    GetArcCenter(pit1.X, pit1.Y, pitMid.X, pitMid.Y, pit3.X, pit3.Y, out x, out y);
 
-                        pitCenter = new Point2d(x, y);
+                    //    pitCenter = new Point2d(x, y);
 
-                        var vectorO1 = pit1 - pitCenter;
-                        var vectorO2 = pitMid - pitCenter;
-                        var vectorO3 = pit3 - pitCenter;
+                    //    double radius = (pitCenter - pit1).Length;
+
+                    //    double startAngle = (pit3 - Point2d.Origin).GetAngleTo(Vector2d.XAxis);
+
+                    //    double endAngle = (pit1 - Point2d.Origin).GetAngleTo(Vector2d.XAxis);
 
 
+                    //    Arc arc = new Arc(new Point3d(pitCenter.X, pitCenter.Y, 0), radius, startAngle, endAngle);
 
-                        pline.AddVertexAt(pline.NumberOfVertices, pit1, Math.Tan(vectorO1.GetAngleTo(vectorO2) * 0.25), 0, 0);
-                        pline.AddVertexAt(pline.NumberOfVertices, pitMid, Math.Tan(vectorO2.GetAngleTo(vectorO3) * 0.25), 0, 0);
-                        //pline.AddVertexAt(pline.NumberOfVertices, pit3, Math.Tan(vectorO1.GetAngleTo(vectorO2) * 0.25), 0, 0);
 
-                        if (i == p3dcoll.Count-1)
-                            break;
-                        i = i - 1;
-                    }
-                    else
-                    {
-                        pline.AddVertexAt(pline.NumberOfVertices, pit1, 0, 0, 0);
-                        pline.AddVertexAt(pline.NumberOfVertices, pitMid,0, 0, 0);
-                        pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
-                        if (i == p3dcoll.Count-1)
-                            break;
-                        i = i - 1;
-                    }
+                    //    listArc.Add(arc);
+                    //}
+
                 }
                 pline.Closed = true;
                 pline.ColorIndex = pl3d1.ColorIndex;
+
+                Spline sPline = new Spline(p3dColl2, 4, 1000);
 
                 var newDoc = Application.DocumentManager.Add("");
                 using (var lock1 = newDoc.LockDocument())
                 {
                     var newDb = newDoc.Database;
 
-                    pline.ToSpace(newDb);                    
+                    pline.ToSpace(newDb);
+                    //listArc.ToSpace();
                 }
 
             }
@@ -234,4 +228,3 @@ namespace LineResearch
 
     }
 }
-
