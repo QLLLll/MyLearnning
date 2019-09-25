@@ -158,12 +158,6 @@ namespace LearningDatabaseService
                     targetGroup.Append(objId);
                 }*/
 
-
-
-
-
-
-
                 acTrans.Commit();
 
             }

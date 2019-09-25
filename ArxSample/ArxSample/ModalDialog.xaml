@@ -1,0 +1,30 @@
+﻿<Window x:Class="ArxSample.ModalDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ArxSample"
+             mc:Ignorable="d" 
+             Height="120" Width="350" FontFamily="宋体" FontSize="20"
+             ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">输入点</TextBlock>
+        <TextBox Name="PointText" Margin="5" Grid.Column="1" Grid.ColumnSpan="3"/>
+        <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Orientation="Horizontal">
+            <Button Margin="5" Padding="5 0" Click="PickButton_Click">拾取</Button>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Margin="5" Padding="5 0" IsDefault="True" IsCancel="True">关闭</Button>
+        </StackPanel>
+    </Grid>
+</Window>

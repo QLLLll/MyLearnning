@@ -22,11 +22,11 @@ namespace LineResearch
             var ed = doc.Editor;
             var db = doc.Database;
 
-            var intOpts = new PromptIntegerOptions("\n请输入每隔多少cm进行点的合并");
+            var intOpts = new PromptIntegerOptions("\n请输入每隔多少厘米进行点的合并");
 
             var intRes = ed.GetInteger(intOpts);
 
-            int intCmeter = 5;
+            int intCmeter = 2000;
 
             if (intRes.Status == PromptStatus.OK)
             {
@@ -109,10 +109,16 @@ namespace LineResearch
                     while (length < intCmeter)
                     {
 
-                        pit2 = pit3;
 
-                        pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
-
+                        if (i + 1 < p3dcoll.Count)
+                        {
+                            pit2 = pit3;
+                            pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
+                        }
+                        else
+                        {
+                            break;
+                        }
                         i = i + 1;
 
                         mid++;
@@ -131,12 +137,18 @@ namespace LineResearch
                     }
 
                     pline.AddVertexAt(pline.NumberOfVertices, pit1, 0, 0, 0);
-                    pline.AddVertexAt(pline.NumberOfVertices, pitMid, 0, 0, 0);
-                    pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
 
                     p3dColl2.Add(new Point3d(pit1.X, pit1.Y, 0));
-                    p3dColl2.Add(new Point3d(pitMid.X, pitMid.Y, 0));
-                    p3dColl2.Add(new Point3d(pit3.X, pit3.Y, 0));
+
+                    if (i < p3dcoll.Count)
+                    {
+                        pline.AddVertexAt(pline.NumberOfVertices, pitMid, 0, 0, 0);
+                        pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
+
+                        p3dColl2.Add(new Point3d(pitMid.X, pitMid.Y, 0));
+                        p3dColl2.Add(new Point3d(pit3.X, pit3.Y, 0));
+
+                    }
 
                     var vertex1 = pit1 - pitMid;
                     var vertex2 = pit3 - pitMid;

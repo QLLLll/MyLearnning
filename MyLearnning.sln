@@ -47,6 +47,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "example1", "example1\exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineResearch", "LineResearch\LineResearch.csproj", "{A545ECD7-41A4-497C-9985-09708561CBDD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArxSample", "ArxSample\ArxSample\ArxSample.csproj", "{E9D9CDF8-471B-4013-A059-07EE384BF388}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArxPipeSample", "ArxPipeSample\ArxPipeSample\ArxPipeSample.csproj", "{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +145,14 @@ Global
 		{A545ECD7-41A4-497C-9985-09708561CBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A545ECD7-41A4-497C-9985-09708561CBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A545ECD7-41A4-497C-9985-09708561CBDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9D9CDF8-471B-4013-A059-07EE384BF388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9D9CDF8-471B-4013-A059-07EE384BF388}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9D9CDF8-471B-4013-A059-07EE384BF388}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9D9CDF8-471B-4013-A059-07EE384BF388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
