@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArxSample", "ArxSample\ArxS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArxPipeSample", "ArxPipeSample\ArxPipeSample\ArxPipeSample.csproj", "{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleAppReadHatch", "ConsoleAppReadHatch\ConsoleAppReadHatch.csproj", "{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,10 @@ Global
 		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2DA0CD4-C51F-4D46-A74E-096A0FC24EA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
