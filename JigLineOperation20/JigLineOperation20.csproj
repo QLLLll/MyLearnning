@@ -32,16 +32,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="accoremgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\accoremgd.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\accoremgd.dll</HintPath>
     </Reference>
     <Reference Include="AcCui">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\AcCui.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\AcCui.dll</HintPath>
     </Reference>
     <Reference Include="acdbmgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acdbmgd.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\acdbmgd.dll</HintPath>
     </Reference>
     <Reference Include="acmgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acmgd.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
