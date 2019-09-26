@@ -53,6 +53,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArxPipeSample", "ArxPipeSam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleAppReadHatch", "ConsoleAppReadHatch\ConsoleAppReadHatch.csproj", "{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "example2", "example2\example2.csproj", "{05EA87E0-3BE6-4CF7-A909-CEA89F9611BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +161,10 @@ Global
 		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63BFAB2A-1B5F-43BB-BBA3-FDDBDB22ED2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05EA87E0-3BE6-4CF7-A909-CEA89F9611BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05EA87E0-3BE6-4CF7-A909-CEA89F9611BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05EA87E0-3BE6-4CF7-A909-CEA89F9611BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05EA87E0-3BE6-4CF7-A909-CEA89F9611BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

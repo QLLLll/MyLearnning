@@ -21,8 +21,8 @@ namespace LineResearch
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
             var db = doc.Database;
-
-            var intOpts = new PromptIntegerOptions("\n请输入每隔多少厘米进行点的合并");
+            
+            var intOpts = new PromptIntegerOptions("\n请输入每隔多少毫米进行点的合并");
 
             var intRes = ed.GetInteger(intOpts);
 
@@ -79,10 +79,11 @@ namespace LineResearch
 
                 Polyline pline = new Polyline();
                 Point3dCollection p3dColl2 = new Point3dCollection();
-                List<Arc> listArc = new List<Arc>();
+                List<Entity> listEntity = new List<Entity>();
 
                 for (int i = 0; i < p3dcoll.Count; i++)
                 {
+
                     int startIndex = i;
 
                     Point2d pit1 = new Point2d(p3dcoll[i].X, p3dcoll[i].Y);
@@ -150,46 +151,38 @@ namespace LineResearch
 
                     }
 
-                    var vertex1 = pit1 - pitMid;
-                    var vertex2 = pit3 - pitMid;
+                    if (i < p3dcoll.Count)
+                    {
+                        Arc arc = GetArc(pit1, pitMid, pit3);
 
-                    //if (vertex1.GetAngleTo(vertex2) != 0 || vertex1.GetAngleTo(vertex2) != Math.PI)
-                    //{
-                    //    Point2d pitCenter = Point2d.Origin;
+                        arc.ColorIndex =0;
+                        
+                            listEntity.Add(arc);
+                                              
+                    }
 
-                    //    double x = 0.0;
-                    //    double y = 0.0;
-
-                    //    GetArcCenter(pit1.X, pit1.Y, pitMid.X, pitMid.Y, pit3.X, pit3.Y, out x, out y);
-
-                    //    pitCenter = new Point2d(x, y);
-
-                    //    double radius = (pitCenter - pit1).Length;
-
-                    //    double startAngle = (pit3 - Point2d.Origin).GetAngleTo(Vector2d.XAxis);
-
-                    //    double endAngle = (pit1 - Point2d.Origin).GetAngleTo(Vector2d.XAxis);
-
-
-                    //    Arc arc = new Arc(new Point3d(pitCenter.X, pitCenter.Y, 0), radius, startAngle, endAngle);
-
-
-                    //    listArc.Add(arc);
-                    //}
+                    if (i == p3dcoll.Count - 1)
+                    {
+                        break;
+                    }
+                    i = i - 1;
 
                 }
                 pline.Closed = true;
                 pline.ColorIndex = pl3d1.ColorIndex;
 
-                Spline sPline = new Spline(p3dColl2, 4, 1000);
+                List<Polyline> listPoly = ArcToPolyline(listEntity);
 
                 var newDoc = Application.DocumentManager.Add("");
                 using (var lock1 = newDoc.LockDocument())
                 {
                     var newDb = newDoc.Database;
 
-                    pline.ToSpace(newDb);
-                    //listArc.ToSpace();
+                    //pline.ToSpace(newDb);
+                    //listEntity.ToSpace(newDb);
+                    //sPline.ToSpace();
+                    listPoly.ToSpace(newDb);
+
                 }
 
             }
@@ -215,7 +208,7 @@ namespace LineResearch
             return list;
         }
 
-        public void GetArcCenter(double a1, double b1, double a2, double b2, double a3, double b3, out double p, out double q)
+        private void GetArcCenter(double a1, double b1, double a2, double b2, double a3, double b3, out double p, out double q)
         {
 
             double u = (Math.Pow(a1, 2) - Math.Pow(a2, 2)
@@ -236,7 +229,79 @@ namespace LineResearch
 
         }
 
+        public Arc GetArc(Point2d pit1, Point2d pit2, Point2d pit3)
+        {
+            CircularArc2d arc2d = new CircularArc2d(pit1, pit2, pit3);
 
+            Point2d pitCenter = arc2d.Center;
+
+            double radius = arc2d.Radius;
+
+            double startAngle = AngleFromXAxis(pit1, pitCenter);
+
+            double endAngle = AngleFromXAxis(pit3, pitCenter);
+
+            double sangle = (startAngle / (2 * Math.PI * radius) * 360);
+            double eangle = (endAngle / (2 * Math.PI * radius) * 360);
+
+            double temp = 0;
+
+            if ((endAngle-startAngle)>Math.PI||(startAngle>endAngle&&Math.Abs(startAngle-endAngle)<Math.PI))
+            {
+                temp = startAngle;
+
+                startAngle = endAngle;
+
+                endAngle = temp;
+            }
+
+            Arc arc = new Arc(new Point3d(pitCenter.X, pitCenter.Y, 0), radius, startAngle, endAngle);
+
+            return arc;
+
+        }
+        
+        public double AngleFromXAxis(Point2d pt1, Point2d pt2)
+        {
+
+            Vector2d vector = new Vector2d(pt1.X - pt2.X, pt1.Y - pt2.Y);
+
+            return vector.Angle;
+
+        }
+
+        private List<Polyline> ArcToPolyline(List<Entity>list)
+        {
+            List<Polyline> listPoly = new List<Polyline>();
+
+            foreach (var item in list)
+            {
+                Entity ent = item as Entity;
+                //如果实体为圆弧
+                if (ent is Arc)
+                {
+                    Arc arc = ent as Arc;
+                    double R = arc.Radius;
+                    Point3d startPoint = arc.StartPoint;
+                    Point3d endPoint = arc.EndPoint;
+                    Point2d p1, p2;
+                    p1 = new Point2d(startPoint.X, startPoint.Y);
+                    p2 = new Point2d(endPoint.X, endPoint.Y);
+                    Double L = p1.GetDistanceTo(p2);
+                    double H = R - Math.Sqrt(R * R - L * L / 4);
+                    Polyline poly = new Polyline();
+                    
+                    poly.AddVertexAt(0, p1, 2 * H / L, 0, 0);
+                    poly.AddVertexAt(1, p2, 0, 0, 0);
+                    poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
+
+                    listPoly.Add(poly);
+                }
+
+
+            }
+            return listPoly;
+        }
 
     }
 }

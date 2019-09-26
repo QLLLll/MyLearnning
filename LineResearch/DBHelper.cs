@@ -35,6 +35,7 @@ namespace LineResearch
                     OpenMode.ForWrite) as BlockTableRecord;
 
                 id = mdlSpc.AppendEntity(ent);
+                
                 trans.AddNewlyCreatedDBObject(ent, true);
 
                 trans.Commit();
