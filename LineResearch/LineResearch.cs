@@ -173,6 +173,8 @@ namespace LineResearch
 
                 List<Polyline> listPoly = ArcToPolyline(listEntity);
 
+                Polyline poly = GetPolyline(listPoly);
+
                 var newDoc = Application.DocumentManager.Add("");
                 using (var lock1 = newDoc.LockDocument())
                 {
@@ -181,8 +183,8 @@ namespace LineResearch
                     //pline.ToSpace(newDb);
                     //listEntity.ToSpace(newDb);
                     //sPline.ToSpace();
-                    listPoly.ToSpace(newDb);
-
+                    // listPoly.ToSpace(newDb);
+                    poly.ToSpace(newDb);
                 }
 
             }
@@ -303,6 +305,17 @@ namespace LineResearch
             return listPoly;
         }
 
+        private Polyline GetPolyline(List<Polyline> list)
+        {
+
+            Polyline poly = list[0];
+
+            for (int i = 1; i < list.Count; i++)
+            {
+                poly.JoinEntity(list[i]);
+            }
+            return poly;
+        }
 
     }
 }
