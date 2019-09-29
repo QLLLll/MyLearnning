@@ -208,9 +208,6 @@ namespace LineResearch
                             i = i + 1;
                         }
 
-
-
-
                         List<CircularArc2d> tempArc = new List<CircularArc2d>();
 
                         if (arc != null && arc2 != null)
@@ -256,8 +253,6 @@ namespace LineResearch
                         }
                         List<Polyline> listpolytemp = new List<Polyline>();
 
-                        //tempArc = tempArc.Distinct<Arc>().ToList();
-
                         if (tempArc.Count > 1)
                         {
                             Arc newTempArc = null;
@@ -281,60 +276,11 @@ namespace LineResearch
                             newTempArc.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
 
                             Polyline l= new Polyline();
-                            if (Math.Abs(newTempArc.EndAngle - newTempArc.StartAngle) == Math.PI)
-                            {
-                                l.AddVertexAt(l.NumberOfVertices, new Point2d(startPoint.X, startPoint.Y), 0, 0, 0);
-                                l.AddVertexAt(l.NumberOfVertices, new Point2d(endPoint.X, endPoint.Y), 0, 0, 0);
-                                l.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Blue);
-                                //listEntsOptimize.Add(l);
-                            }
-                            else
-                            {
-                                listEntsOptimize.Add(newTempArc);
-                            }
-                            
+                           
+                                listEntsOptimize.Add(newTempArc);                       
 
-                            //Arc mergeArc = GetMergeArc(tempArc);
-
-                            //listEntsOptimize.Add(mergeArc);
-
-                            /* for (int j = 0; j < tempArc.Count; j++)
-                             {
-                                 var ent = tempArc[j];
-
-                                 if (ent is Arc)
-                                 {
-                                     Arc arct = ent as Arc;
-                                     double R = arc.Radius;
-                                     Point3d startPoint = arct.StartPoint;
-                                     Point3d endPoint = arct.EndPoint;
-                                     Point2d p1, p2;
-                                     p1 = new Point2d(startPoint.X, startPoint.Y);
-                                     p2 = new Point2d(endPoint.X, endPoint.Y);
-                                     Double L = p1.GetDistanceTo(p2);
-                                     double H = R - Math.Sqrt(R * R - L * L / 4);
-
-                                     Polyline polytemp = new Polyline();
-
-                                     polytemp.AddVertexAt(0, p1, 2 * H / L, 0, 0);
-                                     polytemp.AddVertexAt(1, p2, 0, 0, 0);
-                                     polytemp.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
-
-                                     listpolytemp.Add(polytemp);
-                                 }
-
-                             }*/
-
-                            //listpolytemp = listpolytemp.Distinct().ToList();
-
-                            // Polyline polyArc = GetPolyline(listpolytemp);
-
-                            //polyArc.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
-                            //listEntsOptimize.Add(polyArc);
                         }
-                        //listEntsOptimize = listEntsOptimize.Distinct<Entity>().ToList();
 
-                        //listEntsOptimize.AddRange(tempArc);
                         if (i == listEntity2.Count - 1)
                         {
                             break;
@@ -343,80 +289,39 @@ namespace LineResearch
                     }
                 }
 
-                /*List<Polyline> listPoly = ArcToPolyline(listEntity);
+                List<Polyline> listPoly = ArcToPolyline(listEntity);
                 List<Polyline> listPoly2 = ArcToPolyline(listEntsOptimize);
                
-                List<Polyline> listpolyOptimize = ArcToPolyline(listEntsOptimize);
-
                 Polyline poly = GetPolyline(listPoly);
                 Polyline poly2 = GetPolyline(listPoly2);
-                
+
 
                 if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
                     poly2.ToSpace();
                 else
-                    poly.ToSpace();*/
+                    poly.ToSpace();
 
-                List<Polyline> listpolyOptimize = ArcToPolyline(listEntsOptimize);
+                //List<Polyline> listpolyOptimize = ArcToPolyline(listEntsOptimize);
 
-                Polyline poly = GetPolyline(listpolyOptimize);
-               
-
-                var newDoc = Application.DocumentManager.Add("");
-                using (var lock1 = newDoc.LockDocument())
-                {
-                    var newDb = newDoc.Database;
-
-                    if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
-                        poly.ToSpace(newDb);
-                 //   else
-                     //   poly.ToSpace(newDb);
+                // Polyline poly = GetPolyline(listpolyOptimize);
 
 
-                }
+                //var newDoc = Application.DocumentManager.Add("");
+                //using (var lock1 = newDoc.LockDocument())
+                //{
+                //    var newDb = newDoc.Database;
+
+                //    if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
+                //        poly2.ToSpace(newDb);
+                //    else
+                //        poly.ToSpace(newDb);
+
+
+                //}
 
             }
 
         }
-
-        /*private Arc GetMergeArc(List<Arc> listArc)
-        {
-
-
-
-            double startAngle = listArc[0].StartAngle;
-            double endAngle = listArc[listArc.Count - 1].EndAngle;
-
-
-
-            double temp = 0;
-
-            if ((endAngle - startAngle) > Math.PI || (startAngle > endAngle && Math.Abs(startAngle - endAngle) < Math.PI))
-            {
-                temp = startAngle;
-
-                startAngle = endAngle;
-
-                endAngle = temp;
-            }
-
-            double rad = 0.0;
-            double x = 0.0;
-            double y = 0.0;
-            listArc.ForEach((arc) =>
-            {
-                rad += arc.Radius;
-                x += arc.Center.X;
-                y += arc.Center.Y;
-            });
-
-            rad = rad / listArc.Count;
-
-            Point3d center = new Point3d(x / listArc.Count, y / listArc.Count, 0);
-
-
-            return new Arc(center, rad, startAngle, endAngle);
-        }*/
 
         public List<Polyline3d> MyForeach(SelectionSet selected,
                    Database db = null)
@@ -539,10 +444,7 @@ namespace LineResearch
                     poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
 
                     listPoly.Add(poly);
-                }
-                
-
-
+                }                
             }
             return listPoly;
         }
@@ -556,13 +458,12 @@ namespace LineResearch
             Polyline poly = list[0];
 
             for (int i = 1; i < list.Count; i++)
-            {
-                
+            {                
                     poly.JoinEntity(list[i]);
             }
             return poly;
         }
-          private void GetArcCenter(double a1, double b1, double a2, double b2, double a3, double b3, out double p, out double q)
+        /*  private void GetArcCenter(double a1, double b1, double a2, double b2, double a3, double b3, out double p, out double q)
                 {
 
                     double u = (Math.Pow(a1, 2) - Math.Pow(a2, 2)
@@ -581,7 +482,7 @@ namespace LineResearch
 
                     p = v - (u - v) * k2 / (k1 - k2);
 
-                }
+                }*/
                 
     }
 }

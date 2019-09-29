@@ -53,11 +53,6 @@ namespace example2
             ribTab.IsActive = true;
             ribTab.Panels.Add(ribPanel);
 
-
-
-
-
-
         }
 
     }
