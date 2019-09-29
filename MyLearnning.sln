@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "example2", "example2\exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoNetLoad", "AutoNetLoad\AutoNetLoad.csproj", "{3962C947-634F-48D7-8D53-B3A48DED21F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyReactor", "MyReactor\MyReactor.csproj", "{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -279,6 +281,14 @@ Global
 		{3962C947-634F-48D7-8D53-B3A48DED21F4}.Release|Any CPU.ActiveCfg = Release|x86
 		{3962C947-634F-48D7-8D53-B3A48DED21F4}.Release|x86.ActiveCfg = Release|x86
 		{3962C947-634F-48D7-8D53-B3A48DED21F4}.Release|x86.Build.0 = Release|x86
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Debug|x86.Build.0 = Debug|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|x86.ActiveCfg = Release|Any CPU
+		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

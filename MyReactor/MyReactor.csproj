@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{05EA87E0-3BE6-4CF7-A909-CEA89F9611BE}</ProjectGuid>
+    <ProjectGuid>{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>example2</RootNamespace>
-    <AssemblyName>example2</AssemblyName>
+    <RootNamespace>MyReactor</RootNamespace>
+    <AssemblyName>MyReactor</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -43,9 +43,6 @@
     <Reference Include="acmgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acmgd.dll</HintPath>
     </Reference>
-    <Reference Include="AdWindows">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\AdWindows.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -56,9 +53,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PipeSample.cs" />
-    <Compile Include="MyRibbon.cs" />
-    <Compile Include="Pipe.cs" />
+    <Compile Include="DBHelper.cs" />
+    <Compile Include="MyReactor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
