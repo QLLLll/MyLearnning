@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoNetLoad", "AutoNetLoad\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyReactor", "MyReactor\MyReactor.csproj", "{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineResearch_Cir_CenterPoint", "LineResearch_Cir_CenterPoint\LineResearch_Cir_CenterPoint.csproj", "{88473517-56E5-4744-8FFD-A65CE62E8CBC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -289,6 +291,14 @@ Global
 		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|x86.ActiveCfg = Release|Any CPU
 		{06AD0DB0-669F-4C4F-A196-1F0095C2D7BB}.Release|x86.Build.0 = Release|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Debug|x86.Build.0 = Debug|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Release|x86.ActiveCfg = Release|Any CPU
+		{88473517-56E5-4744-8FFD-A65CE62E8CBC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
