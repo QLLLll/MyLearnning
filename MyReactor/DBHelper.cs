@@ -28,7 +28,7 @@ namespace MyReactor
             db = db ?? Application.DocumentManager.MdiActiveDocument.Database;
             var id = ObjectId.Null;
 
-            using (var trans = db.TransactionManager.StartTransaction())
+            using (var trans = db.TransactionManager.StartOpenCloseTransaction())
             {
                 var blkTbl = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                 var mdlSpc = trans.GetObject(blkTbl[space ?? BlockTableRecord.ModelSpace],

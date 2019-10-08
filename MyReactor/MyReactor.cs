@@ -29,12 +29,12 @@ namespace MyReactor
 
             //blk.AppendEntity(line);
 
-         
+
 
             AttributeDefinition def = new AttributeDefinition(new Point3d(1, 1, 0), "2", "MyAttr", "The End", ObjectId.Null);
 
 
-            var defId = DBHelper.ToBlockDefinition(new List<Entity>() { line,def }, "MyLine");
+            var defId = DBHelper.ToBlockDefinition(new List<Entity>() { line, def }, "MyLine");
 
             db.ObjectModified += Db_ObjectModified;
 
@@ -45,7 +45,8 @@ namespace MyReactor
             AttributeReference def = e.DBObject as AttributeReference;
             Database db = sender as Database;
             if (def != null)
-            { string value = def.TextString;
+            {
+                string value = def.TextString;
 
                 using (var trans = db.TransactionManager?.StartOpenCloseTransaction())
                 {
@@ -54,7 +55,21 @@ namespace MyReactor
 
                     var tblRec = trans.GetObject(blktbl["MyLine"], OpenMode.ForRead) as BlockTableRecord;
 
-                    foreach (ObjectId id in tblRec)
+                    Line line2 = new Line();
+
+                    line2.StartPoint = Point3d.Origin;
+                    line2.EndPoint = Point3d.Origin + Vector3d.XAxis * 2 + Vector3d.YAxis * 2;
+
+
+
+                    var tblRec2 = trans.GetObject(blktbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
+
+                    tblRec2.AppendEntity(line2);
+
+                    trans.AddNewlyCreatedDBObject(line2, true);
+
+
+                    /*foreach (ObjectId id in tblRec)
                     {
 
                         Line line = trans.GetObject(id, OpenMode.ForRead) as Line;
@@ -64,26 +79,26 @@ namespace MyReactor
 
 
 
-                            DBHelper.ModifySymbol(db.BlockTableId, "MyLine", (rec) =>
-                            {
-                                tblRec.UpgradeOpen();
+                            Line line22 = new Line();
 
-                                line.UpgradeOpen();
+                            line2.StartPoint = Point3d.Origin;
+                            line2.EndPoint = Point3d.Origin + Vector3d.XAxis * 2 + Vector3d.YAxis * 2;
 
-                                line.EndPoint = new Point3d(double.Parse(value), double.Parse(value), 0);
 
-                                var a = rec as BlockTableRecord;
 
-                                a.AppendEntity(line);
+                            var tblRec2 = trans.GetObject(blktbl[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
 
-                            });
+                            tblRec2.AppendEntity(line2);
+
+                            trans.AddNewlyCreatedDBObject(line2, true);
+
                             break;
                         }
+                        
 
-                        trans.Commit();
-                    }
+                    }*/
 
-
+                    trans.Commit();
                 }
 
             }
