@@ -47,18 +47,24 @@ namespace LineResearch_Cir_CenterPoint
 
             }
 
-            var selectRes = ed.GetSelection(new SelectionFilter(new[] { new TypedValue((int)DxfCode.Start, "POLYLINE") }));
+            var selectRes = ed.GetSelection(/*new SelectionFilter(new[] { new TypedValue((int)DxfCode.Start, "POLYLINE") })*/);
 
             if (selectRes.Status == PromptStatus.OK)
             {
 
                 var selectSet = selectRes.Value;
 
-                List<Polyline3d> listPl = new List<Polyline3d>();
+
 
                 List<Polyline3d> listPlold = MyForeach(selectSet);
-
+                Polyline polyy = MyForeach2(selectSet);
                 Point3dCollection p3dcoll = new Point3dCollection();
+                /*Point2dCollection p3dcoll = new Point2dCollection();
+
+                for (int i = 0; i < polyy.NumberOfVertices; i++)
+                {
+                    p3dcoll.Add(polyy.GetPoint2dAt(i));
+                }*/
 
                 if (null == listPlold || listPlold.Count < 1)
                 {
@@ -88,6 +94,8 @@ namespace LineResearch_Cir_CenterPoint
                     }
 
                 }
+
+
 
                 Polyline pline = new Polyline();
                 Point3dCollection p3dColl2 = new Point3dCollection();
@@ -203,7 +211,7 @@ namespace LineResearch_Cir_CenterPoint
 
                 }
                 pline.Closed = true;
-                pline.ColorIndex = pl3d1.ColorIndex;
+                //pline.ColorIndex = pl3d1.ColorIndex;
 
 
 
@@ -240,118 +248,143 @@ namespace LineResearch_Cir_CenterPoint
 
                     for (int i = 0; i < listEntity2.Count; i++)
                     {
-
-                        if (isPolineIndex.Contains(i))
-                        {
-                            listEntsOptimize.Add(listEntity2[i]);
-                        }
-                        else
+                        try
                         {
 
-                            Arc arc = listEntity2[i] as Arc;
 
-                            Arc arc2 = null;
-
-                            if (arc != null && !listEntsOptimize.Contains(arc))
-                                listEntsOptimize.Add(arc);
-
-                            if (i + 1 < listEntity2.Count)
+                            if (isPolineIndex.Contains(i))
                             {
-                                arc2 = listEntity2[i + 1] as Arc;
-
-                                if (arc2 != null && !listEntsOptimize.Contains(arc2))
-                                    listEntsOptimize.Add(arc2);
-
-                                i = i + 1;
+                                listEntsOptimize.Add(listEntity2[i]);
                             }
-
-                            List<CircularArc2d> tempArc = new List<CircularArc2d>();
-
-                            if (arc != null && arc2 != null)
+                            else
                             {
 
-                                // double angle1 = arc.EndAngle - arc.StartAngle;
+                                Arc arc = listEntity2[i] as Arc;
 
-                                //double angle2 = arc2.EndAngle - arc.StartAngle;
+                                Arc arc2 = null;
 
-                                Point3d pt1 = arc.Center;
-                                Point3d pt2 = arc2.Center;
+                                if (arc != null && !listEntsOptimize.Contains(arc))
+                                    listEntsOptimize.Add(arc);
 
-                                double diffRad = Math.Abs(arc.Radius - arc2.Radius) / Math.Max(arc.Radius, arc2.Radius);
-                                double diffLength = (pt2 - pt1).Length / Math.Min(arc.Radius, arc2.Radius);
-
-                                //while (Math.Abs(angle1 - angle2) <= Math.PI * (30.0 / 180))
-
-                                while (diffRad <= range && diffLength <= range)
+                                if (i + 1 < listEntity2.Count)
                                 {
-                                    if (listEntsOptimize.Contains(arc))
-                                        listEntsOptimize.Remove(arc);
+                                    arc2 = listEntity2[i + 1] as Arc;
 
-                                    if (listEntsOptimize.Contains(arc2))
-                                        listEntsOptimize.Remove(arc2);
-
-                                    int index = listEntity2.IndexOf(arc);
-
-                                    int index2 = listEntity2.IndexOf(arc2);
-
-                                    tempArc.Add(listC2d[index]);
-                                    tempArc.Add(listC2d[index2]);
-
-                                    if (i + 1 < listEntity2.Count)
+                                    if (arc2 == null)
                                     {
-                                        arc2 = listEntity2[i + 1] as Arc;
-                                        i = i + 1;
+                                        listEntsOptimize.Add(listEntity2[i + 1]);
+                                        continue;
+                                    }
+
+                                    if (arc2 != null && !listEntsOptimize.Contains(arc2))
+                                        listEntsOptimize.Add(arc2);
+
+                                    i = i + 1;
+                                }
+
+                                List<CircularArc2d> tempArc = new List<CircularArc2d>();
+
+                                if (arc != null && arc2 != null)
+                                {
+
+                                    // double angle1 = arc.EndAngle - arc.StartAngle;
+
+                                    //double angle2 = arc2.EndAngle - arc.StartAngle;
+
+                                    Point3d pt1 = arc.Center;
+                                    Point3d pt2 = arc2.Center;
+
+                                    double diffRad = Math.Abs(arc.Radius - arc2.Radius) / Math.Max(arc.Radius, arc2.Radius);
+                                    double diffLength = (pt2 - pt1).Length / Math.Min(arc.Radius, arc2.Radius);
+
+                                    //while (Math.Abs(angle1 - angle2) <= Math.PI * (30.0 / 180))
+
+                                    while (diffRad <= range && diffLength <= range)
+                                    {
+                                        if (listEntsOptimize.Contains(arc))
+                                            listEntsOptimize.Remove(arc);
+
+                                        if (listEntsOptimize.Contains(arc2))
+                                            listEntsOptimize.Remove(arc2);
+
+                                        int index = listEntity2.IndexOf(arc);
+
+                                        int index2 = listEntity2.IndexOf(arc2);
+                                        if (index != -1)
+                                            tempArc.Add(listC2d[index]);
+                                        if (index2 != -1)
+                                            tempArc.Add(listC2d[index2]);
+
+                                        if (i + 1 < listEntity2.Count)
+                                        {
+                                            arc2 = listEntity2[i + 1] as Arc;
+
+                                            if (arc2 == null)
+                                            {
+                                                listEntsOptimize.Add(listEntity2[i + 1]);
+                                                i = i + 1;
+                                                continue;
+                                            }
+                                            else
+                                            i = i + 1;
+                                        }
+                                        else
+                                        {
+                                            arc2 = null;
+                                            break;
+                                        }
+
+                                        // angle1 = arc.EndAngle - arc.StartAngle;
+
+                                        // angle2 = arc2.EndAngle - arc.StartAngle;
+                                        pt1 = arc.Center;
+                                        pt2 = arc2.Center;
+                                        diffRad = Math.Abs(arc.Radius - arc2.Radius) / Math.Max(arc.Radius, arc2.Radius);
+                                        diffLength = (pt2 - pt1).Length / Math.Min(arc.Radius, arc2.Radius);
+
+                                    }
+
+                                }
+                                List<Polyline> listpolytemp = new List<Polyline>();
+
+                                if (tempArc.Count > 1)
+                                {
+                                    Arc newTempArc = null;
+                                    Point2d startPoint = tempArc[0].StartPoint;
+                                    Point2d endPoint = tempArc[tempArc.Count - 1].EndPoint;
+                                    if (tempArc.Count == 2)
+                                    {
+
+                                        Point2d centerPoint = tempArc[0].EndPoint;
+
+                                        newTempArc = GetArc(startPoint,
+                                            centerPoint, endPoint);
                                     }
                                     else
                                     {
-                                        arc2 = null;
-                                        break;
+                                        Point2d centerPoint = tempArc[1].EndPoint;
+
+                                        newTempArc = GetArc(startPoint,
+                                            centerPoint, endPoint);
                                     }
+                                    newTempArc.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
 
-                                    // angle1 = arc.EndAngle - arc.StartAngle;
-
-                                    // angle2 = arc2.EndAngle - arc.StartAngle;
-                                    pt1 = arc.Center;
-                                    pt2 = arc2.Center;
-                                    diffRad = Math.Abs(arc.Radius - arc2.Radius) / Math.Max(arc.Radius, arc2.Radius);
-                                    diffLength = (pt2 - pt1).Length / Math.Min(arc.Radius, arc2.Radius);
+                                    listEntsOptimize.Add(newTempArc);
 
                                 }
 
-                            }
-                            List<Polyline> listpolytemp = new List<Polyline>();
-
-                            if (tempArc.Count > 1)
-                            {
-                                Arc newTempArc = null;
-                                Point2d startPoint = tempArc[0].StartPoint;
-                                Point2d endPoint = tempArc[tempArc.Count - 1].EndPoint;
-                                if (tempArc.Count == 2)
+                                if (i == listEntity2.Count - 1)
                                 {
-
-                                    Point2d centerPoint = tempArc[0].EndPoint;
-
-                                    newTempArc = GetArc(startPoint,
-                                        centerPoint, endPoint);
+                                    break;
                                 }
-                                else
-                                {
-                                    Point2d centerPoint = tempArc[1].EndPoint;
-
-                                    newTempArc = GetArc(startPoint,
-                                        centerPoint, endPoint);
-                                }
-                                newTempArc.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
-
-                                listEntsOptimize.Add(newTempArc);
-
+                                i = i - 1;
                             }
 
-                            if (i == listEntity2.Count - 1)
-                            {
-                                break;
-                            }
-                            i = i - 1;
+                        }
+                        catch (System.Exception e)
+                        {
+
+                            throw;
                         }
                     }
                 }
@@ -366,9 +399,11 @@ namespace LineResearch_Cir_CenterPoint
 
                 if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
                     // poly2.ToSpace();
-                    listEntsOptimize.ToSpace();
-                //else
-                    //poly.ToSpace();
+                    //listEntsOptimize.ToSpace();
+                    listEntity2.ToSpace();
+                else
+                    listEntity2.ToSpace();
+                //poly.ToSpace();
 
                 //List<Polyline> listpolyOptimize = ArcToPolyline(listEntsOptimize);
 
@@ -405,7 +440,7 @@ namespace LineResearch_Cir_CenterPoint
 
             bool flag = false;
 
-            for (int i = startIndex; i <= mid; i++)
+            for (int i = startIndex; i <= startIndex + mid; i++)
             {
                 Point2d ptTemp = new Point2d(p3dcoll[i].X, p3dcoll[i].Y);
 
@@ -418,7 +453,7 @@ namespace LineResearch_Cir_CenterPoint
                 }
             }
 
-            int count = startIndex + mid;
+            int count = startIndex + mid + 1;
 
             if (flag == true && count > 2)
             {
@@ -426,7 +461,7 @@ namespace LineResearch_Cir_CenterPoint
                 if (count % 2 == 1)
                 {
 
-                    for (int i = startIndex; i <= mid; i += 2)
+                    for (int i = startIndex; i < count; i += 2)
                     {
 
                         Point2d pit1 = new Point2d(p3dcoll[i].X, p3dcoll[i].Y);
@@ -442,11 +477,13 @@ namespace LineResearch_Cir_CenterPoint
 
                         double radius2 = c2Temp.Radius;
 
-                        double diff1 = Math.Abs(radius - (cPt2 - pit1).Length);
+                        double diff1 = Math.Abs(radius2 - (cPt2 - pit1).Length);
+                        double diff2 = Math.Abs(radius2 - (cPt2 - pit2).Length);
+                        double diff3 = Math.Abs(radius2 - (cPt2 - pit3).Length);
 
-                        if (diff1 > rongCha)
+                        if (diff1 > rongCha || diff2 > rongCha || diff3 > rongCha)
                         {
-                            Polyline p = new Polyline(4);
+                            Polyline p = new Polyline(3);
 
                             p.AddVertexAt(p.NumberOfVertices, pit1, 0, 0, 0);
                             p.AddVertexAt(p.NumberOfVertices, pit2, 0, 0, 0);
@@ -454,7 +491,7 @@ namespace LineResearch_Cir_CenterPoint
 
                             listEntity.Add(p);
                             listEntity2.Add(p);
-
+                            listC2d.Add(new CircularArc2d());
                             isPolineIndex.Add(listEntity.Count - 1);
                         }
                         else
@@ -473,7 +510,7 @@ namespace LineResearch_Cir_CenterPoint
                 {
                     int endFour = count - 4;
 
-                    for (int i = startIndex; i <= endFour; i += 2)
+                    for (int i = startIndex; i < endFour; i += 2)
                     {
 
                         Point2d pit11 = new Point2d(p3dcoll[i].X, p3dcoll[i].Y);
@@ -484,11 +521,36 @@ namespace LineResearch_Cir_CenterPoint
                         CircularArc2d c2Temp = null;
                         Arc arc2 = GetArc2(pit11, pit22, pit33, ref c2Temp);
 
+                        Point2d cPt22 = c2Temp.Center;
+
+                        double radius22 = c2Temp.Radius;
+
+                        double diff11 = Math.Abs(radius22 - (cPt22 - pit11).Length);
+                        double diff22 = Math.Abs(radius22 - (cPt22 - pit22).Length);
+                        double diff33 = Math.Abs(radius22 - (cPt22 - pit33).Length);
+
+                        if (diff11 > rongCha || diff22 > rongCha || diff33 > rongCha)
+                        {
+                            Polyline p = new Polyline(3);
+
+                            p.AddVertexAt(p.NumberOfVertices, pit11, 0, 0, 0);
+                            p.AddVertexAt(p.NumberOfVertices, pit22, 0, 0, 0);
+                            p.AddVertexAt(p.NumberOfVertices, pit33, 0, 0, 0);
+
+                            listEntity.Add(p);
+                            listEntity2.Add(p);
+                            listC2d.Add(new CircularArc2d());
+                            isPolineIndex.Add(listEntity.Count - 1);
+                        }
+                        else
+                        {
+
+                            listEntity.Add(arc);
+                            listEntity2.Add(arc2);
+                            listC2d.Add(c2Temp);
+                        }
 
 
-                        listEntity.Add(arc);
-                        listEntity2.Add(arc2);
-                        listC2d.Add(c2Temp);
                     }
 
                     Point2d pit1 = new Point2d(p3dcoll[endFour].X, p3dcoll[endFour].Y);
@@ -507,9 +569,9 @@ namespace LineResearch_Cir_CenterPoint
 
 
 
-                    double diff1 = Math.Abs(radius - (cPt - pit1).Length);
-                    double diff2 = Math.Abs(radius - (cPt - pit2).Length);
-                    double diff3 = Math.Abs(radius - (cPt - pit4).Length);
+                    double diff1 = Math.Abs(radius2 - (cPt2 - pit1).Length);
+                    double diff2 = Math.Abs(radius2 - (cPt2 - pit2).Length);
+                    double diff3 = Math.Abs(radius2 - (cPt2 - pit4).Length);
                     if (diff1 > rongCha || diff2 > rongCha || diff3 > rongCha)
                     {
                         Polyline p = new Polyline(4);
@@ -520,7 +582,7 @@ namespace LineResearch_Cir_CenterPoint
                         p.AddVertexAt(p.NumberOfVertices, pit4, 0, 0, 0);
                         listEntity.Add(p);
                         listEntity2.Add(p);
-
+                        listC2d.Add(new CircularArc2d());
                         isPolineIndex.Add(listEntity.Count - 1);
                     }
                     else
@@ -561,7 +623,25 @@ namespace LineResearch_Cir_CenterPoint
 
             return list;
         }
+        public Polyline MyForeach2(SelectionSet selected,
+                   Database db = null)
+        {
 
+            db = db ?? Application.DocumentManager.MdiActiveDocument.Database;
+            Polyline ent = null;
+            using (var trans = db.TransactionManager.StartTransaction())
+            {
+                foreach (var id in selected.GetObjectIds())
+                {
+                    ent = trans.GetObject(id, OpenMode.ForRead) as Polyline;
+                    break;
+                }
+
+                trans.Commit();
+            }
+
+            return ent;
+        }
 
         public Arc GetArc(Point2d pit1, Point2d pit2, Point2d pit3)
         {
@@ -680,7 +760,7 @@ namespace LineResearch_Cir_CenterPoint
 
                             if (i + 1 < p.NumberOfVertices)
                             {
-                                tempP.AddVertexAt(1, p.GetPoint2dAt(i+1), 0, 0, 0);
+                                tempP.AddVertexAt(1, p.GetPoint2dAt(i + 1), 0, 0, 0);
 
                                 listPoly.Add(tempP);
                             }
