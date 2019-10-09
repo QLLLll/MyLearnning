@@ -13,21 +13,32 @@ namespace LineResearch_Cir_CenterPoint
 {
     public class LineResearch
     {
+        //容差
+        static double rongCha = 50;
 
-        double rongCha = 50;
+        //多段线合并范围（直径只差/直径<=range&&圆心距离只差/最小半径<=range）
+        static double range = 0.3;
 
-        double range = 0.3;
+        //多段线合并长度 单位毫米
+        static int intCmeter = 2000;
 
-        int intCmeter = 2000;
+        /*
+         * 在多段线合并的时候，超过合并范围，会取消合并，
+         * 当取消合并为最小的3个点之后还是会超过合并范围，就直接做成polyline
+         * 有一个这样的polyline，就记录下它在listEntity下的索引
+          */
+        static List<int> isPolineIndex = new List<int>();
 
-        List<int> isPolineIndex = new List<int>();
+        static List<Entity> listEntity = new List<Entity>();
+        static List<Entity> listEntity2 = new List<Entity>();
 
-        List<Entity> listEntity = new List<Entity>();
-        List<Entity> listEntity2 = new List<Entity>();
-        List<CircularArc2d> listC2d = new List<CircularArc2d>();
+        static List<Entity> listEntity3 = new List<Entity>();//等距弧长多段线
+
+        //没合并一个Arc 就产生一个CirculaArc2d
+        static List<CircularArc2d> listC2d = new List<CircularArc2d>();
 
         [CommandMethod("GetLine")]
-        public void GetLine()
+        public static void GetLine()
         {
 
             var doc = Application.DocumentManager.MdiActiveDocument;
@@ -57,7 +68,7 @@ namespace LineResearch_Cir_CenterPoint
 
 
                 List<Polyline3d> listPlold = MyForeach(selectSet);
-                Polyline polyy = MyForeach2(selectSet);
+                //Polyline polyy = MyForeach2(selectSet);
                 Point3dCollection p3dcoll = new Point3dCollection();
                 /*Point2dCollection p3dcoll = new Point2dCollection();
 
@@ -71,7 +82,7 @@ namespace LineResearch_Cir_CenterPoint
                     return;
                 }
 
-                var pl3d1 = listPlold[0];
+                //var pl3d1 = listPlold[0];
 
                 foreach (var pl3d in listPlold)
                 {
@@ -95,13 +106,12 @@ namespace LineResearch_Cir_CenterPoint
 
                 }
 
-
-
-                Polyline pline = new Polyline();
-                Point3dCollection p3dColl2 = new Point3dCollection();
+                // Polyline pline = new Polyline();
+                //Point3dCollection p3dColl2 = new Point3dCollection();
 
                 PromptDoubleOptions pkDbOpts = new PromptDoubleOptions("请输入容差");
 
+                //不允许输入负数
                 pkDbOpts.AllowNegative = false;
 
                 var keyDoubleRes = ed.GetDouble(pkDbOpts);
@@ -128,20 +138,22 @@ namespace LineResearch_Cir_CenterPoint
                     if (i + 1 < p3dcoll.Count)
                     {
                         pit2 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
-                        i = i + 1;
+                        i += 1;
 
                     }
 
                     if (i + 1 < p3dcoll.Count)
                     {
                         pit3 = new Point2d(p3dcoll[i + 1].X, p3dcoll[i + 1].Y);
-                        i = i + 1;
+                        i += 1;
                     }
 
                     double length = (pit2 - pit1).Length + (pit3 - pit2).Length;
 
+                    //记录循环的点的个数
                     int mid = 0;
 
+                    //当两个点的长度小于要合并的长度就继续循环下一个点
                     while (length < intCmeter)
                     {
 
@@ -155,7 +167,7 @@ namespace LineResearch_Cir_CenterPoint
                         {
                             break;
                         }
-                        i = i + 1;
+                        i += 1;
 
                         mid++;
 
@@ -163,6 +175,7 @@ namespace LineResearch_Cir_CenterPoint
                     }
                     Point2d pitMid = Point2d.Origin;
 
+                    //寻找这些要合并的点的中间的个点
                     if (mid / 2 > 0)
                     {
                         pitMid = new Point2d(p3dcoll[startIndex + mid / 2].X, p3dcoll[startIndex + mid / 2].Y);
@@ -172,28 +185,34 @@ namespace LineResearch_Cir_CenterPoint
                         pitMid = pit2;
                     }
 
-                    pline.AddVertexAt(pline.NumberOfVertices, pit1, 0, 0, 0);
+                    // pline.AddVertexAt(pline.NumberOfVertices, pit1, 0, 0, 0);
 
-                    p3dColl2.Add(new Point3d(pit1.X, pit1.Y, 0));
+                    // p3dColl2.Add(new Point3d(pit1.X, pit1.Y, 0));
+
+                    //if (i < p3dcoll.Count)
+                    //{
+                    //pline.AddVertexAt(pline.NumberOfVertices, pitMid, 0, 0, 0);
+                    // pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
+
+                    // p3dColl2.Add(new Point3d(pitMid.X, pitMid.Y, 0));
+                    // p3dColl2.Add(new Point3d(pit3.X, pit3.Y, 0));
+
+                    //}
 
                     if (i < p3dcoll.Count)
                     {
-                        pline.AddVertexAt(pline.NumberOfVertices, pitMid, 0, 0, 0);
-                        pline.AddVertexAt(pline.NumberOfVertices, pit3, 0, 0, 0);
-
-                        p3dColl2.Add(new Point3d(pitMid.X, pitMid.Y, 0));
-                        p3dColl2.Add(new Point3d(pit3.X, pit3.Y, 0));
-
-                    }
-
-                    if (i < p3dcoll.Count)
-                    {
+                        //合并成圆弧
                         Arc arc = GetArc(pit1, pitMid, pit3);
                         CircularArc2d c2d = null;
                         Arc arc2 = GetArc2(pit1, pitMid, pit3, ref c2d);
 
 
+                        Arc arc3 = GetArc(pit1, pitMid, pit3);
 
+                        //不计算容差的等距圆弧
+                        listEntity3.Add(arc3);
+
+                        //计算容差
                         if (!CalRongCha(c2d, startIndex, mid + 2, p3dcoll))
                         {
 
@@ -207,10 +226,10 @@ namespace LineResearch_Cir_CenterPoint
                     {
                         break;
                     }
-                    i = i - 1;
+                    i -= 1;
 
                 }
-                pline.Closed = true;
+                //pline.Closed = true;
                 //pline.ColorIndex = pl3d1.ColorIndex;
 
 
@@ -220,16 +239,12 @@ namespace LineResearch_Cir_CenterPoint
                 var keyRes = ed.GetKeywords(pkOpts);
 
                 List<Entity> listEntsOptimize = new List<Entity>();
+                List<Entity> listEntsOptimize2 = new List<Entity>();
 
                 if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
                 {
 
                     ed.WriteMessage("进行弧长优化");
-
-
-
-
-
 
                     /* PromptDoubleOptions pkDbOpts2 = new PromptDoubleOptions("请输入优化圆弧的范围");
 
@@ -251,7 +266,7 @@ namespace LineResearch_Cir_CenterPoint
                         try
                         {
 
-
+                            //如果是多段线，直接添加
                             if (isPolineIndex.Contains(i))
                             {
                                 listEntsOptimize.Add(listEntity2[i]);
@@ -263,6 +278,7 @@ namespace LineResearch_Cir_CenterPoint
 
                                 Arc arc2 = null;
 
+                                //先把arc添加进去，如果进入while循环，在移除
                                 if (arc != null && !listEntsOptimize.Contains(arc))
                                     listEntsOptimize.Add(arc);
 
@@ -279,9 +295,10 @@ namespace LineResearch_Cir_CenterPoint
                                     if (arc2 != null && !listEntsOptimize.Contains(arc2))
                                         listEntsOptimize.Add(arc2);
 
-                                    i = i + 1;
+                                    i += 1;
                                 }
 
+                                //要合并优化的圆弧
                                 List<CircularArc2d> tempArc = new List<CircularArc2d>();
 
                                 if (arc != null && arc2 != null)
@@ -295,6 +312,7 @@ namespace LineResearch_Cir_CenterPoint
                                     Point3d pt2 = arc2.Center;
 
                                     double diffRad = Math.Abs(arc.Radius - arc2.Radius) / Math.Max(arc.Radius, arc2.Radius);
+
                                     double diffLength = (pt2 - pt1).Length / Math.Min(arc.Radius, arc2.Radius);
 
                                     //while (Math.Abs(angle1 - angle2) <= Math.PI * (30.0 / 180))
@@ -318,15 +336,15 @@ namespace LineResearch_Cir_CenterPoint
                                         if (i + 1 < listEntity2.Count)
                                         {
                                             arc2 = listEntity2[i + 1] as Arc;
-
-                                            if (arc2 == null)
+                                            var po = listEntity2[i + 1] as Polyline;
+                                            if (arc2 == null && po != null)
                                             {
                                                 listEntsOptimize.Add(listEntity2[i + 1]);
-                                                i = i + 1;
+                                                i += 1;
                                                 continue;
                                             }
                                             else
-                                            i = i + 1;
+                                                i += 1;
                                         }
                                         else
                                         {
@@ -345,8 +363,9 @@ namespace LineResearch_Cir_CenterPoint
                                     }
 
                                 }
-                                List<Polyline> listpolytemp = new List<Polyline>();
+                                //List<Polyline> listpolytemp = new List<Polyline>();
 
+                                //进行圆弧优化
                                 if (tempArc.Count > 1)
                                 {
                                     Arc newTempArc = null;
@@ -377,7 +396,7 @@ namespace LineResearch_Cir_CenterPoint
                                 {
                                     break;
                                 }
-                                i = i - 1;
+                                i -= 1;
                             }
 
                         }
@@ -389,49 +408,94 @@ namespace LineResearch_Cir_CenterPoint
                     }
                 }
 
-
-                List<Polyline> listPoly = ArcToPolyline(listEntity);
-                List<Polyline> listPoly2 = ArcToPolyline(listEntsOptimize);
-
-                //Polyline poly = GetPolyline(listPoly);
-                //Polyline poly2 = GetPolyline(listPoly2);
+                try
+                {
 
 
-                if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
-                    // poly2.ToSpace();
-                    //listEntsOptimize.ToSpace();
-                    listEntity2.ToSpace();
-                else
-                    listEntity2.ToSpace();
-                //poly.ToSpace();
+                    //List<Polyline> listPoly = ArcToPolyline(listEntity3);
 
-                //List<Polyline> listpolyOptimize = ArcToPolyline(listEntsOptimize);
-
-                // Polyline poly = GetPolyline(listpolyOptimize);
+                    //List<Polyline> listPoly2 = ArcToPolyline(listEntsOptimize);
 
 
-                //var newDoc = Application.DocumentManager.Add("");
-                //using (var lock1 = newDoc.LockDocument())
-                //{
-                //    var newDb = newDoc.Database;
-
-                //    if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
-                //        poly2.ToSpace(newDb);
-                //    else
-                //        poly.ToSpace(newDb);
 
 
-                //}
+                    List<Polyline> listPoly3 = ArcToStraightLine(listEntsOptimize);
 
+                    //Polyline poly = GetPolyline(listPoly);//等距多段线
+                    // poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink);
+
+                    //Polyline poly2 = GetPolyline(listPoly2);
+
+                    //poly2.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink);
+                    listEntity3.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink); });
+                    listEntsOptimize.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red); });
+                    listPoly3.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DarkGreen); });
+
+
+
+
+
+                    //Polyline poly3 = GetPolyline(listpoly3);//不等距优化后的多段直线
+                    //poly3.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DarkGreen);
+
+
+                    if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
+                    {
+                        //poly.ToSpace();
+                        //poly2.ToSpace();
+                        //   poly3.ToSpace();
+                        //listEntity3.ToSpace();
+                        listEntsOptimize.ToSpace();
+                        //listPoly3.ToSpace();
+                        //doc.SendStringToExecute("PEit\nm\nJ\n", true, false, false);
+
+
+                        //listEntsOptimize.ToSpace();
+                    }
+                    //listEntity2.ToSpace();
+                    else
+                    {
+                        // poly.ToSpace();
+                    }
+
+                    //poly.ToSpace();
+
+                    //List<Polyline> listpolyOptimize = ArcToPolyline(listEntsOptimize);
+
+                    // Polyline poly = GetPolyline(listpolyOptimize);
+
+
+                    //var newDoc = Application.DocumentManager.Add("");
+                    //using (var lock1 = newDoc.LockDocument())
+                    //{
+                    //    var newDb = newDoc.Database;
+
+                    //    if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "Y")
+                    //        poly2.ToSpace(newDb);
+                    //    else
+                    //        poly.ToSpace(newDb);
+
+
+                    //}
+
+                }
+
+                 catch (System.Exception e)
+                {
+
+                    throw;
+                }
+                finally
+                {
+                    listEntity.Clear();
+                    listEntity2.Clear();
+                    listC2d.Clear();
+                    listEntity3.Clear();
+                }
             }
-
-            listEntity.Clear();
-            listEntity2.Clear();
-            listC2d.Clear();
-
         }
 
-        private bool CalRongCha(CircularArc2d c2d, int startIndex, int mid, Point3dCollection p3dcoll)
+        private static bool CalRongCha(CircularArc2d c2d, int startIndex, int mid, Point3dCollection p3dcoll)
         {
 
             Point2d cPt = c2d.Center;
@@ -604,7 +668,7 @@ namespace LineResearch_Cir_CenterPoint
             return flag;
         }
 
-        public List<Polyline3d> MyForeach(SelectionSet selected,
+        public static List<Polyline3d> MyForeach(SelectionSet selected,
                    Database db = null)
         {
 
@@ -623,7 +687,7 @@ namespace LineResearch_Cir_CenterPoint
 
             return list;
         }
-        public Polyline MyForeach2(SelectionSet selected,
+        public static Polyline MyForeach2(SelectionSet selected,
                    Database db = null)
         {
 
@@ -643,7 +707,7 @@ namespace LineResearch_Cir_CenterPoint
             return ent;
         }
 
-        public Arc GetArc(Point2d pit1, Point2d pit2, Point2d pit3)
+        public static Arc GetArc(Point2d pit1, Point2d pit2, Point2d pit3)
         {
             CircularArc2d arc2d = new CircularArc2d(pit1, pit2, pit3);
 
@@ -655,8 +719,8 @@ namespace LineResearch_Cir_CenterPoint
 
             double endAngle = AngleFromXAxis(pit3, pitCenter);
 
-            double sangle = (startAngle / (2 * Math.PI * radius) * 360);
-            double eangle = (endAngle / (2 * Math.PI * radius) * 360);
+            //double sangle = (startAngle / (2 * Math.PI * radius) * 360);
+            //double eangle = (endAngle / (2 * Math.PI * radius) * 360);
 
             double temp = 0;
 
@@ -675,7 +739,7 @@ namespace LineResearch_Cir_CenterPoint
 
         }
 
-        public Arc GetArc2(Point2d pit1, Point2d pit2, Point2d pit3, ref CircularArc2d arc2d)
+        public static Arc GetArc2(Point2d pit1, Point2d pit2, Point2d pit3, ref CircularArc2d arc2d)
         {
 
             arc2d = new CircularArc2d(pit1, pit2, pit3);
@@ -688,8 +752,8 @@ namespace LineResearch_Cir_CenterPoint
 
             double endAngle = AngleFromXAxis(pit3, pitCenter);
 
-            double sangle = (startAngle / (2 * Math.PI * radius) * 360);
-            double eangle = (endAngle / (2 * Math.PI * radius) * 360);
+            //double sangle = (startAngle / (2 * Math.PI * radius) * 360);
+            //double eangle = (endAngle / (2 * Math.PI * radius) * 360);
 
             double temp = 0;
 
@@ -708,7 +772,7 @@ namespace LineResearch_Cir_CenterPoint
 
         }
 
-        public double AngleFromXAxis(Point2d pt1, Point2d pt2)
+        public static double AngleFromXAxis(Point2d pt1, Point2d pt2)
         {
 
             Vector2d vector = new Vector2d(pt1.X - pt2.X, pt1.Y - pt2.Y);
@@ -717,11 +781,12 @@ namespace LineResearch_Cir_CenterPoint
 
         }
 
-        private List<Polyline> ArcToPolyline(List<Entity> list)
+
+        private static List<Polyline> ArcToStraightLine(List<Entity> listEntsOptimize)
         {
             List<Polyline> listPoly = new List<Polyline>();
 
-            foreach (var ent in list)
+            foreach (var ent in listEntsOptimize)
             {
 
                 //如果实体为圆弧
@@ -734,13 +799,13 @@ namespace LineResearch_Cir_CenterPoint
                     Point2d p1, p2;
                     p1 = new Point2d(startPoint.X, startPoint.Y);
                     p2 = new Point2d(endPoint.X, endPoint.Y);
-                    Double L = p1.GetDistanceTo(p2);
-                    double H = R - Math.Sqrt(R * R - L * L / 4);
+                    //Double L = p1.GetDistanceTo(p2);
+                    //double H = R - Math.Sqrt(R * R - L * L / 4);
                     Polyline poly = new Polyline();
 
-                    poly.AddVertexAt(0, p1, 2 * H / L, 0, 0);
+                    poly.AddVertexAt(0, p1, 0, 0, 0);
                     poly.AddVertexAt(1, p2, 0, 0, 0);
-                    poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
+                    // poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
 
                     listPoly.Add(poly);
                 }
@@ -777,20 +842,177 @@ namespace LineResearch_Cir_CenterPoint
             return listPoly;
         }
 
-        private Polyline GetPolyline(List<Polyline> list)
+        private static List<Polyline> ArcToPolyline(List<Entity> list)
+        {
+            List<Polyline> listPoly = new List<Polyline>();
+
+            foreach (var ent in list)
+            {
+
+                //如果实体为圆弧
+                if (ent is Arc)
+                {
+                    Arc arc = ent as Arc;
+                    double R = arc.Radius;
+                    Point3d startPoint = arc.StartPoint;
+                    Point3d endPoint = arc.EndPoint;
+                    Point2d p1, p2;
+                    p1 = new Point2d(startPoint.X, startPoint.Y);
+                    p2 = new Point2d(endPoint.X, endPoint.Y);
+                    Double L = p1.GetDistanceTo(p2);
+                    double H = R - Math.Sqrt(R * R - L * L / 4);
+                    Polyline poly = new Polyline();
+
+                    poly.AddVertexAt(0, p1, 2 * H / L, 0, 0);
+                    poly.AddVertexAt(1, p2, 0, 0, 0);
+                    //poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
+
+                    listPoly.Add(poly);
+                }
+                else if (ent is Polyline)
+                {
+                    Polyline p = ent as Polyline;
+
+
+                    if (p.NumberOfVertices > 2)
+                    {
+                        for (int i = 0; i < p.NumberOfVertices; i++)
+                        {
+
+                            Polyline tempP = new Polyline();
+
+                            tempP.AddVertexAt(0, p.GetPoint2dAt(i), 0, 0, 0);
+
+                            if (i + 1 < p.NumberOfVertices)
+                            {
+                                tempP.AddVertexAt(1, p.GetPoint2dAt(i + 1), 0, 0, 0);
+
+                                listPoly.Add(tempP);
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        listPoly.Add(p);
+                    }
+
+                }
+            }
+            return listPoly;
+        }
+
+        private static Polyline GetPolyline(List<Polyline> list)
         {
             if (list.Count < 1)
             {
                 return null;
             }
-            Polyline poly = list[0];
+            Polyline poly = new Polyline();
 
-            for (int i = 1; i < list.Count; i++)
+            
+            Dictionary<Point2d, double> dicDouble = new Dictionary<Point2d, double>();
+
+            List<Point2d> list2d = new List<Point2d>();
+            try
             {
-                poly.JoinEntity(list[i]);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    poly.AddVertexAt(poly.NumberOfVertices, new Point2d(list[i].StartPoint.X, list[i].StartPoint.Y), list[i].GetBulgeAt(0), 0, 0);
+                }
             }
+            catch (System.Exception e)
+            {
+
+                throw;
+            }
+            
             return poly;
         }
+
+     /*   private static List<Polyline> GetPolyline(List<Polyline> list)
+        {
+            if (list.Count < 1)
+            {
+                return null;
+            }
+
+            List<Polyline> listPoly = new List<Polyline>();
+
+
+            int breakPoint = 0;
+            int i = 0;
+            try
+            {
+                while (i < list.Count && breakPoint < list.Count)
+                {
+
+
+                    Polyline poly = list[breakPoint];
+                    
+
+
+                    for (i = breakPoint + 1; i < list.Count; i++)
+                    {
+
+                        if (poly.EndPoint == list[i].StartPoint ||
+                            poly.EndPoint == list[i].EndPoint ||
+                            poly.StartPoint == list[i].StartPoint ||
+                            poly.StartPoint == list[i].EndPoint)
+                        {
+                            poly.JoinEntity(list[i]);
+                        }
+                        else
+                        {
+
+                            breakPoint = i;
+                            
+                            break;
+
+                            //Polyline[] plNew = new Polyline[4]
+                            //{new Polyline(),new Polyline(),new Polyline(),new Polyline() };
+
+                            //plNew[0].AddVertexAt(plNew[0].NumberOfVertices, new Point2d(list[i - 1].EndPoint.X, list[i - 1].EndPoint.Y), 0, 0, 0);
+                            //plNew[0].AddVertexAt(plNew[0].NumberOfVertices, new Point2d(list[i].StartPoint.X, list[i].StartPoint.Y), 0, 0, 0);
+
+                            //plNew[1].AddVertexAt(plNew[1].NumberOfVertices, new Point2d(list[i - 1].EndPoint.X, list[i - 1].EndPoint.Y), 0, 0, 0);
+                            //plNew[1].AddVertexAt(plNew[1].NumberOfVertices, new Point2d(list[i].EndPoint.X, list[i].EndPoint.Y), 0, 0, 0);
+
+                            //plNew[2].AddVertexAt(plNew[2].NumberOfVertices, new Point2d(list[i - 1].StartPoint.X, list[i - 1].StartPoint.Y), 0, 0, 0);
+                            //plNew[2].AddVertexAt(plNew[2].NumberOfVertices, new Point2d(list[i].StartPoint.X, list[i].StartPoint.Y), 0, 0, 0);
+
+                            //plNew[3].AddVertexAt(plNew[3].NumberOfVertices, new Point2d(list[i - 1].StartPoint.X, list[i - 1].StartPoint.Y), 0, 0, 0);
+                            //plNew[3].AddVertexAt(plNew[3].NumberOfVertices, new Point2d(list[i].EndPoint.X, list[i].EndPoint.Y), 0, 0, 0);
+
+                            //for(int j=0;j<plNew.Length;j++)
+                            //{
+
+                            //    if ((poly.EndPoint == plNew[j].StartPoint&& (list[i].EndPoint == plNew[j].EndPoint|| list[i].StartPoint == plNew[j].EndPoint)) ||
+                            //           (poly.EndPoint == plNew[j].EndPoint&&(list[i].EndPoint == plNew[j].StartPoint|| list[i].StartPoint == plNew[j].StartPoint)) ||
+                            //           (poly.StartPoint == plNew[j].StartPoint&&(list[i].EndPoint == plNew[j].EndPoint || list[i].StartPoint == plNew[j].EndPoint)) ||
+                            //           (poly.StartPoint == plNew[j].EndPoint&& (list[i].EndPoint == plNew[j].StartPoint || list[i].StartPoint == plNew[j].StartPoint)))
+                            //    {
+
+                            //            poly.JoinEntity(plNew[j]);
+                            //            break;
+
+                            //    }
+                            //}
+                            
+
+                        }
+                        listPoly.Add(poly);
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+
+                throw;
+            }
+
+            return listPoly;
+        }*/
         /*  private void GetArcCenter(double a1, double b1, double a2, double b2, double a3, double b3, out double p, out double q)
                 {
 
