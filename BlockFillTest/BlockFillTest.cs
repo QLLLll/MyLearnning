@@ -26,10 +26,16 @@ namespace BlockFillTest
         Entity BlkEnt = null;
 
         Point3d Intersect1;
-
         Point3d Intersect2;
+
         Point3d MinPoint;
         Point3d MaxPoint;
+
+        Point3d MinBlkPt;
+        Point3d MaxBlkPt;
+
+        double Ratio;
+
         [CommandMethod("BlockTest")]
         public void Test()
         {
@@ -91,6 +97,9 @@ namespace BlockFillTest
             //ed.WriteMessage($"坐标：[{Intersect1.X},{Intersect1.Y},{Intersect1.Z}]\n");
             // ed.WriteMessage($"坐标：[{Intersect2.X},{Intersect2.Y},{Intersect1.Z}]\n");
 
+            GetBlockCondition();
+
+            GetBlkRatioCondtn1();
 
 
         }
@@ -99,20 +108,9 @@ namespace BlockFillTest
         public void Test2()
         {
             AcadDocument doc = Application.DocumentManager.MdiActiveDocument.GetAcadDocument() as AcadDocument;
-            //var ed = doc.Editor;
-            //var db = doc.Database;
-
-           // GetBlockCondition();
-
-            //if (BlkEnt == null)
-            //{
-            //    Application.ShowAlertDialog("无法获取块");
-            //    return;
-            //}
+            
 
             DBObjectCollection dbcll = new DBObjectCollection();
-
-            //BlkEnt.Explode(dbcll);
 
             List<double[]> listMin = new List<double[]>();
             List<double[]> listMax = new List<double[]>();
@@ -123,18 +121,27 @@ namespace BlockFillTest
                 if (entity.EntityName == "AcDbBlockReference")
                 {
                     AcadBlockReference returnBlock = (AcadBlockReference)entity;
-                    object min=null, max=null;
+                    object min = null, max = null;
                     if (returnBlock.Name == "MyBlock1")
                     {
                         returnBlock.GetBoundingBox(out min, out max);
+                        double[] arr = min as double[];
+                        double[] arr2 = max as double[];
+                        listMin.Add(arr);
+                        listMax.Add(arr2);
                     }
-                    double []arr= min as double[];
-                    double[] arr2 = max as double[];
-                    listMin.Add(arr);
-                    listMax.Add(arr2);
-
+                    
                 }
             }
+            listMin.Sort((min1, min2) => { return min1[0].CompareTo(min2[0]); });
+            double[] minMin = listMin.First();
+
+            listMax.Sort((min1, min2) => { return min1[0].CompareTo(min2[0]); });
+            double[] maxMax = listMax[listMax.Count - 1];
+
+            MinBlkPt = new Point3d(minMin[0], minMin[1], minMin[2]);
+            MaxBlkPt = new Point3d(maxMax[0], maxMax[1], maxMax[2]);
+
         }
 
         public void GetFirstCondition()
@@ -248,12 +255,10 @@ namespace BlockFillTest
 
             if (String.IsNullOrEmpty(blockName))
             {
-                Application.ShowAlertDialog("请输入块名称");
+                Application.ShowAlertDialog("请输入正确的块名称");
                 return ;
             }
-
-            
-
+           
             using (var trans = db.TransactionManager.StartTransaction())
             {
                 var blkTbl = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
@@ -271,13 +276,70 @@ namespace BlockFillTest
                 trans.Commit();
             }
 
-            
-
-
+            GetBlockMinMaxPoint(blockName);
 
 
 
         }
+
+        private void GetBlockMinMaxPoint(string blockName)
+        {
+            if (String.IsNullOrEmpty(blockName))
+            {
+                return;
+            }
+
+            AcadDocument doc = Application.DocumentManager.MdiActiveDocument.GetAcadDocument() as AcadDocument;
+
+
+            DBObjectCollection dbcll = new DBObjectCollection();
+
+            List<double[]> listMin = new List<double[]>();
+            List<double[]> listMax = new List<double[]>();
+
+
+            foreach (AcadEntity entity in doc.ModelSpace)
+            {
+                if (entity.EntityName == "AcDbBlockReference")
+                {
+                    AcadBlockReference returnBlock = (AcadBlockReference)entity;
+                    object min = null, max = null;
+                    if (returnBlock.Name == blockName)
+                    {
+                        returnBlock.GetBoundingBox(out min, out max);
+                        double[] arr = min as double[];
+                        double[] arr2 = max as double[];
+                        listMin.Add(arr);
+                        listMax.Add(arr2);
+                    }
+
+                }
+            }
+
+            if (listMin.Count == 0 || listMax.Count == 0)
+            {
+                return;
+            }
+
+            listMin.Sort((min1, min2) => { return min1[0].CompareTo(min2[0]); });
+            double[] minMin = listMin.First();
+
+            listMax.Sort((min1, min2) => { return min1[0].CompareTo(min2[0]); });
+            double[] maxMax = listMax[listMax.Count - 1];
+
+            MinBlkPt = new Point3d(minMin[0], minMin[1], minMin[2]);
+            MaxBlkPt = new Point3d(maxMax[0], maxMax[1], maxMax[2]);
+        }
+
+
+        private void GetBlkRatioCondtn1()
+        {
+
+            Ratio = (MaxPoint - MinPoint).Length / (MaxBlkPt - MinBlkPt).Length;
+
+
+        }
+
 
         private  bool point3dEqual(Point3d p1, Point3d p2)
         {
