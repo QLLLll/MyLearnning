@@ -22,8 +22,6 @@ namespace LineResearch_Cir_CenterPoint
         //多段线合并长度 单位毫米
         static int intCmeter = 2000;
 
-
-
         [CommandMethod("GetLine")]
         public static void GetLine()
         {
@@ -127,6 +125,9 @@ namespace LineResearch_Cir_CenterPoint
                 List<Polyline> listListEntity3 = new List<Polyline>();
                 List<Polyline> listListEntsOptimize = new List<Polyline>();
 
+
+                PromptResult re = null;
+                bool isChoice = false;
                 foreach (var p3dcoll in listP3dColl)
                 {
 
@@ -365,7 +366,7 @@ namespace LineResearch_Cir_CenterPoint
                                         newTempArc = GetArc(startPoint,
                                             centerPoint, endPoint);
                                     }
-                                    newTempArc.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
+                                    //   newTempArc.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
 
                                     listEntsOptimize.Add(newTempArc);
 
@@ -389,54 +390,86 @@ namespace LineResearch_Cir_CenterPoint
                     {
 
 
+
                         listEntsOptimize = listEntsOptimize.Distinct().ToList();
 
                         List<Polyline> listPoly = ArcToPolyline(listEntity3);
 
                         List<Polyline> listPoly2 = ArcToPolyline(listEntsOptimize);
 
-
-
-
-
-
                         List<Polyline> listPoly3 = ArcToStraightLine(listEntsOptimize);
 
-                        Polyline poly = GetPolyline(listPoly);//等距多段线
-                        poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink);
+                        bool a = true, b = true, c = true;
 
-                        Polyline poly2 = GetPolyline(listPoly2);
-                     
-                        poly2.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
+                        Polyline poly = GetPolyline(listPoly, out a);//等距多段线
 
-                        Polyline poly3 = GetPolyline(listPoly3);//不等距优化后的多段直线
-                        poly3.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DarkGreen);
+                        if (a)
+                            poly.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink);
+                        else
+                            poly = null;
 
-                        //listEntity3.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink); });
-                        //listEntsOptimize.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red); });
-                        //listPoly3.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DarkGreen); });
+                        Polyline poly2 = GetPolyline(listPoly2, out b);
+
+                        if (b)
+                            poly2.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red);
+                        else
+                            poly2 = null;
+
+                        Polyline poly3 = GetPolyline(listPoly3, out c);//不等距优化后的多段直线
+                        if (c)
+                            poly3.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DarkGreen);
+                        else
+                            poly3 = null;
+
+                        listEntity3.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DeepPink); });
+                        listEntsOptimize.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.Red); });
+                        listPoly3.ForEach(p => { p.Color = Autodesk.AutoCAD.Colors.Color.FromColor(System.Drawing.Color.DarkGreen); });
 
                         listListPolyline.Add(poly);
                         listListEntity3.Add(poly3);
                         listListEntsOptimize.Add(poly2);
-                        PromptKeywordOptions pkOpts = new PromptKeywordOptions("请输入结果A:等距弧形Polyline,B:优化后不等距弧形polyline,C:优化后多段直线[A/B/C]", "A B C");
 
-                        var re = ed.GetKeywords(pkOpts);
+                        if (!isChoice)
+                        {
+
+                            PromptKeywordOptions pkOpts = new PromptKeywordOptions("请输入结果A:等距弧形Polyline,B:优化后不等距弧形polyline,C:优化后多段直线[A/B/C]", "A B C");
+
+                            re = ed.GetKeywords(pkOpts);
+                            isChoice = true;
+                        }
+
 
                         if (re.Status == PromptStatus.OK && re.StringResult == "A")
                         {
 
 
-                            poly.ToSpace();
-                           
+                            //poly!=null? poly.ToSpace():listEntity3.ToSpace();
+
+                            if (poly == null)
+                            {
+                                listEntity3.ToSpace();
+                            }
+                            else
+                            {
+                                poly.ToSpace();
+                            }
+
 
                         }
                         else if (re.Status == PromptStatus.OK && re.StringResult == "B")
                         {
 
                             // listListEntsOptimize[i].TransformBy(Matrix3d.Displacement(pt3Arr[2] - Point3d.Origin));
-                            poly2.ToSpace();
-                            
+
+                            if (poly2 == null)
+                            {
+                                listEntsOptimize.ToSpace();
+                            }
+                            else
+                            {
+                                poly2.ToSpace();
+                            }
+                           
                         }
                         else
                         {
@@ -444,8 +477,15 @@ namespace LineResearch_Cir_CenterPoint
 
                             //listListEntity3[i].TransformBy(Matrix3d.Displacement(pt3Arr[1] - Point3d.Origin));
 
-                            poly3.ToSpace();
-                            
+                           
+                            if (poly3 == null)
+                            {
+                                listPoly3.ToSpace();
+                            }
+                            else
+                            {
+                                poly3.ToSpace();
+                            }
 
                         }
 
@@ -481,14 +521,14 @@ namespace LineResearch_Cir_CenterPoint
                 }
 
 
-                RemoveTwo(listListPolyline);
-                RemoveTwo(listListEntsOptimize);
-                RemoveTwo(listListEntity3);
+                //RemoveTwo(listListPolyline);
+               // RemoveTwo(listListEntsOptimize);
+               // RemoveTwo(listListEntity3);
 
 
-           //     PromptKeywordOptions pkOpts = new PromptKeywordOptions("请输入结果A:等距弧形Polyline,B:优化后不等距弧形polyline,C:优化后多段直线[A/B/C]", "A B C");
+                //     PromptKeywordOptions pkOpts = new PromptKeywordOptions("请输入结果A:等距弧形Polyline,B:优化后不等距弧形polyline,C:优化后多段直线[A/B/C]", "A B C");
 
-          //      var re = ed.GetKeywords(pkOpts);
+                //      var re = ed.GetKeywords(pkOpts);
 
 
 
@@ -561,8 +601,10 @@ namespace LineResearch_Cir_CenterPoint
         }
 
 
-        private static Polyline GetPolyline(List<Polyline> listPoly)
+        private static Polyline GetPolyline(List<Polyline> listPoly, out bool flag)
         {
+
+            flag = true;
             if (listPoly == null || listPoly.Count < 1)
             {
                 return null;
@@ -578,86 +620,94 @@ namespace LineResearch_Cir_CenterPoint
                 {
 
 
+
                     if (point3dEqual(poly.StartPoint, temp.StartPoint) ||
                         point3dEqual(poly.StartPoint, temp.EndPoint) ||
                             point3dEqual(poly.EndPoint, temp.StartPoint) ||
                             point3dEqual(poly.EndPoint, temp.EndPoint))
-                        poly.JoinEntity(listPoly[i]);
-                    else
                     {
 
-                        if (i - 2 > 1 && point3dEqual(listPoly[i - 2].EndPoint, poly.StartPoint) || point3dEqual(listPoly[i - 2].StartPoint, poly.StartPoint))
-                        {
 
-                            Polyline polyline = new Polyline(2);
 
-                            //polyline.StartPoint = poly.EndPoint;
+                        poly.JoinEntity(listPoly[i]);
 
-                            polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(poly.EndPoint.X, poly.EndPoint.Y), 0, 0, 0);
+                    }
+                    else
+                    {
+                        flag = false;
+                        break;
+                        /*   if (i - 2 > 1 && point3dEqual(listPoly[i - 2].EndPoint, listPoly[i - 1].StartPoint) || point3dEqual(listPoly[i - 2].StartPoint, listPoly[i - 1].StartPoint))
+                           {
 
-                            if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].EndPoint))
-                            {
+                               Polyline polyline = new Polyline(2);
 
-                                //   polyline.EndPoint = listPoly[i].StartPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
-                            }
-                            else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].StartPoint))
-                            {
+                               //polyline.StartPoint = poly.EndPoint;
 
-                                //   polyline.EndPoint = listPoly[i].EndPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
-                            }
-                            else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].EndPoint))
-                            {
+                               polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i - 1].EndPoint.X, listPoly[i - 1].EndPoint.Y), 0, 0, 0);
 
-                                //   polyline.EndPoint = listPoly[i].StartPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
-                            }
-                            else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].StartPoint))
-                            {
+                               if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].EndPoint))
+                               {
 
-                                //   polyline.EndPoint = listPoly[i].EndPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
-                            }
-                            poly.JoinEntity(polyline);
-                        }
-                        else if (i - 2 > 1 && point3dEqual(listPoly[i - 2].EndPoint, poly.EndPoint) || point3dEqual(listPoly[i - 2].StartPoint, poly.EndPoint))
-                        {
-                            Polyline polyline = new Polyline(2);
-                            polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(poly.StartPoint.X, poly.StartPoint.Y), 0, 0, 0);
+                                   //   polyline.EndPoint = listPoly[i].StartPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
+                               }
+                               else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].StartPoint))
+                               {
 
-                            //   polyline.StartPoint = poly.StartPoint;
+                                   //   polyline.EndPoint = listPoly[i].EndPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
+                               }
+                               else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].EndPoint))
+                               {
 
-                            if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].EndPoint))
-                            {
+                                   //   polyline.EndPoint = listPoly[i].StartPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
+                               }
+                               else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].StartPoint))
+                               {
 
-                             //   polyline.EndPoint = listPoly[i].StartPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
-                            }
-                            else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].StartPoint))
-                            {
-                                //     polyline.EndPoint = listPoly[i].EndPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
-                            }
-                            else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].EndPoint))
-                            {
+                                   //   polyline.EndPoint = listPoly[i].EndPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
+                               }
+                               poly.JoinEntity(polyline);
+                           }
+                           else if (i - 2 > 1 && point3dEqual(listPoly[i - 2].EndPoint, listPoly[i - 1].EndPoint) || point3dEqual(listPoly[i - 2].StartPoint, listPoly[i - 1].EndPoint))
+                           {
+                               Polyline polyline = new Polyline(2);
+                               polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i - 1].StartPoint.X, listPoly[i - 1].StartPoint.Y), 0, 0, 0);
 
-                                //     polyline.EndPoint = listPoly[i].StartPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
-                            }
-                            else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].StartPoint))
-                            {
+                               //   polyline.StartPoint = poly.StartPoint;
 
-                                //     polyline.EndPoint = listPoly[i].EndPoint;
-                                polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
+                               if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].EndPoint))
+                               {
 
-                            }
-                            poly.JoinEntity(polyline);
-                        }
+                                   //   polyline.EndPoint = listPoly[i].StartPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
+                               }
+                               else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].StartPoint, listPoly[i].StartPoint))
+                               {
+                                   //     polyline.EndPoint = listPoly[i].EndPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
+                               }
+                               else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].EndPoint))
+                               {
+
+                                   //     polyline.EndPoint = listPoly[i].StartPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].StartPoint.X, listPoly[i].StartPoint.Y), 0, 0, 0);
+                               }
+                               else if (i + 1 < listPoly.Count && point3dEqual(listPoly[i + 1].EndPoint, listPoly[i].StartPoint))
+                               {
+
+                                   //     polyline.EndPoint = listPoly[i].EndPoint;
+                                   polyline.AddVertexAt(polyline.NumberOfVertices, new Point2d(listPoly[i].EndPoint.X, listPoly[i].EndPoint.Y), 0, 0, 0);
+
+                               }
+                               poly.JoinEntity(polyline);
+                           }*/
 
                     }
                 }
-                catch(System.Exception e)
+                catch (System.Exception e)
                 {
                     throw e;
                 }
@@ -749,6 +799,9 @@ namespace LineResearch_Cir_CenterPoint
                             listC2d.Add(c2Temp);
                         }
 
+                        //listEntity.Add(arc);
+                        //   listEntity2.Add(arc2);
+                        //   listC2d.Add(c2Temp);
 
                     }
 
@@ -796,7 +849,9 @@ namespace LineResearch_Cir_CenterPoint
                             listEntity2.Add(arc2);
                             listC2d.Add(c2Temp);
                         }
-
+                        //listEntity.Add(arc);
+                        //listEntity2.Add(arc2);
+                        //listC2d.Add(c2Temp);
 
                     }
 
@@ -839,7 +894,9 @@ namespace LineResearch_Cir_CenterPoint
                         listEntity2.Add(arc22);
                         listC2d.Add(c2Temp2);
                     }
-
+                    //listEntity.Add(arc3);
+                    //listEntity2.Add(arc22);
+                    //listC2d.Add(c2Temp2);
 
                 }
             }
