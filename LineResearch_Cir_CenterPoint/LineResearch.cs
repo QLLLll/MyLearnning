@@ -389,8 +389,6 @@ namespace LineResearch_Cir_CenterPoint
                     try
                     {
 
-
-
                         listEntsOptimize = listEntsOptimize.Distinct().ToList();
 
                         List<Polyline> listPoly = ArcToPolyline(listEntity3);

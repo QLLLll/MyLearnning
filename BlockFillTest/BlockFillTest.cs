@@ -23,7 +23,7 @@ namespace BlockFillTest
 
         Curve SecondCondition;
 
-        Entity BlkEnt = null;
+        List<Entity> listEntis = new List<Entity>();
 
         Point3d Intersect1;
         Point3d Intersect2;
@@ -35,6 +35,13 @@ namespace BlockFillTest
         Point3d MaxBlkPt;
 
         double Ratio;
+
+        Line blkDiagonal=new Line();
+
+        //曲线方向从左到右，从下到上为true，否则为false
+        bool splDirection = true;
+
+        PointIsInPolyline PtInPl = new PointIsInPolyline();
 
         [CommandMethod("BlockTest")]
         public void Test()
@@ -58,42 +65,35 @@ namespace BlockFillTest
             //{
             //    ed.WriteMessage($"坐标：[{item.X},{item.Y},{item.Z}]\n");
             //}
-
-            if (p3dcl.Count == 0)
+            
+            //求Condition1与Condition2的交点
+            if (p3dcl.Count <= 0)
             {
-                Intersect1 = SecondCondition.StartPoint;
-
-                Intersect2 = SecondCondition.EndPoint;
-
-            }
-            else if (p3dcl.Count == 1)
-            {
-                if (SecondCondition.StartPoint.X > MinPoint.X
-                    && SecondCondition.StartPoint.Y > MinPoint.Y
-                    && SecondCondition.StartPoint.X < MaxPoint.X
-                    && SecondCondition.StartPoint.Y < MaxPoint.Y)
+                if (splDirection)
                 {
-
                     Intersect1 = SecondCondition.StartPoint;
 
-                    Intersect2 = p3dcl[0];
-
+                    Intersect2 = SecondCondition.EndPoint;
                 }
                 else
                 {
-                    Intersect1 = p3dcl[0];
+                    Intersect1 = SecondCondition.EndPoint;
 
                     Intersect2 = SecondCondition.StartPoint;
                 }
-
-
             }
-            else if (p3dcl.Count == 2)
+            else
             {
 
-                Intersect1 = p3dcl[0];
-                Intersect2 = p3dcl[1];
+                var list = p3dcl.Cast<Point3d>().OrderBy(pt=>pt.X).ThenBy(pt=>pt.Y).ToList();
+
+
+                Intersect1 = list.First();
+
+                Intersect2 =list[list.Count-1];
+
             }
+
             //ed.WriteMessage($"坐标：[{Intersect1.X},{Intersect1.Y},{Intersect1.Z}]\n");
             // ed.WriteMessage($"坐标：[{Intersect2.X},{Intersect2.Y},{Intersect1.Z}]\n");
 
@@ -101,6 +101,9 @@ namespace BlockFillTest
 
             GetBlkRatioCondtn1();
 
+            blkDiagonal.StartPoint = MinBlkPt;
+            blkDiagonal.EndPoint = MaxBlkPt;
+            BlkScale(0.3, MinBlkPt, MaxBlkPt);
 
         }
 
@@ -108,7 +111,7 @@ namespace BlockFillTest
         public void Test2()
         {
             AcadDocument doc = Application.DocumentManager.MdiActiveDocument.GetAcadDocument() as AcadDocument;
-            
+
 
             DBObjectCollection dbcll = new DBObjectCollection();
 
@@ -130,13 +133,13 @@ namespace BlockFillTest
                         listMin.Add(arr);
                         listMax.Add(arr2);
                     }
-                    
+
                 }
             }
-            listMin.Sort((min1, min2) => { return min1[0].CompareTo(min2[0]); });
+            listMin.OrderBy(min => min[0]);
             double[] minMin = listMin.First();
 
-            listMax.Sort((min1, min2) => { return min1[0].CompareTo(min2[0]); });
+            listMax.OrderBy(max => max[0]);
             double[] maxMax = listMax[listMax.Count - 1];
 
             MinBlkPt = new Point3d(minMin[0], minMin[1], minMin[2]);
@@ -150,7 +153,7 @@ namespace BlockFillTest
             var ed = doc.Editor;
             var db = doc.Database;
 
-            var entOpts = new PromptEntityOptions("请选择封闭线");
+            var entOpts = new PromptEntityOptions("请选择封闭多段线\n");
 
             entOpts.SetRejectMessage("未选择正确");
 
@@ -187,14 +190,15 @@ namespace BlockFillTest
 
             }
         }
-
+        [CommandMethod("cd2")]
         public void GetSecondCondition()
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
+            //GetFirstCondition();
+               var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
             var db = doc.Database;
 
-            var entOpts = new PromptEntityOptions("请选择曲线");
+            var entOpts = new PromptEntityOptions("请选择曲线\n");
 
             entOpts.SetRejectMessage("未选择正确");
 
@@ -230,10 +234,32 @@ namespace BlockFillTest
 
                 SecondCondition = ent as Curve;
 
+                if (SecondCondition.StartPoint.X < SecondCondition.EndPoint.Y)
+                {
+                    splDirection = true;
+                }
+                else
+                {
+                    splDirection = false;
+
+                }
+                if (SecondCondition.StartPoint.X == SecondCondition.EndPoint.X)
+
+                {
+                    if (SecondCondition.StartPoint.Y < SecondCondition.EndPoint.Y){
+                        splDirection = true;
+                    }
+                    else
+                    {
+                        splDirection = false;
+                    }
+                }
+
+            //  int i=  PtInPl.PtRelationToPoly(FirstCondition, SecondCondition.StartPoint, 1.0E-4);
             }
         }
 
-        public  void GetBlockCondition()
+        public void GetBlockCondition()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
@@ -256,23 +282,22 @@ namespace BlockFillTest
             if (String.IsNullOrEmpty(blockName))
             {
                 Application.ShowAlertDialog("请输入正确的块名称");
-                return ;
+                return;
             }
-           
+
             using (var trans = db.TransactionManager.StartTransaction())
             {
                 var blkTbl = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-             var blkRec=  trans.GetObject(blkTbl[blockName], OpenMode.ForRead) as BlockTableRecord;
+                var blkRec = trans.GetObject(blkTbl[blockName], OpenMode.ForRead) as BlockTableRecord;
 
 
-                List<Entity> listEntis = new List<Entity>();
+                
                 foreach (ObjectId objectId in blkRec)
                 {
-                   var Ent= trans.GetObject(objectId, OpenMode.ForRead) as Entity;
+                    var Ent = trans.GetObject(objectId, OpenMode.ForRead) as Entity;
 
                     listEntis.Add(Ent);
                 }
-                BlkEnt = listEntis[0];
                 trans.Commit();
             }
 
@@ -341,18 +366,52 @@ namespace BlockFillTest
         }
 
 
-        private  bool point3dEqual(Point3d p1, Point3d p2)
+        private bool point3dEqual(Point3d p1, Point3d p2)
         {
 
             if (p1.X.ToString("f9") == p2.X.ToString("f9") && p1.Y.ToString("f9") == p2.Y.ToString("f9") && p1.Z.ToString("f9") == p2.Z.ToString("f9"))
                 return true;
             return false;
+        }
+
+        private void BlkScale( double scale,Point3d min,Point3d max ) {
+
+            Point3d center = new Point3d((min.X + max.X) / 2, (min.Y+max.Y) / 2, 0);
+
+            var mtrix = Matrix3d.Scaling(scale, Point3d.Origin);
+            var matrx2 = Matrix3d.Displacement(Intersect1
+                   - center);
+
+            List<Entity> listEntTemp = new List<Entity>();
+
+            foreach (var ent in listEntis)
+            {
+
+               
 
 
+              listEntTemp.Add( ent.GetTransformedCopy(matrx2*mtrix));
+
+               
+            }
+
+            blkDiagonal.GetTransformedCopy(matrx2 * mtrix);
+            listEntTemp.ToSpace();
+            blkDiagonal.ToSpace();
 
         }
 
-       
 
+       /* Point3d [] GetdiagonalPoint(Point3d min,Point3d max)
+        {
+
+            Point3d[] diagonalPoint = new Point3d[4];
+
+            diagonalPoint[0] = min;
+            diagonalPoint[3] = max;
+
+            diagonalPoint[1]=new Point3d(min.)
+
+        }*/
     }
 }

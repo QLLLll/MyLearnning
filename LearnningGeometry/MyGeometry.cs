@@ -76,6 +76,9 @@ namespace LearnningGeometry
                     Tolerance.Global = old;
                 }*/
 
+
+                acEd.WriteMessage(Vector2d.XAxis.RotateBy(Math.PI*-0.5).ToString());
+
                 foreach (var i in Enumerable.Range(0, 60))
                 {
                     var lineVec = -Vector3d.YAxis * (i % 5 == 0 ? 1 : 0.5);
@@ -84,7 +87,6 @@ namespace LearnningGeometry
 
                     var line = new Line(Point3d.Origin, Point3d.Origin + lineVec);
                     line.TransformBy(mtx);
-
                     mdlSpc.AppendEntity(line);
                     acTrans.AddNewlyCreatedDBObject(line, true);
 
