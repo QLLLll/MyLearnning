@@ -173,7 +173,7 @@ namespace BlockFillTest
                         vec = vec.RotateBy(0.035, Vector3d.ZAxis);
                         pRay.UnitDir = vec;
                         intPoints.Clear();
-                        pPoly.IntersectWith(pRay, Intersect.OnBothOperands, intPoints, 0, 0);
+                        pPoly.IntersectWith(pRay, Intersect.OnBothOperands, intPoints, IntPtr.Zero, IntPtr.Zero);
                         goto RETRY;		// 继续判断结果
                     }
                 }
@@ -273,7 +273,7 @@ namespace BlockFillTest
                         vec = vec.RotateBy(0.035, Vector3d.ZAxis);
                         pRay.UnitDir = vec;
                         intPoints.Clear();
-                        pPoly.IntersectWith(pRay, Intersect.OnBothOperands, intPoints, 0, 0);
+                        pPoly.IntersectWith(pRay, Intersect.OnBothOperands, intPoints, IntPtr.Zero, IntPtr.Zero);
                         goto RETRY;		// 继续判断结果
                     }
                 }

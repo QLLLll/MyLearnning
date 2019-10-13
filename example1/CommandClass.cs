@@ -115,8 +115,7 @@ namespace example1
             };
 
         }
-
-
+        //倒角
         public Point2d[] GetAnglePoint(Point2d p, Vector2d vec1, Vector2d vec2, double rad)
         {
 

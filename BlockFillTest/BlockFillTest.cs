@@ -23,8 +23,6 @@ namespace BlockFillTest
 
         Curve SecondCondition;
 
-        List<Entity> listEntis = new List<Entity>();
-
         Point3d Intersect1;
         Point3d Intersect2;
 
@@ -36,12 +34,17 @@ namespace BlockFillTest
 
         double Ratio;
 
-        Line blkDiagonal=new Line();
+        //Line blkDiagonal=new Line();
 
         //曲线方向从左到右，从下到上为true，否则为false
         bool splDirection = true;
 
         PointIsInPolyline PtInPl = new PointIsInPolyline();
+        private BlockTableRecord BlkRec;
+
+        Polyline plTrangle = new Polyline(4);
+
+        DBObjectCollection dbColl = null;
 
         [CommandMethod("BlockTest")]
         public void Test()
@@ -61,10 +64,7 @@ namespace BlockFillTest
 
             FirstCondition.IntersectWith(SecondCondition, Intersect.OnBothOperands, p3dcl, IntPtr.Zero, IntPtr.Zero);
 
-            //foreach (Point3d item in p3dcl)
-            //{
-            //    ed.WriteMessage($"坐标：[{item.X},{item.Y},{item.Z}]\n");
-            //}
+           
             
             //求Condition1与Condition2的交点
             if (p3dcl.Count <= 0)
@@ -92,6 +92,44 @@ namespace BlockFillTest
 
                 Intersect2 =list[list.Count-1];
 
+                //如果只有一个交点
+                if (Intersect1 == Intersect2)
+                {
+                    if(Intersect1== SecondCondition.EndPoint)
+                    {
+                        Intersect2= SecondCondition.StartPoint;
+                    }
+                    else
+                    {
+                        Intersect2 = SecondCondition.EndPoint;
+                    }
+                }
+                Point3dCollection temp3dCol = new Point3dCollection();
+                //分割曲线
+                if (list.Count == 2) {
+                   
+                    if (splDirection)
+                    {
+                       
+                        temp3dCol.Add(Intersect1);
+                        temp3dCol.Add(Intersect2);
+                        dbColl = SecondCondition.GetSplitCurves(temp3dCol);
+
+                    }
+                    else
+                    {
+                        temp3dCol.Add(Intersect2);
+                        temp3dCol.Add(Intersect1);
+                        dbColl = SecondCondition.GetSplitCurves(temp3dCol);
+                    }
+                }
+                else if (list.Count == 1)
+                {
+
+                    temp3dCol.Add(Intersect1);
+                    dbColl = SecondCondition.GetSplitCurves(temp3dCol);
+                }
+
             }
 
             //ed.WriteMessage($"坐标：[{Intersect1.X},{Intersect1.Y},{Intersect1.Z}]\n");
@@ -101,50 +139,10 @@ namespace BlockFillTest
 
             GetBlkRatioCondtn1();
 
-            blkDiagonal.StartPoint = MinBlkPt;
-            blkDiagonal.EndPoint = MaxBlkPt;
+            // blkDiagonal.StartPoint = MinBlkPt;
+            // blkDiagonal.EndPoint = MaxBlkPt;
             BlkScale(0.3, MinBlkPt, MaxBlkPt);
-
-        }
-
-        [CommandMethod("Test")]
-        public void Test2()
-        {
-            AcadDocument doc = Application.DocumentManager.MdiActiveDocument.GetAcadDocument() as AcadDocument;
-
-
-            DBObjectCollection dbcll = new DBObjectCollection();
-
-            List<double[]> listMin = new List<double[]>();
-            List<double[]> listMax = new List<double[]>();
-
-
-            foreach (AcadEntity entity in doc.ModelSpace)
-            {
-                if (entity.EntityName == "AcDbBlockReference")
-                {
-                    AcadBlockReference returnBlock = (AcadBlockReference)entity;
-                    object min = null, max = null;
-                    if (returnBlock.Name == "MyBlock1")
-                    {
-                        returnBlock.GetBoundingBox(out min, out max);
-                        double[] arr = min as double[];
-                        double[] arr2 = max as double[];
-                        listMin.Add(arr);
-                        listMax.Add(arr2);
-                    }
-
-                }
-            }
-            listMin.OrderBy(min => min[0]);
-            double[] minMin = listMin.First();
-
-            listMax.OrderBy(max => max[0]);
-            double[] maxMax = listMax[listMax.Count - 1];
-
-            MinBlkPt = new Point3d(minMin[0], minMin[1], minMin[2]);
-            MaxBlkPt = new Point3d(maxMax[0], maxMax[1], maxMax[2]);
-
+          
         }
 
         public void GetFirstCondition()
@@ -258,7 +256,7 @@ namespace BlockFillTest
             //  int i=  PtInPl.PtRelationToPoly(FirstCondition, SecondCondition.StartPoint, 1.0E-4);
             }
         }
-
+        [CommandMethod("cd3")]
         public void GetBlockCondition()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
@@ -288,23 +286,14 @@ namespace BlockFillTest
             using (var trans = db.TransactionManager.StartTransaction())
             {
                 var blkTbl = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                var blkRec = trans.GetObject(blkTbl[blockName], OpenMode.ForRead) as BlockTableRecord;
-
-
+                BlkRec = trans.GetObject(blkTbl[blockName], OpenMode.ForRead) as BlockTableRecord;
                 
-                foreach (ObjectId objectId in blkRec)
-                {
-                    var Ent = trans.GetObject(objectId, OpenMode.ForRead) as Entity;
-
-                    listEntis.Add(Ent);
-                }
                 trans.Commit();
             }
-
+            
             GetBlockMinMaxPoint(blockName);
 
-
-
+            GetMinTrangle();
         }
 
         private void GetBlockMinMaxPoint(string blockName)
@@ -376,42 +365,87 @@ namespace BlockFillTest
 
         private void BlkScale( double scale,Point3d min,Point3d max ) {
 
-            Point3d center = new Point3d((min.X + max.X) / 2, (min.Y+max.Y) / 2, 0);
+            BlockReference br = new BlockReference(Intersect1, BlkRec.Id);
+            
+            br.ScaleFactors = new Scale3d(0.3);
 
-            var mtrix = Matrix3d.Scaling(scale, Point3d.Origin);
-            var matrx2 = Matrix3d.Displacement(Intersect1
-                   - center);
+            Polyline plCopy = plTrangle.GetTransformedCopy(Matrix3d.Scaling(0.3, Point3d.Origin)) as Polyline;
 
-            List<Entity> listEntTemp = new List<Entity>();
-
-            foreach (var ent in listEntis)
-            {
-
-               
+            var matrix = Matrix3d.Displacement(Intersect1 - Point3d.Origin);
 
 
-              listEntTemp.Add( ent.GetTransformedCopy(matrx2*mtrix));
+            
 
-               
-            }
+            Point3d p1 = (Point3d)br.Bounds?.MinPoint;
+            Point3d p2 = (Point3d)br.Bounds?.MaxPoint;
 
-            blkDiagonal.GetTransformedCopy(matrx2 * mtrix);
-            listEntTemp.ToSpace();
-            blkDiagonal.ToSpace();
+            Point3d center = new Point3d((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2, 0);
 
+            var matrix2 = Matrix3d.Displacement(p2 - center);
+            br.TransformBy(matrix2);
+            br.Rotation = Math.PI / 4;
+            br.ToSpace();
         }
 
 
-       /* Point3d [] GetdiagonalPoint(Point3d min,Point3d max)
+         void GetMinTrangle()
+         {
+            Point2d p2 = new Point2d(MaxBlkPt.X, MinBlkPt.Y);
+
+            Point2d p4 = new Point2d(MinBlkPt.X, MaxBlkPt.Y);
+
+            plTrangle.AddVertexAt(plTrangle.NumberOfVertices, new Point2d(MinBlkPt.X,MinBlkPt.Y), 0, 0, 0);
+
+            plTrangle.AddVertexAt(plTrangle.NumberOfVertices, p2, 0, 0, 0);
+            plTrangle.AddVertexAt(plTrangle.NumberOfVertices, new Point2d(MaxBlkPt.X, MaxBlkPt.Y), 0, 0, 0);
+
+            plTrangle.AddVertexAt(plTrangle.NumberOfVertices, p4, 0, 0, 0);
+
+            plTrangle.Closed = true;
+
+           
+
+            plTrangle.ToSpace();
+        }
+
+        [CommandMethod("Test")]
+        public void Test2()
         {
+            AcadDocument doc = Application.DocumentManager.MdiActiveDocument.GetAcadDocument() as AcadDocument;
 
-            Point3d[] diagonalPoint = new Point3d[4];
 
-            diagonalPoint[0] = min;
-            diagonalPoint[3] = max;
+            DBObjectCollection dbcll = new DBObjectCollection();
 
-            diagonalPoint[1]=new Point3d(min.)
+            List<double[]> listMin = new List<double[]>();
+            List<double[]> listMax = new List<double[]>();
 
-        }*/
+
+            foreach (AcadEntity entity in doc.ModelSpace)
+            {
+                if (entity.EntityName == "AcDbBlockReference")
+                {
+                    AcadBlockReference returnBlock = (AcadBlockReference)entity;
+                    object min = null, max = null;
+                    if (returnBlock.Name == "MyBlock1")
+                    {
+                        returnBlock.GetBoundingBox(out min, out max);
+                        double[] arr = min as double[];
+                        double[] arr2 = max as double[];
+                        listMin.Add(arr);
+                        listMax.Add(arr2);
+                    }
+
+                }
+            }
+            listMin.OrderBy(min => min[0]);
+            double[] minMin = listMin.First();
+
+            listMax.OrderBy(max => max[0]);
+            double[] maxMax = listMax[listMax.Count - 1];
+
+            MinBlkPt = new Point3d(minMin[0], minMin[1], minMin[2]);
+            MaxBlkPt = new Point3d(maxMax[0], maxMax[1], maxMax[2]);
+
+        }
     }
 }
