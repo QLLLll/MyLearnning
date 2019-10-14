@@ -256,7 +256,7 @@ namespace BlockFillTest
 
                 SecondCondition = ent as Curve;
 
-                if (SecondCondition.StartPoint.X < SecondCondition.EndPoint.Y)
+                if (SecondCondition.StartPoint.X < SecondCondition.EndPoint.X)
                 {
                     splDirection = true;
                 }
@@ -634,7 +634,7 @@ namespace BlockFillTest
 
                 }
 
-                countLength +=lengthX/10;
+                countLength += lengthX / 10;
 
                 ptPos = SecondCondition.GetPointAtDist(countLength);
                 //658231.39122614253
@@ -655,9 +655,13 @@ namespace BlockFillTest
         private void BlkScale2(double scale, Point3d min, Point3d max)
         {
 
+
+            List<BlockReference> listBrUPOrg = new List<BlockReference>();
+            List<BlockReference> listBrUPDel = new List<BlockReference>();
+
             Point3d ptPos = splDirection ? ptPos = Intersect1 : ptPos = Intersect2;
 
-            
+
 
             BlockReference preBrUP = null;
             BlockReference preBrDwn = null;
@@ -669,22 +673,25 @@ namespace BlockFillTest
 
             temp.ScaleFactors = new Scale3d(scale);
 
-
-            Polyline testP = new Polyline();
-
             Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
             Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
 
             var bC = FirstCondition.Bounds;
 
 
-            double count =(Math.Abs(bC.Value.MaxPoint.X - bC.Value.MinPoint.X) /  Math.Abs(t2.X - t1.X));
+            int count = (int)(Math.Abs(bC.Value.MaxPoint.X - bC.Value.MinPoint.X) / Math.Abs(t2.X - t1.X));
 
-            int i = 1;
+            double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
+
+            double oneLength = allLength / count;
+
+            oneLength += oneLength / 3;
+
+            int i = 0;
 
             do
             {
-                
+
                 BlockReference brUP = new BlockReference(ptPos, BlkRec.Id);
                 BlockReference brDwn = new BlockReference(ptPos, BlkRec.Id);
 
@@ -702,21 +709,38 @@ namespace BlockFillTest
 
                 Point3d center = new Point3d((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2, 0);
 
-                var lengthX = (plUP.GetPoint2dAt(0) - plUP.GetPoint2dAt(1)).Length;
 
                 Point3d movePt = Point3d.Origin;
 
                 if (splDirection)
                 {
-                    movePt = new Point3d(center.X + 2*i*Math.Abs((p2.X - p1.X)) / 2, center.Y, center.Z);
+                    movePt = new Point3d(center.X + Math.Abs((p2.X - p1.X)) / 2, center.Y, center.Z);
                 }
                 else
                 {
-                    movePt = new Point3d(center.X - 2*i*Math.Abs((p2.X - p1.X)) / 2, center.Y, center.Z);
+                    movePt = new Point3d(center.X - Math.Abs((p2.X - p1.X)) / 2, center.Y, center.Z);
                 }
-                testP.AddVertexAt(testP.NumberOfVertices, new Point2d(movePt.X, movePt.Y), 0, 0, 0);
+
+
+
+
 
                 var matrix2 = Matrix3d.Displacement(movePt - center);
+                Point3d movePt2 = SecondCondition.GetPointAtDist(oneLength * i);
+
+                var vec1 = SecondCondition.GetFirstDerivative(movePt2);
+                var vec = vec1.X * vec1.Y > 0 ? vec1 : -vec1;
+                double angle = vec.GetAngleTo(Vector3d.XAxis);
+
+                var mtxRotate = Matrix3d.Rotation(angle, Vector3d.ZAxis, center);
+
+                //plUP.TransformBy(mtxRotate);
+                //brUP.TransformBy(mtxRotate);
+
+                if (i > 0 && !point3dEqual(movePt2, SecondCondition.EndPoint))
+                {
+                    matrix2 = Matrix3d.Displacement(movePt2 - movePt) * matrix2;
+                }
 
                 brUP.TransformBy(matrix2);
                 plUP.TransformBy(matrix2);
@@ -725,50 +749,61 @@ namespace BlockFillTest
                 plDwn.TransformBy(matrix2);
 
 
+                /*  Vector3d vec = Vector3d.XAxis * 0;
 
-                Vector3d vec = Vector3d.XAxis * 0;
+                  Point3dCollection p3dColl2 = new Point3dCollection();
 
-                Point3dCollection p3dColl2 = new Point3dCollection();
+                  SecondCondition.IntersectWith(plUP, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
 
-                SecondCondition.IntersectWith(plUP, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                if (p3dColl2.Count <= 1)
-                {
+                  if (p3dColl2.Count <= 1)
+                  {
 
 
-                }
-                else
-                {
+                  }
+                  else
+                  {
 
-                    var list = p3dColl2.Cast<Point3d>().OrderBy(pt => pt.X).ThenBy(pt => pt.Y).ToList();
+                      var list = p3dColl2.Cast<Point3d>().OrderBy(pt => pt.X).ThenBy(pt => pt.Y).ToList();
 
-                    Point3d p3d1 = list.First();
+                      Point3d p3d1 = list.First();
 
-                    Point3d p3d2 = list[list.Count - 1];
+                      Point3d p3d2 = list[list.Count - 1];
 
-                    vec = splDirection ? p3d2 - p3d1 : p3d1 - p3d2;
+                      vec = splDirection ? p3d2 - p3d1 : p3d1 - p3d2;
 
-                }
+                  }
+
+                  
+
+                  plUP.TransformBy(mtxRotate);
+                  brUP.TransformBy(mtxRotate);
+
+                  brDwn.TransformBy(mtxRotate);
+                  plDwn.TransformBy(mtxRotate);*/
 
                 double rito1 = 0.005, rito2 = 0.005;
+                double five = 0.5;
 
-                Matrix3d mtxDisUP = splDirection ? Matrix3d.Displacement(vec.RotateBy(Math.PI * 0.5, Vector3d.ZAxis)) :
-                    Matrix3d.Displacement(vec.RotateBy(Math.PI * -0.5, Vector3d.ZAxis));
+                if ((vec.X > 0 && vec.Y > 0) || (vec.X > 0 && vec.Y < 0))
+                {
+                    five = 0.5;
+                }
+                else if ((vec.X < 0 && vec.Y > 0) || (vec.X < 0 && vec.Y < 0))
+                {
+                    five = -0.5;
+                }
 
-                Matrix3d mtxDisDwn = splDirection == false ? Matrix3d.Displacement(vec.RotateBy(Math.PI * 0.5, Vector3d.ZAxis)) :
-                    Matrix3d.Displacement(vec.RotateBy(Math.PI * -0.5, Vector3d.ZAxis));
-                var mtxRotate = Matrix3d.Rotation(vec.GetAngleTo(Vector3d.XAxis), Vector3d.ZAxis, center);
+                Matrix3d mtxDisUP = splDirection ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis)) :
+                    Matrix3d.Displacement(vec.RotateBy(Math.PI * -1 * five, Vector3d.ZAxis));
 
-                plUP.TransformBy(mtxRotate);
-                brUP.TransformBy(mtxRotate);
+                Matrix3d mtxDisDwn = splDirection == false ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis)) :
+                    Matrix3d.Displacement(vec.RotateBy(Math.PI * -1 * five, Vector3d.ZAxis));
 
-                brDwn.TransformBy(mtxRotate);
-                plDwn.TransformBy(mtxRotate);
                 while (IsRectXJCon2(brUP))
                 {
 
-                    mtxDisUP = splDirection ? Matrix3d.Displacement(vec.RotateBy(Math.PI * 0.5, Vector3d.ZAxis) * rito1) :
-                    Matrix3d.Displacement(vec.RotateBy(Math.PI * -0.5, Vector3d.ZAxis) * rito1);
+                    mtxDisUP = splDirection ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis) * rito1) :
+                    Matrix3d.Displacement(vec.RotateBy(Math.PI * -five, Vector3d.ZAxis) * rito1);
 
                     plUP.TransformBy(mtxDisUP);
                     brUP.TransformBy(mtxDisUP);
@@ -785,8 +820,8 @@ namespace BlockFillTest
                 while (IsRectXJCon2(brDwn))
                 {
 
-                    mtxDisDwn = splDirection == false ? Matrix3d.Displacement(vec.RotateBy(Math.PI * 0.5, Vector3d.ZAxis)) :
-                     Matrix3d.Displacement(vec.RotateBy(Math.PI * -0.5, Vector3d.ZAxis));
+                    mtxDisDwn = splDirection == false ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis)) :
+                     Matrix3d.Displacement(vec.RotateBy(Math.PI * -five, Vector3d.ZAxis));
 
                     brDwn.TransformBy(mtxDisDwn);
                     plDwn.TransformBy(mtxDisDwn);
@@ -800,53 +835,103 @@ namespace BlockFillTest
 
                 //判断是否和条件一相交
 
-                if (BlkRotateToSpace(ref brUP, ref plUP, center))
-                {
+                /*      if (BlkRotateToSpace(ref brUP, ref plUP, center))
+                      {
 
 
 
-                    if (!IsRecXjRec(preBrUP, brUP))
-                    {
+                          if (!IsRecXjRec(preBrUP, brUP))
+                          {
 
-                        brUP.ToSpace();
-                    }
+                              brUP.ToSpace();
+                          }
 
-                    if (!IsRecXjRec(prePlUP, plUP))
-                    {
+                          if (!IsRecXjRec(prePlUP, plUP))
+                          {
 
-                        plUP.ToSpace();
-                    }
+                              plUP.ToSpace();
+                          }
 
-                };
-                if (BlkRotateToSpace(ref brDwn, ref plDwn, center))
-                {
-                    //if (!IsRecXjRec(prePlDwn, brDwn))
-                    //{
+                      };
+                      if (BlkRotateToSpace(ref brDwn, ref plDwn, center))
+                      {
+                          //if (!IsRecXjRec(prePlDwn, brDwn))
+                          //{
 
-                        brDwn.ToSpace();
-                    //}
+                              brDwn.ToSpace();
+                          //}
 
-                    //if (!IsRecXjRec(prePlDwn, plDwn))
-                    //{
+                          //if (!IsRecXjRec(prePlDwn, plDwn))
+                          //{
 
-                        plDwn.ToSpace();
-                 //   }
+                              plDwn.ToSpace();
+                       //   }
 
 
-                }
+                      }
 
-               
 
-                preBrUP = brUP;
-                preBrDwn = brDwn;
 
-                prePlUP = plUP;
-                prePlDwn = plDwn;
+                      preBrUP = brUP;
+                      preBrDwn = brDwn;
+
+                      prePlUP = plUP;
+                      prePlDwn = plDwn;*/
+                listBrUPOrg.Add(brUP);
+                //brUP.ToSpace();
+                //plUP.ToSpace();
                 i++;
 
-            } while (i <= count);
-            testP.ToSpace();
+            } while (oneLength * i < allLength);
 
+            try
+            {
+
+
+                foreach (var j in Enumerable.Range(0, listBrUPOrg.Count))
+                {
+
+                    BlockReference brU = listBrUPOrg[j];
+                    BlockReference brU2 = null;
+                    if (j + 1 < listBrUPOrg.Count)
+                    {
+                        brU2 = listBrUPOrg[j + 1];
+                    }
+
+                    if (IsRectXJCon1(brU))
+                    {
+                        continue;
+                    }
+                    double left = 1;
+                    double up = 1;
+                    int m = 1;
+                    while (brU2 != null && IsRecXjRec(brU, brU2) && m <= 30)
+                    {
+                        brU.TransformBy(Matrix3d.Displacement(Vector3d.XAxis * -left * m + Vector3d.YAxis * up * m));
+
+                        m++;
+                    }
+
+                    if (brU2 != null && IsRecXjRec(brU, brU2) || IsRectXJCon1(brU) || IsRectXJCon2(brU))
+                    {
+                        continue;
+                    }
+
+                    listBrUPDel.Add(brU);
+
+                }
+            }
+            catch (System.Exception r)
+            {
+
+                throw;
+            }
+
+            listBrUPDel.ToSpace();
+
+            listBrUPDel.Clear();
+
+            listBrUPOrg.Clear();
         }
 
         bool BlkRotateToSpace(ref BlockReference brUP, ref Polyline p, Point3d pt)
