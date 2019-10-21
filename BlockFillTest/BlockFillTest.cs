@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
@@ -52,107 +51,6 @@ namespace BlockFillTest
 
         DBObjectCollection dbColl = null;
 
-        [CommandMethod("XJ")]
-
-        public void Test2()
-        {
-
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var ed = doc.Editor;
-            var db = doc.Database;
-            GetSecondCondition();
-            GetBlockCondition();
-
-            using (var trans = db.TransactionManager.StartTransaction())
-            {
-                List<Entity> listEnt = new List<Entity>();
-                List<int> listCount = new List<int>();
-
-                int theMax = 0;
-                foreach (ObjectId objId in BlkRec)
-                {
-                    var Enti = trans.GetObject(objId, OpenMode.ForRead) as Entity;
-                    listEnt.Add(Enti);
-                    Point3dCollection p3dcoll = new Point3dCollection();
-
-                    Enti.IntersectWith(SecondCondition, Intersect.OnBothOperands, p3dcoll, IntPtr.Zero, IntPtr.Zero);
-
-                    if (p3dcoll.Count > 0)
-                    {
-
-                        if (p3dcoll.Count > theMax)
-                        {
-                            theMax = p3dcoll.Count;
-                        }
-                        Application.ShowAlertDialog(theMax.ToString());
-                    }
-                    else
-                    {
-                        Application.ShowAlertDialog("false");
-                    }
-
-                }
-                Point3dCollection p3dcoll1 = new Point3dCollection();
-                for (int i = 0; i < listEnt.Count; i++)
-                {
-                    var e1 = listEnt[i];
-
-                    int count = 0;
-                    for (int j = i + 1; j < listEnt.Count; j++)
-                    {
-                        var e2 = listEnt[j];
-
-
-                        e1.IntersectWith(e2, Intersect.OnBothOperands, p3dcoll1, IntPtr.Zero, IntPtr.Zero);
-
-
-                        Application.ShowAlertDialog(p3dcoll1.Count.ToString());
-
-                        count += p3dcoll1.Count;
-                    }
-                    listCount.Add(count);
-
-                }
-
-
-                //Application.ShowAlertDialog($"{listCount[0]},{listCount[1]}");
-
-                int max = listCount.Max();
-
-                if (max < theMax)
-                {
-                    Application.ShowAlertDialog("true");
-                }
-
-
-                trans.Commit();
-            }
-
-        }
-
-        [CommandMethod("XJ2")]
-        public void Test3()
-        {
-            Polyline p1 = GetFirstCondition1();
-            Polyline p2 = GetFirstCondition1();
-
-            if (p1 == null || p2 == null)
-            {
-                return;
-            }
-
-            Point3dCollection p3dC = new Point3dCollection();
-
-
-            p1.IntersectWith(p2, Intersect.OnBothOperands, p3dC, IntPtr.Zero, IntPtr.Zero);
-
-            Application.ShowAlertDialog(p3dC.Count.ToString());
-
-
-        }
-
-
-
         [CommandMethod("BT")]
         public void Test()
         {
@@ -181,17 +79,9 @@ namespace BlockFillTest
 
             PlBound.ToSpace();
 
-
-
-
-
-
-
             Point3dCollection p3dcl = new Point3dCollection();
 
             FirstCondition.IntersectWith(SecondCondition, Intersect.OnBothOperands, p3dcl, IntPtr.Zero, IntPtr.Zero);
-
-
 
             //求Condition1与Condition2的交点
             if (p3dcl.Count <= 0)
@@ -430,11 +320,9 @@ namespace BlockFillTest
             }
             return null;
         }
-
-        [CommandMethod("cd2")]
+  
         public void GetSecondCondition()
-        {
-            //GetFirstCondition();
+        {          
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
             var db = doc.Database;
@@ -681,7 +569,7 @@ namespace BlockFillTest
         public void DrawLines(double factor)
         {
             factor = 0.5;
-            double scale = 0.3;
+            double scale = 0.4;
 
             //宽的间隔
             double jgW = (MaxW / RatioW) * factor;
@@ -721,7 +609,7 @@ namespace BlockFillTest
                 listLine.Add(line);
                 h++;
             }
-            //listLine.ToSpace();
+        //    listLine.ToSpace();
 
             #endregion
 
@@ -828,8 +716,6 @@ namespace BlockFillTest
 
                 BlockReference br = new BlockReference(center, BlkRec.Id);
 
-
-
                 var line = new Line(new Point3d(center.X, MinPoint.Y, 0), new Point3d(center.X, MaxPoint.Y, 0));
 
                 line.IntersectWith(SecondCondition, Intersect.OnBothOperands, p3dcoll, IntPtr.Zero, IntPtr.Zero);
@@ -853,7 +739,7 @@ namespace BlockFillTest
 
                     length = (center - p3dcoll[0]).Length;
 
-                    s = scale - (length / MaxH) * 0.3;
+                    s = scale - (length / MaxH) * 0.4;
 
                 }
                 else if (count > 1)
@@ -873,15 +759,14 @@ namespace BlockFillTest
                         }
 
                     }
-
-
                 }
 
                 listLen.Add(length);
 
-                s = s > 0.3 ? 0.3 : s;
+                s = s > 0.4 ? 0.4 : s;
 
                 s = s < 0.08 ? 0.08 : s;
+                //s = 0.3;
                 br.ScaleFactors = new Scale3d(s);
                 p3dcoll.Clear();
 
@@ -943,15 +828,13 @@ namespace BlockFillTest
             int firstX = 0, firstY = 0;
             List<BlockReference> listBrToSpc = new List<BlockReference>();
             double l3 = 0.0;
+            double l4 = 0.0;
             while (firstX < totalX)
             {
                 double min = lenArr[firstY, firstX];
 
-                int isUoIoD = -1;
-
                 for (int i = 0; i < totalY; i++)
                 {
-
 
                     if (brArr[i, firstX] != null && lenArr[i, firstX] < min)
                     {
@@ -961,9 +844,6 @@ namespace BlockFillTest
 
                 }
 
-
-
-
                 var brTemp = brArr[firstY, firstX];
                 if (firstX == 0)
                 {
@@ -972,7 +852,8 @@ namespace BlockFillTest
                     var PtMin = brTemp.Bounds.Value.MinPoint;
                     var ptMax = brTemp.Bounds.Value.MaxPoint;
 
-                    l3 = ptMax.X - PtMin.X;
+                    l3 = Math.Abs(ptMax.X - PtMin.X);
+                    l4 = Math.Abs(ptMax.Y - PtMin.Y);
 
                 }
                 if (brTemp != null)
@@ -980,10 +861,9 @@ namespace BlockFillTest
                     var PtMin = brTemp.Bounds.Value.MinPoint;
                     var ptMax = brTemp.Bounds.Value.MaxPoint;
 
-                    l3 = ptMax.X - PtMin.X;
+                    l3 = Math.Abs(ptMax.X - PtMin.X);
+                    l4 = Math.Abs(ptMax.Y - PtMin.Y);
                 }
-
-
 
                 var brToSpace = brArr[firstY, firstX];
                 p3dcoll.Clear();
@@ -1008,13 +888,10 @@ namespace BlockFillTest
 
                     double jgHigh = min * 0.8;
 
+                    double scale1 = 0.3;
+
                     while (upI < totalY)
                     {
-
-
-
-                        //if (upI + 1 < totalY && brArr[upI + 1, firstX] != null)
-                        //{
 
                         var brY = brArr[upI, firstX];
 
@@ -1032,33 +909,41 @@ namespace BlockFillTest
 
                         //var moveY = Math.Abs(min - Math.Abs((ptMax.Y - PtMin.Y) / 2));
 
-                        /*if (PtMin.Y > ptJd.Y)
-                            brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
-                        else
-                            brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
-                            */
+                     //   if (PtMin.Y > ptJd.Y)
+                     //       brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
+                     //   else
+                     //       brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
+
 
                         int m = 0;
+
+                        double s1 = scale1 - (loopIndex * 1.0) / totalY;
+
+                        //brY.ScaleFactors = new Scale3d(s1);
+
                         if ((upI + 1) % 2 == 0)
                         {
                             vec = Vector3d.XAxis * 0;
 
-                            while (m < loopIndex && !IsRectXJCon(brY, SecondCondition) && !IsRectXJCon(brY, FirstCondition))
+                            while (m < loopIndex)
                             {
-                                vec += Vector3d.XAxis * 0.2 * l3;
+                                vec += Vector3d.XAxis * loopIndex * l3/ totalY+Vector3d.YAxis*loopIndex*l3/totalY;
 
                                 m++;
                             }
+                            m = 0;
+
                             brY.TransformBy(Matrix3d.Displacement(vec));
                         }
                         else
                         {
                             vec = Vector3d.XAxis * 0;
-                            while (m < loopIndex && !IsRectXJCon(brY, SecondCondition) && !IsRectXJCon(brY, FirstCondition))
+                            while (m < loopIndex)
                             {
-                                vec -= Vector3d.XAxis * 0.2 * l3;
+                                vec -= Vector3d.XAxis * loopIndex * l3/ totalY + Vector3d.YAxis * loopIndex * l3 / totalY;
                                 m++;
                             }
+                            m = 0;
                             brY.TransformBy(Matrix3d.Displacement(vec));
                         }
 
@@ -1074,9 +959,7 @@ namespace BlockFillTest
 
                         listBrToSpc.Add(brY);
 
-                        //}
                         upI += 1;
-
 
                     }
                     upI = firstY;
@@ -1098,36 +981,34 @@ namespace BlockFillTest
                             var moveY = (PointCenter - ptJd).Length - Math.Abs(ptMax.Y - PtMin.Y) / 2;
 
 
-                            /*if (PtMin.Y > ptJd.Y)
-                                brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
-                            else
-                                brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
-                                */
+                            //if (PtMin.Y > ptJd.Y)
+                           //     brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
+                        //    else
+                          //      brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
+
                             int m = 0;
 
                             if ((upI - 1) % 2 == 0)
                             {
                                 vec = Vector3d.XAxis * 0;
-                                while (m < loopIndex && !IsRectXJCon(brY, SecondCondition) && !IsRectXJCon(brY, FirstCondition))
+                                while (m < loopIndex)
                                 {
-                                    vec += Vector3d.XAxis * 0.2 * l3;
-
-
+                                    vec += Vector3d.XAxis * loopIndex * l3/totalY + Vector3d.YAxis * loopIndex * l3 / totalY;
                                     m++;
                                 }
+                                m = 0;
                                 brY.TransformBy(Matrix3d.Displacement(vec));
                             }
                             else
                             {
                                 vec = Vector3d.XAxis * 0;
-                                while (m < loopIndex /*&& !IsRectXJCon(brY, SecondCondition) && !IsRectXJCon(brY, FirstCondition)*/)
+                                while (m < loopIndex)
                                 {
-                                    vec -= Vector3d.XAxis * 0.2 * l3;
-
-
+                                    vec -= Vector3d.XAxis * loopIndex * l3/ totalY + Vector3d.YAxis * loopIndex * l3 / totalY;
                                     m++;
                                 }
-                              //  brY.TransformBy(Matrix3d.Displacement(vec));
+                                m = 0;
+                                brY.TransformBy(Matrix3d.Displacement(vec));
                             }
 
 
@@ -1312,18 +1193,44 @@ namespace BlockFillTest
 
             #endregion
 
+            List<BlockReference> listRemove = new List<BlockReference>();
+
+
+            for (int i = 0; i < listBrToSpc.Count; i++)
+            {
+                var br = listBrToSpc[i];
+
+                for (int j=i+1; j < listBrToSpc.Count; j++)
+                {
+                    var br2 = listBrToSpc[j];
+
+                    if (IsRecXjRec(br, br2))
+                    {
+                        listRemove.Add(br2);
+
+                    }
+                }
+            }
+
+            listRemove.ForEach(b => { listBrToSpc.Remove(b); });
+
+
+            listRemove.Clear();
+
+            foreach (var br in listBrToSpc)
+            {
+                var minPt = br.Bounds.Value.MinPoint;
+                var maxPt = br.Bounds.Value.MaxPoint;
+
+                if(PtInPl.PtRelationToPoly(FirstCondition,minPt,1.0E-4)==-1|| PtInPl.PtRelationToPoly(FirstCondition, maxPt, 1.0E-4) == -1){
+
+                    listRemove.Add(br);
+                }
+            }
+
+            listRemove.ForEach(b => { listBrToSpc.Remove(b); });
+
             listBrToSpc.ToSpace();
-
-        }
-
-
-        [CommandMethod("CalDot")]
-        public void CalDot()
-        {
-
-            GetSecondCondition();
-
-            Polyline poly = SecondCondition as Polyline;
 
         }
 
@@ -1372,14 +1279,6 @@ namespace BlockFillTest
             List<Point3d> listPt = new List<Point3d>();
 
             Point3d ptPos = splDirection ? ptPos = Intersect1 : ptPos = Intersect2;
-
-
-
-            BlockReference preBrUP = null;
-            BlockReference preBrDwn = null;
-
-            Polyline prePlUP = null;
-            Polyline prePlDwn = null;
 
             BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
 
@@ -1451,9 +1350,6 @@ namespace BlockFillTest
 
                     var mtxRotate = Matrix3d.Rotation(angle, Vector3d.ZAxis, center);
 
-                    //plUP.TransformBy(mtxRotate);
-                    //brUP.TransformBy(mtxRotate);
-
                     if (i > 0 && !point3dEqual(movePt2, SecondCondition.EndPoint))
                     {
                         matrix2 = Matrix3d.Displacement(movePt2 - movePt) * matrix2;
@@ -1516,7 +1412,7 @@ namespace BlockFillTest
                     Matrix3d mtxDisDwn = splDirection == false ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis)) :
                         Matrix3d.Displacement(vec.RotateBy(Math.PI * -1 * five, Vector3d.ZAxis));
 
-                    while (IsRectXJCon(plUP, SecondCondition))
+                    while (true/*IsRectXJCon(plUP, SecondCondition)*/)
                     {
 
                         mtxDisUP = splDirection ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis) * rito1) :
@@ -1534,7 +1430,7 @@ namespace BlockFillTest
 
                     }
 
-                    while (IsRectXJCon(plDwn, SecondCondition))
+                    while (/*IsRectXJCon(plDwn, SecondCondition)*/true)
                     {
 
                         mtxDisDwn = splDirection == false ? Matrix3d.Displacement(vec.RotateBy(Math.PI * five, Vector3d.ZAxis)) :
@@ -1619,7 +1515,7 @@ namespace BlockFillTest
                         plU2 = lplUPOrg[j + 1];
                     }
 
-                    if (IsRectXJCon(plU, FirstCondition))
+                    if (/*IsRectXJCon(plU, FirstCondition)*/true)
                     {
                         continue;
                     }
@@ -1639,7 +1535,7 @@ namespace BlockFillTest
                         m++;
                     }
 
-                    if (plU2 != null && IsRecXjRec(plU, plU2) || IsRectXJCon(plU, FirstCondition) || PtInPl.PtRelationToPoly(plU, p, 1.0E-4) != -1)
+                    if (plU2 != null && IsRecXjRec(plU, plU2) ||  true||/*IsRectXJCon(plU, FirstCondition) ||*/ PtInPl.PtRelationToPoly(plU, p, 1.0E-4) != -1)
                     {
                         continue;
                     }
@@ -1666,65 +1562,7 @@ namespace BlockFillTest
 
 
         }
-
-        bool BlkRotateToSpace(ref BlockReference brUP, ref Polyline p, Point3d pt)
-        {
-
-            double angle = Math.PI / 18;
-
-            Matrix3d mtx = Matrix3d.Rotation(angle, Vector3d.ZAxis, pt);
-
-            while (IsRectXJCon(brUP, FirstCondition) && IsRectXJCon(brUP, SecondCondition))
-            {
-                brUP.Rotation = angle;
-
-                mtx = Matrix3d.Rotation(angle, Vector3d.ZAxis, pt);
-
-                angle += Math.PI;
-
-                p.TransformBy(mtx);
-
-
-                if (angle >= Math.PI * 2)
-                {
-                    break;
-                }
-            }
-
-            if (angle > Math.PI * 2)
-            {
-                return false;
-            }
-            else
-            {
-                int i = 0;
-                //判断最后的图形是否在条件一内部
-                for (i = 0; i < p.NumberOfVertices; i++)
-                {
-
-                    Point2d temp = p.GetPoint2dAt(i);
-
-                    if (PtInPl.PtRelationToPoly(FirstCondition, temp, 1.0E-4) == -1)
-                    {
-                        break;
-                    }
-
-
-                }
-
-                if (i == 4)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-        }
-
-        bool IsRectXJCon(Entity br, Entity condition)
+        bool IsRectXJCon(BlockReference br, Polyline condition)
         {
 
             Point3dCollection p3dColl2 = new Point3dCollection();
@@ -1802,7 +1640,6 @@ namespace BlockFillTest
 
             return pl;
         }
-
 
         private List<BlockReference> BlkScale3(double scale, Point3d min, Point3d max, double jianju, ref List<Polyline> lplUPOrg)
         {
