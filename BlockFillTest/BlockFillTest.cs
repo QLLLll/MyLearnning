@@ -721,7 +721,7 @@ namespace BlockFillTest
                 listLine.Add(line);
                 h++;
             }
-            listLine.ToSpace();
+            //listLine.ToSpace();
 
             #endregion
 
@@ -1032,15 +1032,14 @@ namespace BlockFillTest
 
                         //var moveY = Math.Abs(min - Math.Abs((ptMax.Y - PtMin.Y) / 2));
 
-                        if (PtMin.Y > ptJd.Y)
+                        /*if (PtMin.Y > ptJd.Y)
                             brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
                         else
                             brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
-
+                            */
 
                         int m = 0;
-                        //if ((upI + 1) % 2 == 0)
-                        if (true)
+                        if ((upI + 1) % 2 == 0)
                         {
                             vec = Vector3d.XAxis * 0;
 
@@ -1099,16 +1098,14 @@ namespace BlockFillTest
                             var moveY = (PointCenter - ptJd).Length - Math.Abs(ptMax.Y - PtMin.Y) / 2;
 
 
-                            if (PtMin.Y > ptJd.Y)
+                            /*if (PtMin.Y > ptJd.Y)
                                 brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
                             else
                                 brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
-
+                                */
                             int m = 0;
 
-                            //if ((upI - 1) % 2 == 0)
-
-                            if (false)
+                            if ((upI - 1) % 2 == 0)
                             {
                                 vec = Vector3d.XAxis * 0;
                                 while (m < loopIndex && !IsRectXJCon(brY, SecondCondition) && !IsRectXJCon(brY, FirstCondition))
