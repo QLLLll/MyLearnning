@@ -900,13 +900,13 @@ namespace BlockFillTest
 
                         //brY.ScaleFactors = new Scale3d(s1);
 
-                        if (loopIndex == 1 || loopIndex == 2) {
+                        if (firstX == 0 ) {
 
                             vec = Vector3d.XAxis * 0;
 
                             vec +=  Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
 
-                            //brY.TransformBy(Matrix3d.Displacement(vec));
+                            brY.TransformBy(Matrix3d.Displacement(vec));
                         }
                         else
                         {
@@ -923,20 +923,20 @@ namespace BlockFillTest
                                 //    m++;
                                 //}
 
-                                vec += Vector3d.XAxis * loopIndex*loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis *loopIndex* loopIndex * l3 / totalY;
+                                vec += Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis *loopIndex* loopIndex * l3 / totalY;
                                 //m = 0;
 
-                            brY.TransformBy(Matrix3d.Displacement(vec));
+                           brY.TransformBy(Matrix3d.Displacement(vec));
                         }
                         else
                         {
                             vec = Vector3d.XAxis * 0;
-                            //while (m < loopIndex)
-                            //{
-                            //    vec -= Vector3d.XAxis * loopIndex* loopIndex * l3 * 1.3 / totalY + Vector3d.YAxis * loopIndex* loopIndex * l3 / totalY;
-                            //    m++;
-                            //}
-                                vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                //while (m < loopIndex)
+                                //{
+                                //    vec -= Vector3d.XAxis * loopIndex* loopIndex * l3 * 1.3 / totalY + Vector3d.YAxis * loopIndex* loopIndex * l3 / totalY;
+                                //    m++;
+                                //}
+                                vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY;// + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
                                 m = 0;
                             brY.TransformBy(Matrix3d.Displacement(vec));
                         }
@@ -972,46 +972,54 @@ namespace BlockFillTest
                           //      brY.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * moveY * 0.8 - Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
 
                             int m = 0;
-
-                            if ((upI - 1) % 2 == 0)
+                            if (firstX == 0)
                             {
+
                                 vec = Vector3d.XAxis * 0;
-                                vec += Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
-                                
-                                //while (m < loopIndex)
-                                //{
-                                //    vec += Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
-                                //    m++;
-                                //}
-                                //m = 0;
+
+                                vec = -Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+
                                 brY.TransformBy(Matrix3d.Displacement(vec));
                             }
                             else
                             {
-                                vec = Vector3d.XAxis * 0;
-                                vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
-                                //while (m < loopIndex)
-                                //{
-                                //    vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
-                                //    m++;
-                                //}
-                                m = 0;
-                                brY.TransformBy(Matrix3d.Displacement(vec));
-                            }
+                                if ((upI - 1) % 2 == 0)
+                                {
+                                    vec = Vector3d.XAxis * 0;
+                                    vec = Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY -Vector3d.YAxis * loopIndex * loopIndex * l3 * 1.2/ totalY;
 
+                                    //while (m < loopIndex)
+                                    //{
+                                    //    vec += Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                    //    m++;
+                                    //}
+                                    //m = 0;
+                                    brY.TransformBy(Matrix3d.Displacement(vec));
+                                }
+                                else
+                                {
+                                    vec = Vector3d.XAxis * 0;
+                                    vec = -Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY-Vector3d.YAxis * loopIndex * loopIndex * l3 * 1.2 / totalY;
+                                    //while (m < loopIndex)
+                                    //{
+                                    //    vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                    //    m++;
+                                    //}                                                               
+                                    m = 0;
+                                    brY.TransformBy(Matrix3d.Displacement(vec));
+                                }
+                            }
                             var PtMin = brY.Bounds.Value.MinPoint;
                             var ptMax = brY.Bounds.Value.MaxPoint;
 
                             var PointCenterY = new Point3d((PtMin.X + ptMax.X) / 2, (PtMin.Y + ptMax.Y) / 2, 0);
 
-                            //brY.TransformBy(GetRotateMtx(PointCenterY));
                             brY.Rotation = GetRotateMtx(PointCenterY);
                             loopIndex++;
                             listBrToSpc.Add(brY);
                         }
 
                         upI -= 1;
-
 
                     }
 
@@ -1196,7 +1204,7 @@ namespace BlockFillTest
 
                     if (IsRecXjRec(br, br2))
                     {
-                    //    listRemove.Add(br);
+                       listRemove.Add(br);
 
                     }
                 }
@@ -1611,22 +1619,20 @@ namespace BlockFillTest
             {
                 return false;
             }
-
-            //return false;
             var br1 = ent1 as BlockReference;
             var br2 = ent2 as BlockReference;
 
-            var angle1 = br1.Rotation;
-            var angle2 = br2.Rotation;
+            //var angle1 = br1.Rotation;
+            //var angle2 = br2.Rotation;
 
-            var min1 = br1.Bounds.Value.MinPoint;
-            var max1 = br1.Bounds.Value.MaxPoint;
+            //var min1 = br1.Bounds.Value.MinPoint;
+            //var max1 = br1.Bounds.Value.MaxPoint;
 
-            var min2 = br2.Bounds.Value.MinPoint;
-            var max2 = br2.Bounds.Value.MaxPoint;
+            //var min2 = br2.Bounds.Value.MinPoint;
+            //var max2 = br2.Bounds.Value.MaxPoint;
 
-            var line1 = new Line(min1, max1);
-            var line2 = new Line(min2, max2);
+            //var line1 = new Line(min1, max1);
+            //var line2 = new Line(min2, max2);
 
 
             //Point3d[] pt3Arr = GetPoint3d(min1, max1, angle1);
