@@ -569,7 +569,7 @@ namespace BlockFillTest
         public void DrawLines(double factor)
         {
             factor = 0.5;
-            double scale = 0.4;
+            double scale = 0.3;
 
             //宽的间隔
             double jgW = (MaxW / RatioW) * factor;
@@ -579,38 +579,38 @@ namespace BlockFillTest
             int w = 1, h = 1;
 
             #region 画线
+            /* 
+                        List<Entity> listLine = new List<Entity>();
 
-            List<Entity> listLine = new List<Entity>();
+                        //画竖线
+                       while (MinPoint.X + w * jgW <= MaxPoint.X)
+                        {
+                            Point3d pS = new Point3d(MinPoint.X + w * jgW, MinPoint.Y, 0);
+                            var pE = new Point3d(MinPoint.X + w * jgW, MaxPoint.Y, 0);
 
-            //画竖线
-            while (MinPoint.X + w * jgW <= MaxPoint.X)
-            {
-                Point3d pS = new Point3d(MinPoint.X + w * jgW, MinPoint.Y, 0);
-                var pE = new Point3d(MinPoint.X + w * jgW, MaxPoint.Y, 0);
+                            var line = new Line(pS, pE);
 
-                var line = new Line(pS, pE);
+                            line.Color = Color.FromColor(System.Drawing.Color.Pink);
 
-                line.Color = Color.FromColor(System.Drawing.Color.Pink);
+                            listLine.Add(line);
 
-                listLine.Add(line);
+                            w++;
+                        }
+                        //画横线
+                        while (MinPoint.Y + h * jgH <= MaxPoint.Y)
+                        {
+                            Point3d pS = new Point3d(MinPoint.X, MinPoint.Y + h * jgH, 0);
+                            var pE = new Point3d(MaxPoint.X, MinPoint.Y + h * jgH, 0);
 
-                w++;
-            }
-            //画横线
-            while (MinPoint.Y + h * jgH <= MaxPoint.Y)
-            {
-                Point3d pS = new Point3d(MinPoint.X, MinPoint.Y + h * jgH, 0);
-                var pE = new Point3d(MaxPoint.X, MinPoint.Y + h * jgH, 0);
+                            var line = new Line(pS, pE);
 
-                var line = new Line(pS, pE);
+                            line.Color = Color.FromColor(System.Drawing.Color.Pink);
 
-                line.Color = Color.FromColor(System.Drawing.Color.Pink);
-
-                listLine.Add(line);
-                h++;
-            }
-        //    listLine.ToSpace();
-
+                            listLine.Add(line);
+                            h++;
+                        }
+                       //listLine.ToSpace();
+                       */
             #endregion
 
             double sX = MinPoint.X;
@@ -701,6 +701,10 @@ namespace BlockFillTest
 
                         listPtCenter.Add(ptcenter);
 
+                        //var lineDuijiao = new Line(ptS, ptE);
+
+                     //   lineDuijiao.ToSpace();
+
                     }
 
                 }
@@ -739,31 +743,13 @@ namespace BlockFillTest
 
                     length = (center - p3dcoll[0]).Length;
 
-                    s = scale - (length / MaxH) * 0.4;
+                    s =Math.Abs( scale - (length / MaxH) * 0.3);
 
-                }
-                else if (count > 1)
-                {
-
-                    foreach (Point3d pt in p3dcoll)
-                    {
-
-                        if (PtInPl.PtRelationToPoly(FirstCondition, pt, 1.0E-4) != -1)
-                        {
-                            length = (center - p3dcoll[0]).Length;
-
-                            s = scale - (length / MaxH) * 0.3;
-
-                            break;
-
-                        }
-
-                    }
                 }
 
                 listLen.Add(length);
 
-                s = s > 0.4 ? 0.4 : s;
+                s = s > 0.3 ? 0.3 : s;
 
                 s = s < 0.08 ? 0.08 : s;
                 //s = 0.3;
@@ -781,8 +767,6 @@ namespace BlockFillTest
                 }
                 else
                 {
-                    p3dcoll.Clear();
-
                     br.IntersectWith(FirstCondition, Intersect.OnBothOperands, p3dcoll, IntPtr.Zero, IntPtr.Zero);
 
                     count1 = p3dcoll.Count;
@@ -811,15 +795,7 @@ namespace BlockFillTest
             {
                 for (int j = 0; j < totalX; j++)
                 {
-                    brArr[i, j] = listBr[q++];
-                }
-            }
-
-            q = 0;
-            for (int i = 0; i < totalY; i++)
-            {
-                for (int j = 0; j < totalX; j++)
-                {
+                    brArr[i, j] = listBr[q];
                     lenArr[i, j] = listLen[q++];
                 }
             }
@@ -865,7 +841,8 @@ namespace BlockFillTest
                     l4 = Math.Abs(ptMax.Y - PtMin.Y);
                 }
 
-                var brToSpace = brArr[firstY, firstX];
+                var brToSpace = brTemp;
+
                 p3dcoll.Clear();
 
                 Point3d ptJd = Point3d.Origin;
@@ -901,13 +878,15 @@ namespace BlockFillTest
                             continue;
                         }
 
-                        var PtMin = brY.Bounds.Value.MinPoint;
-                        var ptMax = brY.Bounds.Value.MaxPoint;
+                        //var PtMin = brY.Bounds.Value.MinPoint;
+                        //var ptMax = brY.Bounds.Value.MaxPoint;
 
-                        var PointCenter = new Point3d((PtMin.X + ptMax.X) / 2, (PtMin.Y + ptMax.Y) / 2, 0);
-                        var moveY = (PointCenter - ptJd).Length - Math.Abs(ptMax.Y - PtMin.Y) / 2;
+                        //var PointCenter = new Point3d((PtMin.X + ptMax.X) / 2, (PtMin.Y + ptMax.Y) / 2, 0);
+                        //var moveY = (PointCenter - ptJd).Length - Math.Abs(ptMax.Y - PtMin.Y) / 2;
 
                         //var moveY = Math.Abs(min - Math.Abs((ptMax.Y - PtMin.Y) / 2));
+
+
 
                      //   if (PtMin.Y > ptJd.Y)
                      //       brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
@@ -921,39 +900,54 @@ namespace BlockFillTest
 
                         //brY.ScaleFactors = new Scale3d(s1);
 
+                        if (loopIndex == 1 || loopIndex == 2) {
+
+                            vec = Vector3d.XAxis * 0;
+
+                            vec +=  Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+
+                            //brY.TransformBy(Matrix3d.Displacement(vec));
+                        }
+                        else
+                        {
+
+                        
                         if ((upI + 1) % 2 == 0)
                         {
                             vec = Vector3d.XAxis * 0;
 
-                            while (m < loopIndex)
-                            {
-                                vec += Vector3d.XAxis * loopIndex * l3/ totalY+Vector3d.YAxis*loopIndex*l3/totalY;
+                                //while (m < loopIndex)
+                                //{
+                                //    vec += Vector3d.XAxis * loopIndex * l3*1.3/ totalY+Vector3d.YAxis*loopIndex*l3/totalY;
 
-                                m++;
-                            }
-                            m = 0;
+                                //    m++;
+                                //}
+
+                                vec += Vector3d.XAxis * loopIndex*loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis *loopIndex* loopIndex * l3 / totalY;
+                                //m = 0;
 
                             brY.TransformBy(Matrix3d.Displacement(vec));
                         }
                         else
                         {
                             vec = Vector3d.XAxis * 0;
-                            while (m < loopIndex)
-                            {
-                                vec -= Vector3d.XAxis * loopIndex * l3/ totalY + Vector3d.YAxis * loopIndex * l3 / totalY;
-                                m++;
-                            }
-                            m = 0;
+                            //while (m < loopIndex)
+                            //{
+                            //    vec -= Vector3d.XAxis * loopIndex* loopIndex * l3 * 1.3 / totalY + Vector3d.YAxis * loopIndex* loopIndex * l3 / totalY;
+                            //    m++;
+                            //}
+                                vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                m = 0;
                             brY.TransformBy(Matrix3d.Displacement(vec));
                         }
-
+                        }
 
                         var PtMin2 = brY.Bounds.Value.MinPoint;
                         var ptMax2 = brY.Bounds.Value.MaxPoint;
 
                         var PointCenterY = new Point3d((PtMin2.X + ptMax2.X) / 2, (PtMin2.Y + ptMax2.Y) / 2, 0);
 
-                        brY.TransformBy(GetRotateMtx(PointCenterY));
+                        brY.Rotation=GetRotateMtx(PointCenterY);
 
                         loopIndex++;
 
@@ -972,15 +966,6 @@ namespace BlockFillTest
                         {
 
                             var brY = brArr[upI - 1, firstX];
-
-
-                            var PtMin = brY.Bounds.Value.MinPoint;
-                            var ptMax = brY.Bounds.Value.MaxPoint;
-
-                            var PointCenter = new Point3d((PtMin.X + ptMax.X) / 2, (PtMin.Y + ptMax.Y) / 2, 0);
-                            var moveY = (PointCenter - ptJd).Length - Math.Abs(ptMax.Y - PtMin.Y) / 2;
-
-
                             //if (PtMin.Y > ptJd.Y)
                            //     brY.TransformBy(Matrix3d.Displacement(-Vector3d.YAxis * moveY * 0.8 + Vector3d.YAxis * jgH * (loopIndex * 1.0 / totalY) * 6));
                         //    else
@@ -991,31 +976,36 @@ namespace BlockFillTest
                             if ((upI - 1) % 2 == 0)
                             {
                                 vec = Vector3d.XAxis * 0;
-                                while (m < loopIndex)
-                                {
-                                    vec += Vector3d.XAxis * loopIndex * l3/totalY + Vector3d.YAxis * loopIndex * l3 / totalY;
-                                    m++;
-                                }
-                                m = 0;
+                                vec += Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                
+                                //while (m < loopIndex)
+                                //{
+                                //    vec += Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                //    m++;
+                                //}
+                                //m = 0;
                                 brY.TransformBy(Matrix3d.Displacement(vec));
                             }
                             else
                             {
                                 vec = Vector3d.XAxis * 0;
-                                while (m < loopIndex)
-                                {
-                                    vec -= Vector3d.XAxis * loopIndex * l3/ totalY + Vector3d.YAxis * loopIndex * l3 / totalY;
-                                    m++;
-                                }
+                                vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                //while (m < loopIndex)
+                                //{
+                                //    vec -= Vector3d.XAxis * loopIndex * loopIndex * l3 * 1.4 / totalY + Vector3d.YAxis * loopIndex * loopIndex * l3 / totalY;
+                                //    m++;
+                                //}
                                 m = 0;
                                 brY.TransformBy(Matrix3d.Displacement(vec));
                             }
 
-
+                            var PtMin = brY.Bounds.Value.MinPoint;
+                            var ptMax = brY.Bounds.Value.MaxPoint;
 
                             var PointCenterY = new Point3d((PtMin.X + ptMax.X) / 2, (PtMin.Y + ptMax.Y) / 2, 0);
 
-                            brY.TransformBy(GetRotateMtx(PointCenterY));
+                            //brY.TransformBy(GetRotateMtx(PointCenterY));
+                            brY.Rotation = GetRotateMtx(PointCenterY);
                             loopIndex++;
                             listBrToSpc.Add(brY);
                         }
@@ -1206,7 +1196,7 @@ namespace BlockFillTest
 
                     if (IsRecXjRec(br, br2))
                     {
-                        listRemove.Add(br2);
+                    //    listRemove.Add(br);
 
                     }
                 }
@@ -1235,7 +1225,7 @@ namespace BlockFillTest
         }
 
 
-        private Matrix3d GetRotateMtx(Point3d firstCenter)
+        private double GetRotateMtx(Point3d firstCenter)
         {
             Point3dCollection p3dcoll = new Point3dCollection();
             var firstLine = new Line(new Point3d(firstCenter.X, MinPoint.Y, 0), new Point3d(firstCenter.X, MaxPoint.Y, 0));
@@ -1251,10 +1241,12 @@ namespace BlockFillTest
 
                 var vec = vec1.X * vec1.Y > 0 ? vec1 : -vec1;
 
-                return Matrix3d.Rotation(vec.GetAngleTo(Vector3d.XAxis), Vector3d.ZAxis, firstCenter);
+                return vec.GetAngleTo(Vector3d.XAxis);
+               // return Matrix3d.Rotation(vec.GetAngleTo(Vector3d.XAxis), Vector3d.ZAxis, firstCenter);
 
             }
-            return Matrix3d.Rotation(0, Vector3d.ZAxis, firstCenter); ;
+            return 0;
+            //return Matrix3d.Rotation(0, Vector3d.ZAxis, firstCenter); ;
         }
 
 
@@ -1599,6 +1591,20 @@ namespace BlockFillTest
         }
 
 
+        public static bool   GreateThan(Point3d p1,Point3d p2)
+        {
+
+            return (p1.X > p2.X && p1.Y > p2.Y);
+
+        }
+
+        public static bool  lowerThan(Point3d p1, Point3d p2)
+        {
+
+            return (p1.X < p2.X && p1.Y < p2.Y);
+
+        }
+
         bool IsRecXjRec(Entity ent1, Entity ent2)
         {
             if (ent1 == null || ent2 == null)
@@ -1606,9 +1612,81 @@ namespace BlockFillTest
                 return false;
             }
 
+            //return false;
+            var br1 = ent1 as BlockReference;
+            var br2 = ent2 as BlockReference;
+
+            var angle1 = br1.Rotation;
+            var angle2 = br2.Rotation;
+
+            var min1 = br1.Bounds.Value.MinPoint;
+            var max1 = br1.Bounds.Value.MaxPoint;
+
+            var min2 = br2.Bounds.Value.MinPoint;
+            var max2 = br2.Bounds.Value.MaxPoint;
+
+            var line1 = new Line(min1, max1);
+            var line2 = new Line(min2, max2);
+
+
+            //Point3d[] pt3Arr = GetPoint3d(min1, max1, angle1);
+
+            //Point3d[] pt3Arr2 = GetPoint3d(min2, max2, angle2);
+
+            //Polyline p1 = GetPolyline(min1, max1, pt3Arr);
+
+            //p1.ToSpace();
+            //Polyline p2 = GetPolyline(min2, max2, pt3Arr2);
+
+            /*var left1 = min1.X > pt3Arr[0].X ? pt3Arr[0] : min1;
+            var left2 = min2.X > pt3Arr2[0].X ? pt3Arr2[0] : min2;
+
+            var right1 = max1.X > pt3Arr[1].X ? max1 : pt3Arr[1];
+            var right2 = max2.X > pt3Arr2[1].X ? max2 : pt3Arr2[1];
+
+            var top1 = max1.Y < pt3Arr[0].Y ? pt3Arr[0] : max1;
+            var top2 = max2.Y < pt3Arr2[0].Y ? pt3Arr2[0] : max2;
+
+            var bottom1 = min1.Y > pt3Arr[1].Y ? pt3Arr[1] : min1;
+            var bottom2 = min2.Y > pt3Arr2[1].Y ? pt3Arr2[1] : min2;*/
+
+
+            //List<Point3d> listA = new List<Point3d>();
+            //listA.Add(min1);
+            //listA.Add(max1);
+            //listA.Add(pt3Arr[0]);
+            //listA.Add(pt3Arr[1]);
+
+            //var left1 = listA.OrderBy(p => p.X).First();
+            //var right1 = listA.OrderBy(p => p.X).ToList()[3];
+            //var top1 = listA.OrderByDescending(p => p.Y).First();
+            //var bottom1 = listA.OrderBy(p => p.Y).First();
+
+
+            //List<Point3d> listB = new List<Point3d>();
+            //listB.Add(min2);
+            //listB.Add(max2);
+            //listB.Add(pt3Arr2[0]);
+            //listB.Add(pt3Arr2[1]);
+
+            //var left2 = listB.OrderBy(p => p.X).First();
+            //var right2 = listB.OrderByDescending(p => p.Y).First();
+            //var top2 = listB.OrderByDescending(p => p.Y).First();
+            //var bottom2 = listB.OrderBy(p => p.Y).First();
+
+            //return !((lowerThan(max1 , min2) || GreateThan(pt3Arr[1] , pt3Arr2[0])) ||
+            //  (lowerThan(max2 , min1) || GreateThan(pt3Arr2[1] , pt3Arr[0]))
+            //);
+            //return !(((right1.X < left2.X) || (bottom1.Y > top2.Y)) ||
+            //  ((right2.X < left1.X) || (bottom2.Y > top1.Y)));
+
+
             Point3dCollection p3dColl2 = new Point3dCollection();
 
-            ent1.IntersectWith(ent2, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
+            br1.IntersectWith(br2, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
+
+            //p1.Dispose();
+            //p2.Dispose();
 
             if (p3dColl2.Count > 1)
             {
@@ -1618,6 +1696,46 @@ namespace BlockFillTest
             {
                 return false;
             }
+            
+        }
+
+        private Polyline GetPolyline(Point3d min1, Point3d max1, Point3d[] pt3Arr)
+        {
+            Polyline p = new Polyline(4);
+
+            p.AddVertexAt(p.NumberOfVertices, new Point2d(min1.X, min1.Y), 0, 0, 0);
+            p.AddVertexAt(p.NumberOfVertices, new Point2d(pt3Arr[0].X, pt3Arr[0].Y), 0, 0, 0);
+            p.AddVertexAt(p.NumberOfVertices, new Point2d(max1.X, max1.Y), 0, 0, 0);
+            p.AddVertexAt(p.NumberOfVertices, new Point2d(pt3Arr[1].X, pt3Arr[1].Y), 0, 0, 0);
+
+            p.Closed = true;
+
+            return p;
+        }
+
+        private Point3d[] GetPoint3d(Point3d min, Point3d max, double r)
+        {
+            Point3d[] p3dArr = new Point3d[2];
+
+            var x1 = min.X;
+            var y1 = min.Y;
+
+            var x2 = max.X;
+            var y2 = max.Y;
+
+            var x = x2 - (x2 - x1) / (Math.Cos(r) * Math.Cos(r));
+            var y = y1 + Math.Tan(r) * (x2 - x1);
+
+            p3dArr[0] = new Point3d(x, y, 0);
+
+            var y4 = (y2 - y) * Math.Sin(r) * Math.Sin(r) + y;
+            var x4 = x2 + (y2 - y) * Math.Sin(r) * Math.Cos(r);
+
+            p3dArr[1] = new Point3d(x4, y4,0);
+
+
+            return p3dArr;
+
         }
 
         Polyline GetMinRect(Point3d min, Point3d max)
