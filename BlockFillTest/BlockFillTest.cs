@@ -234,7 +234,7 @@ namespace BlockFillTest
 
 
 
-            while (q < countAll)
+            while (/*q < countAll*/false)
             {
 
 
@@ -294,19 +294,19 @@ namespace BlockFillTest
 
                 if (q % 2 == 1)
                 {
-                    countLen += (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+                    countLen += (scale2 +  q * RatioW / firstCount) * blockWidth;
 
-                    s += (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+                    s += (scale2 +  q * RatioW / firstCount) * blockWidth;
                 }
                 else
                 {
-                    countLen -= s + q * (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+                    countLen -= s + q * (scale2 +  q * RatioW / firstCount) * blockWidth;
                     countLen += s;
                 }
                 countLen = countLen < 0 ? 2 * blockWidth : countLen;
                 countLen = countLen > allLength ? allLength : countLen;
 
-                listBr2 = BlkScaleDown(ref listVec3dDown, scale, countLen, (scale2 + factor * q * RatioW / firstCount) * blockWidth, blockHigh, allLength);
+                listBr2 = BlkScaleDown(ref listVec3dDown, scale, countLen, (scale2 +  q * RatioW / firstCount) * blockWidth, blockHigh, allLength);
 
                 scale -= 0.04;
                 scale = scale < 0 ? 0.08 : scale;
@@ -330,6 +330,9 @@ namespace BlockFillTest
                     {
 
                         br.TransformBy(Matrix3d.Displacement(vecYDown * 2));
+                        //var v1 = v.RotateBy(Math.PI*-0.5, Vector3d.ZAxis);
+
+                        //br.TransformBy(Matrix3d.Displacement(v1.GetNormal() * 2 * blockHigh * q));
                     }
                     else
                     {
