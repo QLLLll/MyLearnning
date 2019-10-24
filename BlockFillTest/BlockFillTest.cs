@@ -18,11 +18,18 @@ namespace BlockFillTest
     public class BlockFillTest
     {
 
+        Document doc = Application.DocumentManager.MdiActiveDocument;
+        Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        Database db = Application.DocumentManager.MdiActiveDocument.Database;
+
         Polyline FirstCondition;
 
         Polyline PlBound;
 
         Curve SecondCondition;
+        Curve SecondConditionDown;
+
+        Curve MoveCondition;
         //左边相交的点
         Point3d Intersect1;
         //右边相交的点
@@ -53,15 +60,10 @@ namespace BlockFillTest
 
         DBObjectCollection dbColl = null;
 
-        [CommandMethod("BT")]
+        [CommandMethod("ECDBT")]
         public void Test()
         {
             listAllBr.Clear();
-
-
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var ed = doc.Editor;
-            var db = doc.Database;
 
             GetFirstCondition();
 
@@ -166,10 +168,10 @@ namespace BlockFillTest
 
                     SecondCondition = curve;
 
-                    SecondCondition.ToSpace();
+                    //SecondCondition.ToSpace();
 
                 }
-
+                SecondConditionDown = SecondCondition.Clone() as Curve;
             }
 
             GetBlockCondition();
@@ -181,8 +183,257 @@ namespace BlockFillTest
 
 
             GetBlkRatioCondtn1();
+            #region 保留算法
 
-            Point3d ptPos = splDirection ? ptPos = Intersect1 : ptPos = Intersect2;
+            //Point3d ptPos = splDirection ? Intersect1 :  Intersect2;
+
+            //BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
+
+            //temp.ScaleFactors = new Scale3d(0.3);
+
+            //Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
+            //Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
+
+            //double blockWidth = Math.Abs(t2.X - t1.X);//块的宽度
+
+            //double blockHigh = Math.Abs(t2.Y - t1.Y);//块的高度
+
+            //double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
+
+            //double piece = blockHigh / 10;
+
+            //temp.Dispose();
+
+            //double countLen = 2 * blockWidth;
+            //double countLen1 = countLen;
+
+            //int countAll = (int)(MaxH / blockHigh);
+
+            //Vector3d vecYDown =  -Vector3d.YAxis*1.2* blockHigh;
+            //Vector3d vecYUp = Vector3d.YAxis * 1.2 * blockHigh;
+
+            //double factor = 0.5;
+
+            //double scale = 0.3;
+
+            //double scale2 = scale;
+
+            //List<Vector3d> listVec3dDown=null;
+            //List<Vector3d> listVec3dUp=null;
+
+            //List<BlockReference> listBr = BlkScaleUp(ref listVec3dUp, scale, countLen1, blockWidth, blockHigh, allLength);
+            //List<BlockReference> listBr2 = BlkScaleDown( ref listVec3dDown, scale, countLen, blockWidth, blockHigh, allLength);
+
+            //int firstCount = listBr2.Count;
+            //int firstUpCount = listBr.Count;
+
+            //listAllBr.AddRange(listBr2);
+            //listAllBr.AddRange(listBr);
+
+            //int q = 1;
+            //double s = 0.0;
+
+
+
+            //while (q < countAll)
+            //{
+
+
+            //    if (q % 2 == 1)
+            //    {
+            //        countLen1 += (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+
+            //        s += (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+            //    }
+            //    else
+            //    {
+            //        countLen1 -= s + q * (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+            //        countLen1 += s;
+            //    }
+            //    countLen1 = countLen1 < 0 ? 2*blockWidth : countLen1;
+            //    countLen1=countLen1>allLength?allLength:countLen1;
+
+            //    listBr2 = BlkScaleUp(ref listVec3dUp, scale, countLen1, (scale2 + factor * q * RatioW / firstUpCount) * blockWidth, blockHigh, allLength);
+
+
+            //    scale = scale - 0.04;
+
+            //    scale = scale < 0 ? 0.08 : scale;
+
+            //    //listBr2.ForEach((br) => {
+
+            //    //    br.TransformBy(Matrix3d.Displacement(vecYUp));
+
+            //    //});
+
+            //    for (int i = 0; i < listBr2.Count; i++)
+            //    {
+            //        var v = listVec3dUp[i];
+
+            //        v = v.RotateBy(Math.PI * 0.5, Vector3d.ZAxis).GetNormal();
+            //        var br = listBr2[i];
+
+            //        br.TransformBy(Matrix3d.Displacement(v*2*blockHigh*q));
+
+
+
+            //    }
+
+
+
+            //    vecYUp += Vector3d.YAxis * 2 * blockHigh*q++;
+
+            //    listAllBr.AddRange(listBr2);
+
+            //}
+
+            //q = 1;
+            //s = 0.0;
+            //scale = scale2;
+            //while (/*vecYDown.Length < MaxH*/q < countAll)
+            //{
+
+            //    if (q % 2 == 1)
+            //    {
+            //        countLen += (scale2 +  q * RatioW / firstCount) * blockWidth;
+
+            //        s += (scale2 +  q * RatioW / firstCount) * blockWidth;
+            //    }
+            //    else
+            //    {
+            //        countLen -= s + q * (scale2 +  q * RatioW / firstCount) * blockWidth;
+            //        countLen += s;
+            //    }
+            //    countLen = countLen < 0 ? 2 * blockWidth : countLen;
+            //    countLen = countLen > allLength ? allLength : countLen;
+
+            //    listBr2 = BlkScaleDown(ref listVec3dDown, scale, countLen, (scale2 +  q * RatioW / firstCount) * blockWidth, blockHigh, allLength);
+
+            //    scale -= 0.04;
+            //    scale = scale < 0 ? 0.08 : scale;
+            //    //listBr2.ForEach((br) => {
+
+            //    //    br.TransformBy(Matrix3d.Displacement(vecYDown));
+
+            //    //});
+
+            //    for (int i = 0; i < listBr2.Count; i++)
+            //    {
+            //        var v = listVec3dDown[i];
+
+            //        double angle = Vector3d.XAxis.GetAngleTo(v);
+
+
+
+            //        var br = listBr2[i];
+
+            //        if (angle >= Math.PI / 3 && angle <= Math.PI / 1.5)
+            //        {
+
+            //            br.TransformBy(Matrix3d.Displacement(vecYDown * 2));
+            //            //var v1 = v.RotateBy(Math.PI*-0.5, Vector3d.ZAxis);
+
+            //            //br.TransformBy(Matrix3d.Displacement(v1.GetNormal() * 2 * blockHigh * q));
+            //        }
+            //        else
+            //        {
+            //            br.TransformBy(Matrix3d.Displacement(vecYDown));
+            //        }
+
+            //    }
+
+
+            //    vecYDown -= Vector3d.YAxis * 2 * blockHigh * q++;
+
+            //    if (q == 2)
+            //    {
+            //        continue;
+            //    }
+
+            //    listAllBr.AddRange(listBr2);
+
+            //}
+            //List<BlockReference> listRemove = new List<BlockReference>();
+            //for (int i = firstCount+firstUpCount+1; i < listAllBr.Count; i++)
+            //{
+            //    var br = listAllBr[i];
+
+            //    for (int j = i + 1; j < listAllBr.Count; j++)
+            //    {
+            //        var br2 = listAllBr[j];
+
+            //        if (IsRecXjRec(br, br2))
+            //        {
+            //            //listRemove.Add(br);
+
+            //        }
+            //    }
+            //}
+
+            //listRemove.ForEach(b => { listAllBr.Remove(b); });
+
+
+            //listRemove.Clear();
+
+            //foreach (var br in listAllBr)
+            //{
+            //    var minPt = br.Bounds.Value.MinPoint;
+            //    var maxPt = br.Bounds.Value.MaxPoint;
+
+            //    if (PtInPl.PtRelationToPoly(FirstCondition, minPt, 1.0E-4) == -1 || PtInPl.PtRelationToPoly(FirstCondition, maxPt, 1.0E-4) == -1)
+            //    {
+
+            //        listRemove.Add(br);
+            //    }
+            //}
+
+            //listRemove.ForEach(b => { listAllBr.Remove(b); });
+
+            ////listAllBr = listAllBr.Distinct().ToList();
+
+            //listAllBr.ToSpace();
+
+
+            //// DrawLines(0.2);
+            #endregion
+
+            OffSetAndFill();
+
+        }
+
+        [CommandMethod("ecdos")]
+        public void Offset()
+        {
+            GetSecondCondition();
+            int q = 0;
+
+            var dis = 200000;
+
+            while (q < 10) {
+                var coll = SecondCondition.GetOffsetCurves(dis);
+
+                var pl = coll[0] as Entity;
+
+                for (int i = 1; i < coll.Count; i++)
+                {
+                    pl.JoinEntity(coll[i] as Entity);
+                }
+
+                pl.ToSpace();
+                q++;
+                dis += q * 10000;
+            } }
+
+
+        public void OffSetAndFill()
+        {
+
+            if (SecondCondition == null || BlkRec == null)
+            {
+                return;
+            }
+
+            Point3d ptPos = splDirection ? Intersect1 : Intersect2;
 
             BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
 
@@ -197,161 +448,144 @@ namespace BlockFillTest
 
             double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
 
-            double piece = blockHigh / 10;
+            double piece = blockHigh;
 
             temp.Dispose();
+
+            double totalCount = MaxH / blockHigh;
 
             double countLen = 2 * blockWidth;
             double countLen1 = countLen;
 
             int countAll = (int)(MaxH / blockHigh);
-            
-            Vector3d vecYDown =  -Vector3d.YAxis*1.2* blockHigh;
-            Vector3d vecYUp = Vector3d.YAxis * 1.2 * blockHigh;
 
-            double factor = 0.5;
+            //double disUp = 60000,disDown=-60000;
+            //double addLen = 58000;
+            double disUp = (MaxH / 4) + 4 * piece;
 
-            double scale = 0.3;
+            double sumDis = 0;
 
-            double scale2 = scale;
+            if (MaxH / blockHigh < 10)
+            {
+                disUp = 8 * piece;
+            }
+            else
+            {
+                disUp = (MaxH / 10) + 2 * piece;
+            }
+            double addLen = blockHigh * 0.5;
 
-            List<Vector3d> listVec3dDown=null;
-            List<Vector3d> listVec3dUp=null;
+            disUp = 2 * piece;
 
-            List<BlockReference> listBr = BlkScaleUp(ref listVec3dUp, scale, countLen1, blockWidth, blockHigh, allLength);
-            List<BlockReference> listBr2 = BlkScaleDown( ref listVec3dDown, scale, countLen, blockWidth, blockHigh, allLength);
+            var scale = 0.3;
+            var scale2 = scale;
 
-            
+            var minusScale = 2 * blockHigh / MaxH * scale2;
+
+            List<BlockReference> listBrUp = null;
+
+
+            List<BlockReference> listBr2 = BlkScaleDown(ref listBrUp, scale, countLen, blockWidth, piece, allLength);
 
             int firstCount = listBr2.Count;
-            int firstUpCount = listBr.Count;
+            int firstUpCount = listBrUp.Count;// listBr.Count;
 
-            listAllBr.AddRange(listBr2);
-            listAllBr.AddRange(listBr);
+            //listAllBr.AddRange(listBr);
 
-            int q = 1;
-            double s = 0.0;
+            //listAllBr.AddRange(listBrUp);
+            //listAllBr.AddRange(listBr2);
 
+            int q = 0;
 
+            double s = 0.0,s1=0.0;
 
-            while (/*q < countAll*/false)
+            while (sumDis <= MaxH)
             {
+                sumDis += disUp + (1 + q * 2 / totalCount) * addLen;
+
+                //if (q < 3)
+                //{ SecondCondition.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * disUp * )); }
+                //else
+                //{
+                //    SecondCondition.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * disUp * 1.2));
+                //}
+                //SecondCondition.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * (disUp+(1+q*2/totalCount)*addLen)));
+
+                //SecondConditionDown.TransformBy(Matrix3d.Displacement(Vector3d.YAxis *-1* (disUp + (1 + q * 2 / totalCount) * addLen)));
+
+                bool isXJ1 = false;
+                bool isXJ2 = false;
+                var pl = OffsetCon2(sumDis,out isXJ1);
+                var pl2 = OffsetCon2(sumDis * -1,out isXJ2);
+
+                
 
 
-                if (q % 2 == 1)
-                {
-                    countLen1 += (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
+                allLength = pl.GetDistAtPoint(pl.EndPoint);
+               double  allLength2 = pl2.GetDistAtPoint(pl2.EndPoint);
 
-                    s += (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
-                }
-                else
-                {
-                    countLen1 -= s + q * (scale2 + factor * q * RatioW / firstUpCount) * blockWidth;
-                    countLen1 += s;
-                }
-                countLen1 = countLen1 < 0 ? 2*blockWidth : countLen1;
-                countLen1=countLen1>allLength?allLength:countLen1;
+                pl.ToSpace();
+                pl2.ToSpace();
 
-                listBr2 = BlkScaleUp(ref listVec3dUp, scale, countLen1, (scale2 + factor * q * RatioW / firstUpCount) * blockWidth, blockHigh, allLength);
-
-
-                scale = scale - 0.04;
+                //scale = q < 1 ? scale - 3 * minusScale : scale - 0.5 * minusScale;
 
                 scale = scale < 0 ? 0.08 : scale;
 
-                //listBr2.ForEach((br) => {
-
-                //    br.TransformBy(Matrix3d.Displacement(vecYUp));
-
-                //});
-
-                for (int i = 0; i < listBr2.Count; i++)
+                if (q % 2 == 0)
                 {
-                    var v = listVec3dUp[i];
+                    countLen += (scale2 + q * RatioW / firstUpCount) * blockWidth;
+                    countLen1 += q / RatioW * blockWidth;
+                    s += (scale2 + q * RatioW / firstUpCount) * blockWidth;
+                    s1+= q / RatioW * blockWidth;
 
-                    v = v.RotateBy(Math.PI * 0.5, Vector3d.ZAxis).GetNormal();
-                    var br = listBr2[i];
+                    countLen = countLen < 0 ? 2 * blockWidth : countLen;
+                    countLen = countLen > allLength ? allLength : countLen;
 
-                    br.TransformBy(Matrix3d.Displacement(v*2*blockHigh*q));
+                    countLen1 = countLen1 < 0 ? 2 * blockWidth : countLen1;
+                    countLen1 = countLen1 > allLength2 ? allLength2 : countLen1;
 
+                    if (isXJ1)
+                    listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
+                    if(isXJ2)
+                    listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
 
-
-                }
-
-
-
-                vecYUp += Vector3d.YAxis * 2 * blockHigh*q++;
-
-                listAllBr.AddRange(listBr2);
-
-            }
-
-            q = 1;
-            s = 0.0;
-            scale = scale2;
-            while (/*vecYDown.Length < MaxH*/q < countAll)
-            {
-
-                if (q % 2 == 1)
-                {
-                    countLen += (scale2 +  q * RatioW / firstCount) * blockWidth;
-
-                    s += (scale2 +  q * RatioW / firstCount) * blockWidth;
                 }
                 else
                 {
-                    countLen -= s + q * (scale2 +  q * RatioW / firstCount) * blockWidth;
+                    countLen -= s + q * (scale2 + q * RatioW / firstUpCount) * blockWidth;
+                    countLen1 -=s1+q / RatioW * blockWidth;
+
+                    countLen = countLen < 0 ? 2 * blockWidth : countLen;
+                    countLen = countLen > allLength ? allLength : countLen;
+
+                    countLen1 = countLen1 < 0 ? 2 * blockWidth : countLen1;
+                    countLen1 = countLen1 > allLength2 ? allLength2 : countLen1;
+                    if (isXJ1)
+                        listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
+                    if (isXJ2)
+                        listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
+
                     countLen += s;
+                    countLen1 += s1;
                 }
-                countLen = countLen < 0 ? 2 * blockWidth : countLen;
-                countLen = countLen > allLength ? allLength : countLen;
-
-                listBr2 = BlkScaleDown(ref listVec3dDown, scale, countLen, (scale2 +  q * RatioW / firstCount) * blockWidth, blockHigh, allLength);
-
                 scale -= 0.04;
-                scale = scale < 0 ? 0.08 : scale;
-                //listBr2.ForEach((br) => {
-
-                //    br.TransformBy(Matrix3d.Displacement(vecYDown));
-
-                //});
-
-                for (int i = 0; i < listBr2.Count; i++)
-                {
-                    var v = listVec3dDown[i];
-
-                    double angle = Vector3d.XAxis.GetAngleTo(v);
-
-
-
-                    var br = listBr2[i];
-
-                    if (angle >= Math.PI / 3 && angle <= Math.PI / 1.5)
-                    {
-
-                        br.TransformBy(Matrix3d.Displacement(vecYDown * 2));
-                        //var v1 = v.RotateBy(Math.PI*-0.5, Vector3d.ZAxis);
-
-                        //br.TransformBy(Matrix3d.Displacement(v1.GetNormal() * 2 * blockHigh * q));
-                    }
-                    else
-                    {
-                        br.TransformBy(Matrix3d.Displacement(vecYDown));
-                    }
-
-                }
-
-
-                vecYDown -= Vector3d.YAxis * 2 * blockHigh * q++;
-                if (q == 2)
-                {
-                    continue;
-                }
+                q++;
+                listAllBr.AddRange(listBrUp);
                 listAllBr.AddRange(listBr2);
 
+                listBrUp.Clear();
+                listBr2.Clear();
+
+                if (isXJ1 == false && isXJ2 == false)
+                {
+                    break;
+                }
+
+
             }
+
             List<BlockReference> listRemove = new List<BlockReference>();
-            for (int i = firstCount+firstUpCount+1; i < listAllBr.Count; i++)
+            for (int i = firstCount + firstUpCount + 1; i < listAllBr.Count; i++)
             {
                 var br = listAllBr[i];
 
@@ -369,7 +603,6 @@ namespace BlockFillTest
 
             listRemove.ForEach(b => { listAllBr.Remove(b); });
 
-
             listRemove.Clear();
 
             foreach (var br in listAllBr)
@@ -386,27 +619,60 @@ namespace BlockFillTest
 
             listRemove.ForEach(b => { listAllBr.Remove(b); });
 
-            //listAllBr = listAllBr.Distinct().ToList();
-
             listAllBr.ToSpace();
 
-
-            // DrawLines(0.2);
-
-            
         }
 
-        private List<BlockReference> BlkScaleUp(ref List<Vector3d> listVec3dUp, double scale, double countLen, double blockWidth, double piece, double allLength)
+        private Polyline OffsetCon2(double sumDis, out bool isXJ2)
+        {
+            isXJ2 = true;
+
+            var coll = SecondCondition.GetOffsetCurves(sumDis);
+
+            var pl = coll[0] as Polyline;
+
+            for (int i = 1; i < coll.Count; i++)
+            {
+                pl.JoinEntity(coll[i] as Entity);
+            }
+
+            Point3dCollection pt3dColl = new Point3dCollection();
+
+            pl.IntersectWith(FirstCondition, Intersect.ExtendThis, pt3dColl, IntPtr.Zero, IntPtr.Zero);
+
+            if (pt3dColl.Count >= 2)
+            {
+                if (pl.StartPoint.X > pt3dColl[0].X)
+                    pl.AddVertexAt(0, new Point2d(pt3dColl[0].X, pt3dColl[0].Y), 0, 0, 0);
+
+                if (pl.EndPoint.X < pt3dColl[pt3dColl.Count - 1].X)
+                    pl.AddVertexAt(pl.NumberOfVertices, new Point2d(pt3dColl[pt3dColl.Count - 1].X, pt3dColl[pt3dColl.Count - 1].Y), 0, 0, 0);
+
+            }
+            else if (pt3dColl.Count == 1)
+            {
+                if (pl.StartPoint.X > pt3dColl[0].X)
+                    pl.AddVertexAt(0, new Point2d(pt3dColl[0].X, pt3dColl[0].Y), 0, 0, 0);
+                else if (pl.EndPoint.X < pt3dColl[pt3dColl.Count - 1].X)
+                    pl.AddVertexAt(pl.NumberOfVertices, new Point2d(pt3dColl[0].X, pt3dColl[0].Y), 0, 0, 0);
+
+            }
+            else
+            { isXJ2 = false; }
+
+            return pl;
+
+        }
+
+        private List<BlockReference> BlkScaleInLine( double scale, double countLen, double blockWidth, double piece, double allLength, Curve s)
         {
 
             List<BlockReference> listBrUPOrg = new List<BlockReference>();
-            listVec3dUp = new List<Vector3d>();
-
 
             do
             {
 
-                var ptPs = SecondCondition.GetPointAtDist(countLen);
+                var ptPs = s.GetPointAtDist(countLen);
 
                 countLen += 2*blockWidth;
 
@@ -419,99 +685,15 @@ namespace BlockFillTest
 
                 Polyline plUP = GetMinRect(p1, p2);
 
-
                 Point3d ptMoved = brUP.Bounds.Value.MinPoint;
                 Point3d ptMoved2 = brUP.Bounds.Value.MaxPoint;
 
                 var ptM4 = new Point3d(ptMoved.X, ptMoved2.Y, 0);
 
-                Line line1 = new Line(ptMoved, ptM4);
-                Line line2 = new Line(ptM4, ptMoved);
-
-
-
                 Point3dCollection p3dColl2 = new Point3dCollection();
 
-                int c = 0;
 
-                int c1 = 0;
-
-                SecondCondition.IntersectWith(plUP, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                c = p3dColl2.Count;
-
-                p3dColl2.Clear();
-                int m = 1;
-                if (c == 0)
-                {
-                    do
-                    {
-                        line1.IntersectWith(SecondCondition, Intersect.ExtendThis, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                        if (line1.Length * m++ > MaxH)
-                        {
-                            break;
-                        }
-
-                    } while (p3dColl2.Count < 1);// (false);//while (c2 < 1&&c3<1);
-
-                    if (p3dColl2.Count != 0)
-                    {
-                        if (p3dColl2[0].Y - ptM4.Y > 0)
-                        {
-                            brUP.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * Math.Abs(p3dColl2[0].Y - ptM4.Y)));
-                            plUP.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * Math.Abs(p3dColl2[0].Y - ptM4.Y)));
-                            c1 = 1;
-                        }
-                        m = 0;
-                        p3dColl2.Clear();
-
-                    }
-                }
-
-                if (c == 0 && c1 != 1)
-                {
-                    do
-                    {
-                        line2.IntersectWith(SecondCondition, Intersect.ExtendThis, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                        if (line2.Length * m++ > MaxH)
-                        {
-                            break;
-                        }
-
-                    } while (p3dColl2.Count < 1);// (false);//while (c2 < 1&&c3<1);
-
-                    if (p3dColl2.Count != 0)
-                    {
-                        if (p3dColl2[0].Y - ptMoved.Y < 0)
-                        {
-                            brUP.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -Math.Abs(p3dColl2[0].Y - ptMoved.Y)));
-                            plUP.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -Math.Abs(p3dColl2[0].Y - ptMoved.Y)));
-
-                            p3dColl2.Clear();
-                        }
-                        c1 = 0;
-                    }
-                }
-
-                do
-                {
-
-                    SecondCondition.IntersectWith(plUP, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                    c = p3dColl2.Count;
-
-                    brUP.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * piece));
-                    plUP.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * piece));
-
-                    p3dColl2.Clear();
-
-                } while (c >= 1);
-
-                Vector3d v = SecondCondition.GetFirstDerivative(ptPs);
-
-                listVec3dUp.Add(v);
+                Vector3d v = s.GetFirstDerivative(ptPs);
 
                 var angle = Vector3d.XAxis.GetAngleTo(v);
 
@@ -520,20 +702,17 @@ namespace BlockFillTest
 
                 listBrUPOrg.Add(brUP);
 
-                line1.Dispose();
-                line2.Dispose();
-
             } while (countLen < allLength);
 
             return listBrUPOrg;
         }
 
 
-        private List<BlockReference> BlkScaleDown(ref List<Vector3d> listVec3dDown, double scale, double countLen,double blockWidth, double piece,double allLength)
+        private List<BlockReference> BlkScaleDown(ref List<BlockReference> listBrUp, double scale, double countLen,double blockWidth, double piece,double allLength)
         {
 
             List<BlockReference> listBrDownOrg = new List<BlockReference>();
-            listVec3dDown = new List<Vector3d>();
+            listBrUp = new List<BlockReference>();
 
             do
             {
@@ -544,6 +723,9 @@ namespace BlockFillTest
 
                 BlockReference brDwn = new BlockReference(ptPs, BlkRec.Id);
                 brDwn.ScaleFactors = new Scale3d(scale);
+
+                BlockReference brUp = new BlockReference(ptPs, BlkRec.Id);
+                brUp.ScaleFactors = new Scale3d(scale);
 
                 Point3d p1 = brDwn.Bounds.Value.MinPoint;
                 Point3d p2 = brDwn.Bounds.Value.MaxPoint;
@@ -560,144 +742,119 @@ namespace BlockFillTest
 
 
 
-                Point3dCollection p3dColl2 = new Point3dCollection();
-                // 如果块直接和条件一相交就舍去
-                /*FirstCondition.IntersectWith(plDwn, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
+              Point3dCollection p3dColl2 = new Point3dCollection();
+              Point3dCollection p3dColl3 = new Point3dCollection();
+                /* 
+               int c = 0;
+               int c1 = 0;
 
-                if (p3dColl2.Count > 1)
-                {
-                    p3dColl2.Clear();
-                    i++;
-                    continue;
-                }*/
+               SecondCondition.IntersectWith(plDwn, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
 
-                int c = 0;
+               c = p3dColl2.Count;
+
+               p3dColl2.Clear();
+
+               int m = 1;
+               if (c == 0)
+               {
+                   do
+                   {
+                       line1.IntersectWith(SecondCondition, Intersect.ExtendThis, p3dColl2, IntPtr.Zero, IntPtr.Zero);
+
+                       if (line1.Length * m++ > MaxH)
+                       {
+                           break;
+                       }
+
+                   } while (p3dColl2.Count < 1);// (false);//while (c2 < 1&&c3<1);
+
+                   if (p3dColl2.Count != 0)
+                   {
+
+                       if (p3dColl2[0].Y - ptM4.Y > 0)
+                       {
+                           brDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * Math.Abs(p3dColl2[0].Y - ptM4.Y)));
+                           plDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * Math.Abs(p3dColl2[0].Y - ptM4.Y)));
+                           c1 = 1;
+                       }
+                       m = 0;
+                       p3dColl2.Clear();
+
+
+                   }
+               }
+
+               if (c == 0 && c1 != 1)
+               {
+                   do
+                   {
+                       line2.IntersectWith(SecondCondition, Intersect.ExtendThis, p3dColl2, IntPtr.Zero, IntPtr.Zero);
+
+                       if (line2.Length * m++ > MaxH)
+                       {
+                           break;
+                       }
+
+                   } while (p3dColl2.Count < 1);// (false);//while (c2 < 1&&c3<1);
+
+                   if (p3dColl2.Count != 0)
+                   {
+
+                       if (p3dColl2[0].Y - ptMoved.Y < 0)
+                       {
+                           brDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -Math.Abs(p3dColl2[0].Y - ptMoved.Y)));
+                           plDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -Math.Abs(p3dColl2[0].Y - ptMoved.Y)));
+                           var line = new Line(p3dColl2[0], ptMoved);
+
+                           p3dColl2.Clear();
+                       }
+                       c1 = 0;
+                   }
+               }
+               */
+
+
                 int c1 = 0;
-
-                SecondCondition.IntersectWith(plDwn, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                c = p3dColl2.Count;
-
-                p3dColl2.Clear();
-
-                int m = 1;
-                if (c == 0)
-                {
-                    do
-                    {
-                        line1.IntersectWith(SecondCondition, Intersect.ExtendThis, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                        if (line1.Length * m++ > MaxH)
-                        {
-                            break;
-                        }
-
-                    } while (p3dColl2.Count < 1);// (false);//while (c2 < 1&&c3<1);
-
-                    if (p3dColl2.Count != 0)
-                    {
-
-                        if (p3dColl2[0].Y - ptM4.Y > 0)
-                        {
-                            brDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * Math.Abs(p3dColl2[0].Y - ptM4.Y)));
-                            plDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * Math.Abs(p3dColl2[0].Y - ptM4.Y)));
-                            c1 = 1;
-                        }
-                        m = 0;
-                        p3dColl2.Clear();
-
-
-                    }
-                }
-
-                if (c == 0 && c1 != 1)
-                {
-                    do
-                    {
-                        line2.IntersectWith(SecondCondition, Intersect.ExtendThis, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                        if (line2.Length * m++ > MaxH)
-                        {
-                            break;
-                        }
-
-                    } while (p3dColl2.Count < 1);// (false);//while (c2 < 1&&c3<1);
-
-                    if (p3dColl2.Count != 0)
-                    {
-
-                        if (p3dColl2[0].Y - ptMoved.Y < 0)
-                        {
-                            brDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -Math.Abs(p3dColl2[0].Y - ptMoved.Y)));
-                            plDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -Math.Abs(p3dColl2[0].Y - ptMoved.Y)));
-                            var line = new Line(p3dColl2[0], ptMoved);
-                            line.ToSpace();
-                            p3dColl2.Clear();
-                        }
-                        c1 = 0;
-                    }
-                }
-
+                int c2 = 0;
                 do
                 {
 
-                    SecondCondition.IntersectWith(plDwn, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                    c = p3dColl2.Count;
-
+                    SecondCondition.IntersectWith(brDwn, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
+                    SecondCondition.IntersectWith(brUp, Intersect.OnBothOperands, p3dColl3, IntPtr.Zero, IntPtr.Zero);
+                    c1 = p3dColl2.Count;
+                    c2 = p3dColl3.Count;
                     brDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -piece));
                     plDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -piece));
 
+                    brUp.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * piece));
+
                     p3dColl2.Clear();
 
-                } while (c >= 1);
+                    p3dColl3.Clear();
 
+                } while (c1 >= 1||c2>=1);
 
-                // 如果块直接和条件一相交就舍去
-                /*FirstCondition.IntersectWith(plDwn, Intersect.OnBothOperands, p3dColl2, IntPtr.Zero, IntPtr.Zero);
-
-                if (p3dColl2.Count > 1)
-                {
-                    p3dColl2.Clear();
-                    i++;
-                    continue;
-                }*/
-
-
-                /*var firstPt = plDwn.GetPoint3dAt(0);
-                var secondPt = plDwn.GetPoint3dAt(1);
-                var thridPt = plDwn.GetPoint3dAt(2);
-                var ptEnd = plDwn.GetPoint3dAt(3);
-
-                if (PtInPl.PtRelationToPoly(FirstCondition, firstPt, 1.0E-4) == -1
-                    || PtInPl.PtRelationToPoly(FirstCondition, secondPt, 1.0E-4) == -1
-                    || PtInPl.PtRelationToPoly(FirstCondition, thridPt, 1.0E-4) == -1
-                    || PtInPl.PtRelationToPoly(FirstCondition, ptEnd, 1.0E-4) == -1
-                    )
-                {
-                    i++;
-
-                    continue;
-
-                }*/
+                
                 Vector3d v = SecondCondition.GetFirstDerivative(ptPs);
 
-                listVec3dDown.Add(v);
                 var angle = Vector3d.XAxis.GetAngleTo(v);
 
                 brDwn.Rotation = GetRotateMtx(ptPs);
-                plDwn.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis, ptPs));
+               // plDwn.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis, ptPs));
+
+
+                brUp.Rotation = GetRotateMtx(ptPs);
+                //plDwn.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis, ptPs));
 
                 listBrDownOrg.Add(brDwn);
-                //lplDownOrg.Add(plDwn);
+                listBrUp.Add(brUp);
 
                 line1.Dispose();
                 line2.Dispose();
 
             } while (countLen < allLength);
 
-            //listBrDownOrg.ToSpace();
-            //   lplDownOrg.ToSpace();
+           
 
 
             return listBrDownOrg;
@@ -726,9 +883,7 @@ namespace BlockFillTest
 
         public void GetFirstCondition()
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var ed = doc.Editor;
-            var db = doc.Database;
+        
 
             var entOpts = new PromptEntityOptions("请选择封闭多段线\n");
 
@@ -773,9 +928,7 @@ namespace BlockFillTest
 
         public Polyline GetFirstCondition1()
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var ed = doc.Editor;
-            var db = doc.Database;
+           
 
             var entOpts = new PromptEntityOptions("请选择封闭多段线\n");
 
@@ -818,9 +971,7 @@ namespace BlockFillTest
   
         public void GetSecondCondition()
         {          
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var ed = doc.Editor;
-            var db = doc.Database;
+           
 
             var entOpts = new PromptEntityOptions("请选择曲线\n");
 
@@ -926,9 +1077,7 @@ namespace BlockFillTest
 
         public void GetBlockCondition()
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var ed = doc.Editor;
-            var db = doc.Database;
+            
 
             var entOpts = new PromptEntityOptions("请选择块\n");
 
@@ -970,9 +1119,7 @@ namespace BlockFillTest
 
                 if (!blkTbl.Has(blockName))
                 {
-                    Application.ShowAlertDialog("请输入正确的块名称");
                     return;
-
                 }
 
                 BlkRec = trans.GetObject(blkTbl[blockName], OpenMode.ForRead) as BlockTableRecord;
