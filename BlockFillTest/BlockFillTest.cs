@@ -45,6 +45,8 @@ namespace BlockFillTest
         double MaxW, MaxH;
         double BlockW, BlockH;
 
+        int all = 0;
+
         List<BlockReference> listAllBr = new List<BlockReference>();
 
         //曲线方向从左到右，从下到上为true，否则为false
@@ -390,8 +392,8 @@ namespace BlockFillTest
             //// DrawLines(0.2);
             #endregion
 
-            OffSetAndFill();
-
+            // OffSetAndFill();
+            OffSetAndFillFan();
         }
 
         public void OffSetAndFill()
@@ -401,7 +403,7 @@ namespace BlockFillTest
             {
                 return;
             }
-
+            listAllBr.Clear();
             Point3d ptPos = splDirection ? Intersect1 : Intersect2;
 
             BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
@@ -455,7 +457,7 @@ namespace BlockFillTest
 
 
             List<BlockReference> listBr2 = BlkScaleDown(ref listBrUp, scale, countLen, blockWidth, piece, allLength);
-             listBr2 = BlkScaleInLine(scale + 0.06, countLen, blockWidth, piece, allLength, SecondCondition);
+            listBr2 = BlkScaleInLine(scale + 0.06, countLen, blockWidth, piece, allLength, SecondCondition);
 
             listAllBr.AddRange(listBr2);
 
@@ -464,21 +466,21 @@ namespace BlockFillTest
 
             int q = 0;
 
-            double s = 0.0,s1=0.0;
+            double s = 0.0, s1 = 0.0;
 
             double sum = 0.0;
 
             var p1 = SecondCondition;
             var p2 = SecondCondition;
 
-            
+
 
             sum = disUp + (1 + q * 2 / totalCount) * addLen;
             sum = sum * 1.3;
             while (sumDis <= MaxH)
             {
                 sumDis += disUp + (1 + q * 2 / totalCount) * addLen;
-                
+
                 bool isXJ1 = false;
                 bool isXJ2 = false;
                 //var pl = OffsetCon2(sumDis,out isXJ1);
@@ -497,10 +499,10 @@ namespace BlockFillTest
 
 
                 allLength = pl.GetDistAtPoint(pl.EndPoint);
-               double  allLength2 = pl2.GetDistAtPoint(pl2.EndPoint);
+                double allLength2 = pl2.GetDistAtPoint(pl2.EndPoint);
 
-                pl.ToSpace();
-                pl2.ToSpace();
+                //  pl.ToSpace();
+                //pl2.ToSpace();
 
                 scale = scale < 0 ? 0.08 : scale;
 
@@ -515,7 +517,7 @@ namespace BlockFillTest
 
                     countLen *= 1.6;
                     countLen1 *= 1.6;
-                    
+
 
                     countLen = countLen < 0 ? 2 * blockWidth : countLen;
                     countLen = countLen > allLength ? allLength : countLen;
@@ -524,9 +526,9 @@ namespace BlockFillTest
                     countLen1 = countLen1 > allLength2 ? allLength2 : countLen1;
 
                     if (isXJ1)
-                    listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
-                    if(isXJ2)
-                    listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
+                        listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
+                    if (isXJ2)
+                        listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
 
                 }
                 else
@@ -550,7 +552,7 @@ namespace BlockFillTest
                     countLen += s;
                     countLen1 += s1;
                 }
-                scale -= 0.04;
+                scale -= 0.02;
                 q++;
                 listAllBr.AddRange(listBrUp);
                 listAllBr.AddRange(listBr2);
@@ -605,7 +607,179 @@ namespace BlockFillTest
 
         }
 
-        private Polyline OffsetCon2(Curve curve,double sumDis, out bool isXJ2)
+        private void OffSetAndFillFan()
+        {
+            if (SecondCondition == null || BlkRec == null)
+            {
+                return;
+            }
+
+            listAllBr.Clear();
+
+            Point3d ptPos = splDirection ? Intersect1 : Intersect2;
+
+            BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
+
+            temp.ScaleFactors = new Scale3d(0.3);
+
+            Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
+            Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
+
+            double blockWidth = Math.Abs(t2.X - t1.X);//块的宽度
+
+            double blockHigh = Math.Abs(t2.Y - t1.Y);//块的高度
+
+            double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
+
+            all = (int)(allLength / blockWidth);
+
+            double piece = blockHigh;
+
+            double b1 = blockWidth;
+
+            temp.Dispose();
+
+            double totalCount = MaxH / blockHigh;
+
+            double countLen = 2 * blockWidth;
+            double countLen1 = countLen;
+
+            int countAll = (int)(MaxH / blockHigh);
+            double disUp = (MaxH / 4) + 4 * piece;
+
+            double sumDis = 0;
+
+
+            double addLen = blockHigh * 0.5;
+
+            disUp = 2 * piece;
+
+            var scale = 0.16;
+            var scale2 = scale;
+
+            var minusScale = 2 * blockHigh / MaxH * scale2;
+
+
+            blockWidth = (2.0+(1.0*all) / 25) * blockWidth;
+
+            List<BlockReference> listBrUp = null;
+
+
+            //List<BlockReference> listBr2 = BlkScaleDown(ref listBrUp, scale, countLen, blockWidth, piece, allLength);
+            List<BlockReference> listBr2 = BlkScaleInLineFan(scale, countLen, blockWidth, piece, allLength, SecondCondition);
+
+            listAllBr.AddRange(listBr2);
+
+            int firstCount = listBr2.Count;
+            int firstUpCount = firstCount;// listBr.Count;
+
+            int q = 0;
+
+
+            double sum = 0.0;
+
+            var p1 = SecondCondition;
+            var p2 = SecondCondition;
+
+
+
+            sum = disUp + addLen;
+            sum = sum * 1.3;
+
+
+
+            while (sumDis <= MaxH)
+            {
+                sumDis += disUp + (1 + q * 2 / totalCount) * addLen;
+
+                bool isXJ1 = false;
+                bool isXJ2 = false;
+
+                var pl = OffsetCon2(p1, sum, out isXJ1);
+                var pl2 = OffsetCon2(p2, sum * -1, out isXJ2);
+
+                //sum = sum * 1.2;
+
+                p1 = pl.Clone() as Curve;
+                p2 = pl2.Clone() as Curve;
+
+
+                allLength = pl.GetDistAtPoint(pl.EndPoint);
+                double allLength2 = pl2.GetDistAtPoint(pl2.EndPoint);
+
+                pl.ToSpace();
+                pl2.ToSpace();
+
+                scale = scale > 0.3 ? 0.3 : scale;
+
+                q++;
+
+                blockWidth = (2 * (all*1.0 - q) / 25) * b1;
+
+                blockWidth = blockWidth < 1.5 * b1 ? 1.5 * b1 : blockWidth;
+
+                if (isXJ1)
+                    listBrUp = BlkScaleInLineFan(scale, countLen, blockWidth, piece, allLength, pl);
+                if (isXJ2)
+                    listBr2 = BlkScaleInLineFan(scale, countLen, blockWidth, piece, allLength2, pl2);
+
+
+                scale += 0.08;
+
+                listAllBr.AddRange(listBrUp);
+                listAllBr.AddRange(listBr2);
+
+                listBrUp.Clear();
+                listBr2.Clear();
+
+                if (isXJ1 == false && isXJ2 == false)
+                {
+                    break;
+                }
+
+
+            }
+
+            List<BlockReference> listRemove = new List<BlockReference>();
+            for (int i = firstCount + firstUpCount + 1; i < listAllBr.Count; i++)
+            {
+                var br = listAllBr[i];
+
+                for (int j = i + 1; j < listAllBr.Count; j++)
+                {
+                    var br2 = listAllBr[j];
+
+                    if (IsRecXjRec(br, br2))
+                    {
+                        //listRemove.Add(br);
+
+                    }
+                }
+            }
+
+            listRemove.ForEach(b => { listAllBr.Remove(b); });
+
+            listRemove.Clear();
+
+            foreach (var br in listAllBr)
+            {
+                var minPt = br.Bounds.Value.MinPoint;
+                var maxPt = br.Bounds.Value.MaxPoint;
+
+                if (PtInPl.PtRelationToPoly(FirstCondition, minPt, 1.0E-4) == -1 || PtInPl.PtRelationToPoly(FirstCondition, maxPt, 1.0E-4) == -1)
+                {
+
+                    listRemove.Add(br);
+                }
+            }
+
+            listRemove.ForEach(b => { listAllBr.Remove(b); });
+
+            listAllBr.ToSpace();
+
+        }
+
+        private Polyline OffsetCon2(Curve curve, double sumDis, out bool isXJ2)
         {
             isXJ2 = true;
 
@@ -663,7 +837,7 @@ namespace BlockFillTest
 
         }
 
-        private List<BlockReference> BlkScaleInLine( double scale, double countLen, double blockWidth, double piece, double allLength, Curve s)
+        private List<BlockReference> BlkScaleInLine(double scale, double countLen, double blockWidth, double piece, double allLength, Curve s)
         {
 
             List<BlockReference> listBrUPOrg = new List<BlockReference>();
@@ -675,7 +849,7 @@ namespace BlockFillTest
 
                 var ptPs = s.GetPointAtDist(countLen);
 
-                countLen = countLen + (2+q) * blockWidth;
+                countLen = countLen + (2 + q) * blockWidth;
 
                 q += 0.1;
 
@@ -707,7 +881,7 @@ namespace BlockFillTest
                 }
 
 
-                
+
 
                 //brUP.Rotation = GetRotateMtx(ptPs);
 
@@ -715,12 +889,68 @@ namespace BlockFillTest
 
                 listBrUPOrg.Add(brUP);
 
-            } ;
+            };
 
             return listBrUPOrg;
         }
 
-        private List<BlockReference> BlkScaleDown(ref List<BlockReference> listBrUp, double scale, double countLen,double blockWidth, double piece,double allLength)
+        private List<BlockReference> BlkScaleInLineFan(double scale, double countLen, double blockWidth, double piece, double allLength, Curve s)
+        {
+
+            List<BlockReference> listBrUPOrg = new List<BlockReference>();
+
+
+            while (countLen < allLength)
+            {
+
+                var ptPs = s.GetPointAtDist(countLen);
+
+                countLen = countLen + blockWidth;
+
+                countLen = countLen > allLength ? allLength : countLen;
+
+
+
+                BlockReference brUP = new BlockReference(ptPs, BlkRec.Id);
+
+                brUP.ScaleFactors = new Scale3d(scale);
+
+                Point3d p1 = brUP.Bounds.Value.MinPoint;
+                Point3d p2 = brUP.Bounds.Value.MaxPoint;
+
+                Point3d ptMoved = brUP.Bounds.Value.MinPoint;
+                Point3d ptMoved2 = brUP.Bounds.Value.MaxPoint;
+
+                var ptM4 = new Point3d(ptMoved.X, ptMoved2.Y, 0);
+
+                Point3dCollection p3dColl2 = new Point3dCollection();
+
+
+                Vector3d v = s.GetFirstDerivative(ptPs);
+
+                var angle = Vector3d.XAxis.GetAngleTo(v);
+                if (v.X > 0 && v.Y < 0)
+                {
+
+                    angle = Math.PI * 2 - angle;
+
+                }
+
+
+
+
+                //brUP.Rotation = GetRotateMtx(ptPs);
+
+                brUP.Rotation = angle;
+
+                listBrUPOrg.Add(brUP);
+
+            };
+
+            return listBrUPOrg;
+        }
+
+        private List<BlockReference> BlkScaleDown(ref List<BlockReference> listBrUp, double scale, double countLen, double blockWidth, double piece, double allLength)
         {
 
             List<BlockReference> listBrDownOrg = new List<BlockReference>();
@@ -731,7 +961,7 @@ namespace BlockFillTest
 
                 var ptPs = SecondCondition.GetPointAtDist(countLen);
 
-                countLen += 2*blockWidth;
+                countLen += 2 * blockWidth;
 
                 BlockReference brDwn = new BlockReference(ptPs, BlkRec.Id);
                 brDwn.ScaleFactors = new Scale3d(scale);
@@ -750,8 +980,8 @@ namespace BlockFillTest
                 Line line1 = new Line(ptMoved, ptM4);
                 Line line2 = new Line(ptM4, ptMoved);
 
-              Point3dCollection p3dColl2 = new Point3dCollection();
-              Point3dCollection p3dColl3 = new Point3dCollection();
+                Point3dCollection p3dColl2 = new Point3dCollection();
+                Point3dCollection p3dColl3 = new Point3dCollection();
 
                 int c1 = 0;
                 int c2 = 0;
@@ -763,24 +993,24 @@ namespace BlockFillTest
                     c1 = p3dColl2.Count;
                     c2 = p3dColl3.Count;
                     brDwn.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * -piece));
-                    
+
                     brUp.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * piece));
 
                     p3dColl2.Clear();
 
                     p3dColl3.Clear();
 
-                } while (c1 >= 1||c2>=1);
+                } while (c1 >= 1 || c2 >= 1);
 
-                
+
                 Vector3d v = SecondCondition.GetFirstDerivative(ptPs);
 
                 var angle = Vector3d.XAxis.GetAngleTo(v);
 
                 brDwn.Rotation = GetRotateMtx(ptPs);
-              
+
                 brUp.Rotation = GetRotateMtx(ptPs);
-              
+
                 listBrDownOrg.Add(brDwn);
                 listBrUp.Add(brUp);
 
@@ -789,7 +1019,7 @@ namespace BlockFillTest
 
             } while (countLen < allLength);
 
-           
+
 
 
             return listBrDownOrg;
@@ -818,7 +1048,7 @@ namespace BlockFillTest
 
         public void GetFirstCondition()
         {
-        
+
 
             var entOpts = new PromptEntityOptions("请选择封闭多段线\n");
 
@@ -862,8 +1092,8 @@ namespace BlockFillTest
         }
 
         public void GetSecondCondition()
-        {          
-           
+        {
+
 
             var entOpts = new PromptEntityOptions("请选择曲线\n");
 
@@ -969,7 +1199,7 @@ namespace BlockFillTest
 
         public void GetBlockCondition()
         {
-            
+
 
             var entOpts = new PromptEntityOptions("请选择块\n");
 
@@ -1593,7 +1823,7 @@ namespace BlockFillTest
 
                 return vec.GetAngleTo(Vector3d.XAxis);
             }
-            return 0;          
+            return 0;
         }
         bool IsRecXjRec(Entity ent1, Entity ent2)
         {
@@ -1619,7 +1849,7 @@ namespace BlockFillTest
             {
                 return false;
             }
-            
+
         }
 
     }
