@@ -57,6 +57,10 @@ namespace BlockFillTest
 
         DBObjectCollection dbColl = null;
 
+
+        double ZxJj = 0.0;
+        double HxJj = 0.0;
+
         [CommandMethod("ECDBT")]
         public void Test()
         {
@@ -392,8 +396,43 @@ namespace BlockFillTest
             //// DrawLines(0.2);
             #endregion
 
-            // OffSetAndFill();
-            OffSetAndFillFan();
+            var prop = new PromptDoubleOptions("请输入纵向间距的比例因子\n");
+
+            var propRes = ed.GetDouble(prop);
+
+
+            if (propRes.Status == PromptStatus.OK)
+            {
+
+                ZxJj = propRes.Value;
+
+            }
+            ZxJj = ZxJj == 0.0 ? 1 : ZxJj;
+
+
+            var propH = new PromptDoubleOptions("请输入横向间距的比例因子\n");
+
+            var propResH = ed.GetDouble(propH);
+
+
+            if (propResH.Status == PromptStatus.OK)
+            {
+
+                HxJj = propResH.Value;
+
+            }
+            HxJj = HxJj == 0.0 ? 1 : HxJj;
+
+            if (GetOutputResult())
+            {
+                OffSetAndFill();
+            }
+            else
+            {
+                OffSetAndFillFan();
+
+            }
+
         }
 
         public void OffSetAndFill()
@@ -470,13 +509,16 @@ namespace BlockFillTest
 
             double sum = 0.0;
 
-            var p1 = SecondCondition;
-            var p2 = SecondCondition;
+            var p1 = SecondCondition.Clone() as Curve;
+            var p2 = SecondCondition.Clone() as Curve;
 
 
 
-            sum = disUp + (1 + q * 2 / totalCount) * addLen;
-            sum = sum * 1.3;
+            sum = disUp +  addLen;
+            sum = sum * ZxJj;
+
+            double b1 = blockWidth;
+
             while (sumDis <= MaxH)
             {
                 sumDis += disUp + (1 + q * 2 / totalCount) * addLen;
@@ -501,57 +543,21 @@ namespace BlockFillTest
                 allLength = pl.GetDistAtPoint(pl.EndPoint);
                 double allLength2 = pl2.GetDistAtPoint(pl2.EndPoint);
 
-                //  pl.ToSpace();
-                //pl2.ToSpace();
+                pl.ToSpace();
+                pl2.ToSpace();
 
                 scale = scale < 0 ? 0.08 : scale;
 
-                if (q % 2 == 0)
-                {
-                    //countLen += (scale2 + q * RatioW / firstUpCount) * blockWidth;
-                    //countLen1 += q / RatioW * blockWidth;
-                    //s += (scale2 + q * RatioW / firstUpCount) * blockWidth;
-                    //s1+= q / RatioW * blockWidth;
-                    s += countLen;
-                    s1 += countLen1;
-
-                    countLen *= 1.6;
-                    countLen1 *= 1.6;
+                blockWidth = HxJj>1?blockWidth*HxJj:blockWidth/HxJj;
 
 
-                    countLen = countLen < 0 ? 2 * blockWidth : countLen;
-                    countLen = countLen > allLength ? allLength : countLen;
-
-                    countLen1 = countLen1 < 0 ? 2 * blockWidth : countLen1;
-                    countLen1 = countLen1 > allLength2 ? allLength2 : countLen1;
 
                     if (isXJ1)
                         listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
                     if (isXJ2)
                         listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
 
-                }
-                else
-                {
-                    //countLen -= s + q * (scale2 + q * RatioW / firstUpCount) * blockWidth;
-                    //countLen1 -=s1+q / RatioW * blockWidth;
-
-                    countLen = (countLen - s) / 1.6;
-                    countLen1 = (countLen1 - s1) / 1.6;
-
-                    countLen = countLen < 0 ? 2 * blockWidth : countLen;
-                    countLen = countLen > allLength ? allLength : countLen;
-
-                    countLen1 = countLen1 < 0 ? 2 * blockWidth : countLen1;
-                    countLen1 = countLen1 > allLength2 ? allLength2 : countLen1;
-                    if (isXJ1)
-                        listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
-                    if (isXJ2)
-                        listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
-
-                    countLen += s;
-                    countLen1 += s1;
-                }
+                
                 scale -= 0.02;
                 q++;
                 listAllBr.AddRange(listBrUp);
@@ -572,7 +578,7 @@ namespace BlockFillTest
             for (int i = firstCount + firstUpCount + 1; i < listAllBr.Count; i++)
             {
                 var br = listAllBr[i];
-
+                break;
                 for (int j = i + 1; j < listAllBr.Count; j++)
                 {
                     var br2 = listAllBr[j];
@@ -660,7 +666,7 @@ namespace BlockFillTest
             var minusScale = 2 * blockHigh / MaxH * scale2;
 
 
-            blockWidth = (2.0+(1.0*all) / 25) * blockWidth;
+            blockWidth = (2.0 + (1.0 * all) / 25) * blockWidth;
 
             List<BlockReference> listBrUp = null;
 
@@ -678,13 +684,13 @@ namespace BlockFillTest
 
             double sum = 0.0;
 
-            var p1 = SecondCondition;
-            var p2 = SecondCondition;
+            var p1 = SecondCondition.Clone()as Curve;
+            var p2 = SecondCondition.Clone() as Curve;
 
 
 
             sum = disUp + addLen;
-            sum = sum * 1.3;
+            sum = sum * ZxJj;
 
 
 
@@ -707,14 +713,16 @@ namespace BlockFillTest
                 allLength = pl.GetDistAtPoint(pl.EndPoint);
                 double allLength2 = pl2.GetDistAtPoint(pl2.EndPoint);
 
-                pl.ToSpace();
-                pl2.ToSpace();
+               // pl.ToSpace();
+               // pl2.ToSpace();
 
                 scale = scale > 0.3 ? 0.3 : scale;
 
                 q++;
 
-                blockWidth = (2 * (all*1.0 - q) / 25) * b1;
+                //blockWidth = (2 * (all * 1.0 - q) / 25) * b1;
+
+                blockWidth = HxJj>1?blockWidth/HxJj:blockWidth*HxJj;
 
                 blockWidth = blockWidth < 1.5 * b1 ? 1.5 * b1 : blockWidth;
 
@@ -782,11 +790,21 @@ namespace BlockFillTest
         private Polyline OffsetCon2(Curve curve, double sumDis, out bool isXJ2)
         {
             isXJ2 = true;
+            DBObjectCollection coll = new DBObjectCollection();
 
-            var coll = curve.GetOffsetCurves(sumDis);
+            Polyline pl = null;
 
-            var pl = coll[0] as Polyline;
+            int add = sumDis<0?-1000:1000;
 
+            do
+            {
+                coll = curve.GetOffsetCurves(sumDis);
+
+                sumDis += add;
+               
+            } while (coll.Count == 0);
+
+            pl = coll[0] as Polyline;
             for (int i = 1; i < coll.Count; i++)
             {
                 pl.JoinEntity(coll[i] as Entity);
@@ -849,7 +867,7 @@ namespace BlockFillTest
 
                 var ptPs = s.GetPointAtDist(countLen);
 
-                countLen = countLen + (2 + q) * blockWidth;
+                countLen += (2 + q) * blockWidth;
 
                 q += 0.1;
 
@@ -935,9 +953,6 @@ namespace BlockFillTest
                     angle = Math.PI * 2 - angle;
 
                 }
-
-
-
 
                 //brUP.Rotation = GetRotateMtx(ptPs);
 
@@ -1265,6 +1280,24 @@ namespace BlockFillTest
 
         }
 
+        public bool GetOutputResult()
+        {
+            PromptKeywordOptions pkOpts = new PromptKeywordOptions("请输入A:越远越疏且小;B:越近越疏且小；[A/B]", "A B");
+
+            var keyRes = ed.GetKeywords(pkOpts);
+
+
+            if (keyRes.Status == PromptStatus.OK && keyRes.StringResult == "A")
+            {
+
+                return true;
+
+            }
+            else
+            {
+                return false;
+            }
+        }
         private void GetBlockMinMaxPoint(string blockName)
         {
             if (String.IsNullOrEmpty(blockName))
