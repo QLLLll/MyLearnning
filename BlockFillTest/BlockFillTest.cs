@@ -60,6 +60,10 @@ namespace BlockFillTest
 
         double ZxJj = 0.0;
         double HxJj = 0.0;
+        double Speed = 0.0;
+
+        double StartH = 0.0;
+        double StartZ = 0.0;
 
         [CommandMethod("ECDBT")]
         public void Test()
@@ -181,7 +185,7 @@ namespace BlockFillTest
             }
 
 
-            GetBlkRatioCondtn1();
+           
             #region 保留算法
 
             //Point3d ptPos = splDirection ? Intersect1 :  Intersect2;
@@ -423,6 +427,23 @@ namespace BlockFillTest
             }
             HxJj = HxJj == 0.0 ? 1 : HxJj;
 
+
+            var propS = new PromptDoubleOptions("请输入增长比例因子\n");
+
+            var propResS = ed.GetDouble(propS);
+
+
+            if (propResS.Status == PromptStatus.OK)
+            {
+
+                Speed = propResS.Value;
+
+            }
+            Speed = Speed == 0.0 ? 1 : Speed;
+
+
+            GetBlkJj();
+
             if (GetOutputResult())
             {
                 OffSetAndFill();
@@ -443,99 +464,50 @@ namespace BlockFillTest
                 return;
             }
             listAllBr.Clear();
-            Point3d ptPos = splDirection ? Intersect1 : Intersect2;
 
-            BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
-
-            temp.ScaleFactors = new Scale3d(0.3);
-
-            Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
-            Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
-
-            double blockWidth = Math.Abs(t2.X - t1.X);//块的宽度
-
-            double blockHigh = Math.Abs(t2.Y - t1.Y);//块的高度
-
-            double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
-
-            double piece = blockHigh;
-
-            temp.Dispose();
-
-            double totalCount = MaxH / blockHigh;
-
-            double countLen = 2 * blockWidth;
-            double countLen1 = countLen;
-
-            int countAll = (int)(MaxH / blockHigh);
-
-            //double disUp = 60000,disDown=-60000;
-            //double addLen = 58000;
-            double disUp = (MaxH / 4) + 4 * piece;
+            var scale = 0.3;
+            double totalCount = MaxH / BlockH;
 
             double sumDis = 0;
 
-            if (MaxH / blockHigh < 10)
-            {
-                disUp = 8 * piece;
-            }
-            else
-            {
-                disUp = (MaxH / 10) + 2 * piece;
-            }
-            double addLen = blockHigh * 0.5;
+            double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
 
-            disUp = 2 * piece;
+            List<BlockReference> listBrUp = new List<BlockReference>();
 
-            var scale = 0.3;
-            var scale2 = scale;
-
-            var minusScale = 2 * blockHigh / MaxH * scale2;
-
-            List<BlockReference> listBrUp = null;
-
-
-            List<BlockReference> listBr2 = BlkScaleDown(ref listBrUp, scale, countLen, blockWidth, piece, allLength);
-            listBr2 = BlkScaleInLine(scale + 0.06, countLen, blockWidth, piece, allLength, SecondCondition);
+           List<BlockReference> listBr2 = BlkScaleInLine(scale + 0.06, StartH,  allLength, SecondCondition);
 
             listAllBr.AddRange(listBr2);
 
             int firstCount = listBr2.Count;
-            int firstUpCount = listBrUp.Count;// listBr.Count;
+            int firstUpCount = listBr2.Count;// listBr.Count;
 
             int q = 0;
 
-            double s = 0.0, s1 = 0.0;
-
-            double sum = 0.0;
+            
 
             var p1 = SecondCondition.Clone() as Curve;
             var p2 = SecondCondition.Clone() as Curve;
 
+            double b1 = StartH;
 
+            double sum = StartZ;
 
-            sum = disUp +  addLen;
-            sum = sum * ZxJj;
-
-            double b1 = blockWidth;
+            double sumH = StartH;
 
             while (sumDis <= MaxH)
             {
-                sumDis += disUp + (1 + q * 2 / totalCount) * addLen;
+                sumDis += 2* BlockH + (1 + q * 2 / totalCount) * 0.5*BlockH;
 
                 bool isXJ1 = false;
                 bool isXJ2 = false;
-                //var pl = OffsetCon2(sumDis,out isXJ1);
-                //var pl2 = OffsetCon2(sumDis * -1,out isXJ2);
 
-                //sumDis = sumDis * 1.2;
-
+                sum += StartZ * Speed;
 
                 var pl = OffsetCon2(p1, sum, out isXJ1);
                 var pl2 = OffsetCon2(p2, sum * -1, out isXJ2);
 
-                //sum = sum * 1.2;
-
+                
+                
                 p1 = pl.Clone() as Curve;
                 p2 = pl2.Clone() as Curve;
 
@@ -548,18 +520,20 @@ namespace BlockFillTest
 
                 scale = scale < 0 ? 0.08 : scale;
 
-                blockWidth = HxJj>1?blockWidth*HxJj:blockWidth/HxJj;
+                sumH += StartH * Speed;
 
-
-
-                    if (isXJ1)
-                        listBrUp = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength, pl);
+                if (isXJ1)
+                        listBrUp = BlkScaleInLine(scale, sumH,  allLength, pl);
                     if (isXJ2)
-                        listBr2 = BlkScaleInLine(scale, countLen, blockWidth, piece, allLength2, pl2);
+                        listBr2 = BlkScaleInLine(scale, sumH, allLength2, pl2);
+                //sumH *= Speed;
 
                 
+
                 scale -= 0.02;
+
                 q++;
+
                 listAllBr.AddRange(listBrUp);
                 listAllBr.AddRange(listBr2);
 
@@ -622,89 +596,52 @@ namespace BlockFillTest
 
             listAllBr.Clear();
 
-            Point3d ptPos = splDirection ? Intersect1 : Intersect2;
-
-            BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
-
-            temp.ScaleFactors = new Scale3d(0.3);
-
-            Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
-            Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
-
-            double blockWidth = Math.Abs(t2.X - t1.X);//块的宽度
-
-            double blockHigh = Math.Abs(t2.Y - t1.Y);//块的高度
-
-            double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
-
-            all = (int)(allLength / blockWidth);
-
-            double piece = blockHigh;
-
-            double b1 = blockWidth;
-
-            temp.Dispose();
-
-            double totalCount = MaxH / blockHigh;
-
-            double countLen = 2 * blockWidth;
-            double countLen1 = countLen;
-
-            int countAll = (int)(MaxH / blockHigh);
-            double disUp = (MaxH / 4) + 4 * piece;
+            double b1 = BlockH;
 
             double sumDis = 0;
 
-
-            double addLen = blockHigh * 0.5;
-
-            disUp = 2 * piece;
-
             var scale = 0.16;
-            var scale2 = scale;
 
-            var minusScale = 2 * blockHigh / MaxH * scale2;
+            double totalCount = MaxH / BlockH;
 
+            double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
 
-            blockWidth = (2.0 + (1.0 * all) / 25) * blockWidth;
+            double sum = 0;
 
-            List<BlockReference> listBrUp = null;
+             sum =StartZ;
 
+            List<BlockReference> listBrUp = new List<BlockReference>();
 
-            //List<BlockReference> listBr2 = BlkScaleDown(ref listBrUp, scale, countLen, blockWidth, piece, allLength);
-            List<BlockReference> listBr2 = BlkScaleInLineFan(scale, countLen, blockWidth, piece, allLength, SecondCondition);
+            List<BlockReference> listBr2 = BlkScaleInLineFan(scale, StartH, allLength, SecondCondition);
 
             listAllBr.AddRange(listBr2);
 
             int firstCount = listBr2.Count;
-            int firstUpCount = firstCount;// listBr.Count;
+            int firstUpCount = firstCount;
 
             int q = 0;
 
-
-            double sum = 0.0;
+            double sumH = StartH;
 
             var p1 = SecondCondition.Clone()as Curve;
             var p2 = SecondCondition.Clone() as Curve;
 
-
-
-            sum = disUp + addLen;
-            sum = sum * ZxJj;
-
-
-
             while (sumDis <= MaxH)
             {
-                sumDis += disUp + (1 + q * 2 / totalCount) * addLen;
+                sumDis += 2 * BlockH + (1 + q * 2 / totalCount) * BlockH * 0.5;
 
                 bool isXJ1 = false;
                 bool isXJ2 = false;
 
+
+                Speed =Speed > 1 ? 1 / Speed : Speed;
+
+                sum -=sum*Speed;
+
                 var pl = OffsetCon2(p1, sum, out isXJ1);
                 var pl2 = OffsetCon2(p2, sum * -1, out isXJ2);
 
-                //sum = sum * 1.2;
+                
 
                 p1 = pl.Clone() as Curve;
                 p2 = pl2.Clone() as Curve;
@@ -721,16 +658,15 @@ namespace BlockFillTest
                 q++;
 
                 //blockWidth = (2 * (all * 1.0 - q) / 25) * b1;
+                sumH -= StartH * Speed;
 
-                blockWidth = HxJj>1?blockWidth/HxJj:blockWidth*HxJj;
-
-                blockWidth = blockWidth < 1.5 * b1 ? 1.5 * b1 : blockWidth;
-
+                sumH = sumH < 1.5 * BlockW ? 1.5 * BlockW : sumH;
                 if (isXJ1)
-                    listBrUp = BlkScaleInLineFan(scale, countLen, blockWidth, piece, allLength, pl);
+                    listBrUp = BlkScaleInLineFan(scale, sumH, allLength, pl);
                 if (isXJ2)
-                    listBr2 = BlkScaleInLineFan(scale, countLen, blockWidth, piece, allLength2, pl2);
+                    listBr2 = BlkScaleInLineFan(scale, sumH,  allLength2, pl2);
 
+                
 
                 scale += 0.08;
 
@@ -752,7 +688,7 @@ namespace BlockFillTest
             for (int i = firstCount + firstUpCount + 1; i < listAllBr.Count; i++)
             {
                 var br = listAllBr[i];
-
+                break;
                 for (int j = i + 1; j < listAllBr.Count; j++)
                 {
                     var br2 = listAllBr[j];
@@ -807,7 +743,16 @@ namespace BlockFillTest
             pl = coll[0] as Polyline;
             for (int i = 1; i < coll.Count; i++)
             {
-                pl.JoinEntity(coll[i] as Entity);
+                try
+                {
+                    pl.JoinEntity(coll[i] as Entity);
+                }
+                catch (System.Exception)
+                {
+
+                    break;
+                }
+                
             }
 
             Point3dCollection pt3dColl = new Point3dCollection();
@@ -855,21 +800,19 @@ namespace BlockFillTest
 
         }
 
-        private List<BlockReference> BlkScaleInLine(double scale, double countLen, double blockWidth, double piece, double allLength, Curve s)
+        private List<BlockReference> BlkScaleInLine(double scale, double startH, double allLength, Curve s)
         {
 
             List<BlockReference> listBrUPOrg = new List<BlockReference>();
 
-            double q = 0.1;
+            double countLen = startH;
 
             while (countLen < allLength)
             {
 
                 var ptPs = s.GetPointAtDist(countLen);
 
-                countLen += (2 + q) * blockWidth;
-
-                q += 0.1;
+                countLen += startH;
 
                 countLen = countLen > allLength ? allLength : countLen;
 
@@ -899,10 +842,6 @@ namespace BlockFillTest
                 }
 
 
-
-
-                //brUP.Rotation = GetRotateMtx(ptPs);
-
                 brUP.Rotation = angle;
 
                 listBrUPOrg.Add(brUP);
@@ -912,18 +851,18 @@ namespace BlockFillTest
             return listBrUPOrg;
         }
 
-        private List<BlockReference> BlkScaleInLineFan(double scale, double countLen, double blockWidth, double piece, double allLength, Curve s)
+        private List<BlockReference> BlkScaleInLineFan(double scale, double startH, double allLength, Curve s)
         {
 
             List<BlockReference> listBrUPOrg = new List<BlockReference>();
-
+            double countLen = startH;
 
             while (countLen < allLength)
             {
 
                 var ptPs = s.GetPointAtDist(countLen);
 
-                countLen = countLen + blockWidth;
+                countLen +=startH;
 
                 countLen = countLen > allLength ? allLength : countLen;
 
@@ -1268,15 +1207,15 @@ namespace BlockFillTest
             {
                 return;
             }
-            if (br.Bounds == null || !br.Bounds.HasValue)
-            {
-                GetBlockMinMaxPoint(blockName);
-            }
-            else
-            {
-                MinBlkPt = br.Bounds.Value.MinPoint;
-                MaxBlkPt = br.Bounds.Value.MaxPoint;
-            }
+            //if (br.Bounds == null || !br.Bounds.HasValue)
+            //{
+            //    GetBlockMinMaxPoint(blockName);
+            //}
+            //else
+            //{
+            //    MinBlkPt = br.Bounds.Value.MinPoint;
+            //    MaxBlkPt = br.Bounds.Value.MaxPoint;
+            //}
 
         }
 
@@ -1347,19 +1286,41 @@ namespace BlockFillTest
             MaxBlkPt = new Point3d(maxMax[0], maxMax[1], maxMax[2]);
         }
 
-        private void GetBlkRatioCondtn1()
+        private void GetBlkJj()
         {
 
-            Ratio = (MaxPoint - MinPoint).Length / (MaxBlkPt - MinBlkPt).Length;
+            //Ratio = (MaxPoint - MinPoint).Length / (MaxBlkPt - MinBlkPt).Length;
+
+            //BlockW = (MaxBlkPt.X - MinBlkPt.X);
+            //BlockH = (MaxBlkPt.Y - MinBlkPt.Y);
+
+            //RatioW = MaxW / BlockW;
+            //RatioH = MaxH / BlockH;
 
             MaxW = (MaxPoint.X - MinPoint.X);
             MaxH = (MaxPoint.Y - MinPoint.Y);
 
-            BlockW = (MaxBlkPt.X - MinBlkPt.X);
-            BlockH = (MaxBlkPt.Y - MinBlkPt.Y);
 
-            RatioW = MaxW / BlockW;
-            RatioH = MaxH / BlockH;
+            Point3d ptPos = splDirection ? Intersect1 : Intersect2;
+
+            BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
+
+            var scale = 0.3;
+
+            temp.ScaleFactors = new Scale3d(scale);
+
+            Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
+            Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
+
+             BlockW = Math.Abs(t2.X - t1.X);//块的宽度
+
+            BlockH = Math.Abs(t2.Y - t1.Y);//块的高度
+
+             StartZ = 2.5 * BlockH * ZxJj;
+
+            StartH = BlockW * HxJj;
+
+            temp.Dispose();
 
         }
         #region 保留算法
