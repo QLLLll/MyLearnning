@@ -70,6 +70,10 @@ namespace BlockFillTest
         {
             listAllBr.Clear();
 
+            FirstCondition = null;
+            SecondCondition = null;
+            BlkRec = null;
+
             GetFirstCondition();
 
             if (FirstCondition == null)
