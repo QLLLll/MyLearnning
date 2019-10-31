@@ -70,6 +70,10 @@ namespace BlockFillTest
         {
             listAllBr.Clear();
 
+            FirstCondition = null;
+            SecondCondition = null;
+            BlkRec = null;
+
             GetFirstCondition();
 
             if (FirstCondition == null)
@@ -88,7 +92,7 @@ namespace BlockFillTest
 
             PlBound.Color = Color.FromColor(System.Drawing.Color.Red);
 
-            PlBound.ToSpace();
+            //PlBound.ToSpace();
 
             Point3dCollection p3dcl = new Point3dCollection();
 
