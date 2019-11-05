@@ -61,19 +61,23 @@ namespace BlockFillTest
         double StartZ = 0.0;
 
 
-        StreamWriter Sw=null;
+        //StreamWriter Sw=null;
 
         Stopwatch StopW = new Stopwatch();
 
         long TotalTime = 0L;
 
+        double Normal = 14;
+
+        double SCAle = 1;
+
         [CommandMethod("ECDBT")]
         public void Test()
         {
-            Sw = new StreamWriter(File.Open("d:\\性能.txt", FileMode.OpenOrCreate));
+            //Sw = new StreamWriter(File.Open("d:\\性能.txt", FileMode.OpenOrCreate));
 
             TotalTime = 0L;
-
+            SCAle = 1;
             listAllBr.Clear();
             IsClose = false;
 
@@ -453,18 +457,20 @@ namespace BlockFillTest
             Speed = Speed == 0.0 ? 1 : Speed;
 
 
-            GetBlkJj();
+           
 
             if (GetOutputResult())
             {
+                GetBlkJj(false);
                 OffSetAndFill();
             }
             else
             {
+                GetBlkJj(true);
                 OffSetAndFillFan();
 
             }
-            Sw.Close();
+            //Sw.Close();
         }
 
         public void OffSetAndFill()
@@ -476,7 +482,7 @@ namespace BlockFillTest
             }
             listAllBr.Clear();
 
-            var scale = 0.3;
+            var scale = SCAle;
             double totalCount = MaxH / BlockH;
 
             double sumDis = 0;
@@ -489,7 +495,7 @@ namespace BlockFillTest
             List<BlockReference> listBr2 = BlkScaleInLine(scale, 2*StartH, allLength, SecondCondition);
             StopW.Stop();
 
-            Sw.WriteLine("First listBr2=" + StopW.ElapsedMilliseconds);
+           // Sw.WriteLine("First listBr2=" + StopW.ElapsedMilliseconds);
             TotalTime += StopW.ElapsedMilliseconds;
 
             StopW.Reset();
@@ -498,7 +504,7 @@ namespace BlockFillTest
 
             int firstCount = listBr2.Count;
             int firstUpCount = listBr2.Count;// listBr.Count;
-
+            listBr2.Clear();
             int q = 0;
 
             var p1 = SecondCondition.Clone() as Curve;
@@ -527,7 +533,7 @@ namespace BlockFillTest
                 StopW.Start();
                 var pl = OffsetCon2(p1, sum, out isXJ1);
                 StopW.Stop();
-                Sw.WriteLine($"loop {n}:pl={StopW.ElapsedMilliseconds}");
+                //Sw.WriteLine($"loop {n}:pl={StopW.ElapsedMilliseconds}");
 
                 longTime += StopW.ElapsedMilliseconds;
 
@@ -542,7 +548,7 @@ namespace BlockFillTest
                 StopW.Start();
                 var pl2 = OffsetCon2(p2, sum * -1, out isXJ2);
                 StopW.Stop();
-                Sw.WriteLine($"loop {n}:pl2={StopW.ElapsedMilliseconds}");
+                //Sw.WriteLine($"loop {n}:pl2={StopW.ElapsedMilliseconds}");
                 longTime += StopW.ElapsedMilliseconds;
                 StopW.Reset();
 
@@ -565,7 +571,7 @@ namespace BlockFillTest
                 //pl.ToSpace();
                 //pl2.ToSpace();
 
-                scale = scale < 0 ? 0.08 : scale;
+                scale = scale < 0 ? 0.06 * SCAle : scale;
 
                 sumH  =2 * StartH * Math.Pow(Speed, n++);
 
@@ -576,12 +582,12 @@ namespace BlockFillTest
                     listBr2 = BlkScaleInLine(scale, sumH, allLength2, pl2);
 
                 StopW.Stop();
-                Sw.WriteLine($"loop {n}:BlkScaleInLine={StopW.ElapsedMilliseconds}");
+               // Sw.WriteLine($"loop {n}:BlkScaleInLine={StopW.ElapsedMilliseconds}");
 
                 longTime += StopW.ElapsedMilliseconds;
                 StopW.Reset();
 
-                scale -= 0.02;
+                scale -= 0.06*SCAle;
 
                 q++;
 
@@ -601,7 +607,7 @@ namespace BlockFillTest
 
             }
 
-            Sw.WriteLine($"while循环总和={longTime}");
+            //Sw.WriteLine($"while循环总和={longTime}");
             TotalTime += longTime;
 
             List<BlockReference> listRemove = new List<BlockReference>();
@@ -643,12 +649,12 @@ namespace BlockFillTest
             StopW.Start();
             listAllBr.ToSpace();
             StopW.Stop();
-            Sw.WriteLine($"listAllBr.ToSpace()={StopW.ElapsedMilliseconds}");
+            //Sw.WriteLine($"listAllBr.ToSpace()={StopW.ElapsedMilliseconds}");
 
             TotalTime += StopW.ElapsedMilliseconds;
 
             StopW.Reset();
-            Sw.WriteLine("TotalTime:" + TotalTime);
+            //Sw.WriteLine("TotalTime:" + TotalTime);
 
             TotalTime = 0L;
 
@@ -667,7 +673,7 @@ namespace BlockFillTest
 
             double sumDis = 0;
 
-            var scale = 0.16;
+            var scale = SCAle;
 
             double totalCount = MaxH / BlockH;
 
@@ -685,7 +691,7 @@ namespace BlockFillTest
 
             int firstCount = listBr2.Count;
             int firstUpCount = firstCount;
-
+            listBr2.Clear();
             int q = 0;
 
             double sumH = StartH;
@@ -736,7 +742,7 @@ namespace BlockFillTest
                 // pl.ToSpace();
                 // pl2.ToSpace();
 
-                scale = scale > 0.3 ? 0.3 : scale;
+                scale = scale > SCAle*1.5 ? SCAle*1.5 : scale;
 
                 q++;
 
@@ -751,7 +757,7 @@ namespace BlockFillTest
 
 
 
-                scale += 0.08;
+                scale += 0.26*SCAle;
 
                 listAllBr.AddRange(listBrUp);
                 listAllBr.AddRange(listBr2);
@@ -1145,7 +1151,7 @@ namespace BlockFillTest
         {
 
 
-            var entOpts = new PromptEntityOptions("请选择曲线\n");
+            var entOpts = new PromptEntityOptions("请选择干扰线\n");
 
             entOpts.SetRejectMessage("未选择正确");
 
@@ -1372,7 +1378,7 @@ namespace BlockFillTest
             MaxBlkPt = new Point3d(maxMax[0], maxMax[1], maxMax[2]);
         }
 */
-        private void GetBlkJj()
+        private void GetBlkJj(bool zf)
         {
 
             MaxW = (MaxPoint.X - MinPoint.X);
@@ -1383,12 +1389,32 @@ namespace BlockFillTest
 
             BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
 
-            var scale = 0.3;
-
-            temp.ScaleFactors = new Scale3d(scale);
+            temp.ScaleFactors = new Scale3d(1);
 
             Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
             Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
+            SCAle = 1;
+            BlockW = Math.Abs(t2.X - t1.X);
+
+            double scale = SCAle;
+
+            double r = MaxW / BlockW;
+
+            if (r >= Normal)
+            {
+                scale = r / Normal;
+            }
+            SCAle = 0.3*scale;
+
+            if (zf)
+            {
+                SCAle *= 0.5;
+            }
+
+
+           temp.ScaleFactors = new Scale3d(SCAle);
+           t1 = (Point3d)temp.Bounds?.MinPoint;
+             t2 = (Point3d)temp.Bounds?.MaxPoint;
 
             BlockW = Math.Abs(t2.X - t1.X);//块的宽度
 

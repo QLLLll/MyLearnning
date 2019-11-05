@@ -63,6 +63,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockFillTest", "BlockFillT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcdPrint", "EcdPrint2018版\EcdPrint.csproj", "{9234E407-554F-4F67-A300-47ACA96914C9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyBinaryTree", "MyBinaryTree\MyBinaryTree.csproj", "{2A16E8AC-1257-4255-B99D-0BDBC223E42A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -309,6 +311,14 @@ Global
 		{9234E407-554F-4F67-A300-47ACA96914C9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9234E407-554F-4F67-A300-47ACA96914C9}.Release|x86.ActiveCfg = Release|Any CPU
 		{9234E407-554F-4F67-A300-47ACA96914C9}.Release|x86.Build.0 = Release|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Debug|x86.Build.0 = Debug|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Release|x86.ActiveCfg = Release|Any CPU
+		{2A16E8AC-1257-4255-B99D-0BDBC223E42A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
