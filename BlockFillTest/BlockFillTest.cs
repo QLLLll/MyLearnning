@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Interop;
-using Autodesk.AutoCAD.Interop.Common;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Colors;
 using System.IO;
@@ -457,6 +453,20 @@ namespace BlockFillTest
             Speed = Speed == 0.0 ? 1 : Speed;
 
 
+            var propSCale = new PromptDoubleOptions("请输入块的缩放比例\n");
+
+            propSCale.AllowNegative = false;
+            propSCale.AllowZero = false;
+            propSCale.AllowNone = false;
+
+            var propScaleRes = ed.GetDouble(propSCale);
+
+            if (propScaleRes.Status == PromptStatus.OK)
+            {
+                SCAle = propScaleRes.Value;
+            }
+
+
            
 
             if (GetOutputResult())
@@ -489,10 +499,19 @@ namespace BlockFillTest
 
             double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
 
+            Random r = new Random();
+            
+
+            double rV = 1.0* r.Next(3, 10)/10;
+
+            double sWidth = 2 * StartH * rV;
+             
+
+
             List<BlockReference> listBrUp = new List<BlockReference>();
 
             StopW.Start();
-            List<BlockReference> listBr2 = BlkScaleInLine(scale, 2*StartH, allLength, SecondCondition);
+            List<BlockReference> listBr2 = BlkScaleInLine(scale, 2*StartH, allLength, SecondCondition,sWidth);
             StopW.Stop();
 
            // Sw.WriteLine("First listBr2=" + StopW.ElapsedMilliseconds);
@@ -527,6 +546,8 @@ namespace BlockFillTest
 
                 bool isXJ1 = false;
                 bool isXJ2 = false;
+
+                Speed = Speed < 1 ? 1 / Speed : Speed;
 
                 sum = 2*StartZ * Math.Pow(Speed,n);
 
@@ -573,13 +594,22 @@ namespace BlockFillTest
 
                 scale = scale < 0 ? 0.06 * SCAle : scale;
 
-                sumH  =2 * StartH * Math.Pow(Speed, n++);
+                sumH  =2 * StartH * Math.Pow(Speed, n);
+
+                rV = 1.0 * r.Next(3, 10) / 10;
+
+                sWidth = 2 * StartH * rV;
 
                 StopW.Start();
                 if (isXJ1)
-                    listBrUp = BlkScaleInLine(scale, sumH, allLength, pl);
+                    listBrUp = BlkScaleInLine(scale, sumH, allLength, pl, sWidth);
+
+                rV = 1.0 * r.Next(3, 10) / 10;
+
+                sWidth = 2 * StartH * rV;
+
                 if (isXJ2)
-                    listBr2 = BlkScaleInLine(scale, sumH, allLength2, pl2);
+                    listBr2 = BlkScaleInLine(scale, sumH, allLength2, pl2, sWidth);
 
                 StopW.Stop();
                // Sw.WriteLine($"loop {n}:BlkScaleInLine={StopW.ElapsedMilliseconds}");
@@ -587,7 +617,7 @@ namespace BlockFillTest
                 longTime += StopW.ElapsedMilliseconds;
                 StopW.Reset();
 
-                scale -= 0.06*SCAle;
+                scale =SCAle/Math.Pow(Speed,n++);
 
                 q++;
 
@@ -680,12 +710,18 @@ namespace BlockFillTest
             double allLength = SecondCondition.GetDistAtPoint(SecondCondition.EndPoint);
 
             double sum = 0;
+            Random r = new Random();
+
+
+            double rV = 1.0 * r.Next(3, 10) / 10;
+
+            double sWidth = 2 * StartH * rV;
 
             sum = StartZ;
 
             List<BlockReference> listBrUp = new List<BlockReference>();
 
-            List<BlockReference> listBr2 = BlkScaleInLineFan(scale, 2 * StartH, allLength, SecondCondition);
+            List<BlockReference> listBr2 = BlkScaleInLineFan(scale, 2 * StartH, allLength, SecondCondition,sWidth);
 
             listAllBr.AddRange(listBr2);
 
@@ -711,9 +747,9 @@ namespace BlockFillTest
                 bool isXJ2 = false;
 
 
-                Speed = Speed > 1 ? 1 / Speed : Speed;
+                Speed = Speed < 1 ? 1 / Speed : Speed;
 
-                sum = 2 * StartZ * Math.Pow(Speed, n);
+                sum = 2 * StartZ / Math.Pow(Speed, n);
 
                 var pl = OffsetCon2(p1, sum, out isXJ1);
 
@@ -746,18 +782,30 @@ namespace BlockFillTest
 
                 q++;
 
+                scale =SCAle*Math.Pow(Speed,n);
+
                 //blockWidth = (2 * (all * 1.0 - q) / 25) * b1;
                 sumH = 2 * StartH / Math.Pow(Speed, n++);
 
                 sumH = sumH < 1.5 * BlockW ? 1.5 * BlockW : sumH;
+
+                rV = 1.0 * r.Next(3, 10) / 10;
+
+                 sWidth = 2 * StartH * rV;
+
                 if (isXJ1)
-                    listBrUp = BlkScaleInLineFan(scale, sumH, allLength, pl);
+                    listBrUp = BlkScaleInLineFan(scale, sumH, allLength, pl, sWidth);
+
+                rV = 1.0 * r.Next(3, 10) / 10;
+
+                sWidth = 2 * StartH * rV;
+
                 if (isXJ2)
-                    listBr2 = BlkScaleInLineFan(scale, sumH, allLength2, pl2);
+                    listBr2 = BlkScaleInLineFan(scale, sumH, allLength2, pl2,sWidth);
 
 
 
-                scale += 0.26*SCAle;
+               
 
                 listAllBr.AddRange(listBrUp);
                 listAllBr.AddRange(listBr2);
@@ -907,12 +955,12 @@ namespace BlockFillTest
         }
 
 
-        private List<BlockReference> BlkScaleInLine(double scale, double startH, double allLength, Curve s)
+        private List<BlockReference> BlkScaleInLine(double scale, double startH, double allLength, Curve s, double sWidth)
         {
 
             List<BlockReference> listBrUPOrg = new List<BlockReference>();
 
-            double countLen = startH;
+            double countLen = sWidth;
 
             while (countLen < allLength)
             {
@@ -958,11 +1006,11 @@ namespace BlockFillTest
             return listBrUPOrg;
         }
 
-        private List<BlockReference> BlkScaleInLineFan(double scale, double startH, double allLength, Curve s)
+        private List<BlockReference> BlkScaleInLineFan(double scale, double startH, double allLength, Curve s, double sWidth)
         {
 
             List<BlockReference> listBrUPOrg = new List<BlockReference>();
-            double countLen = startH;
+            double countLen = sWidth;
 
             while (countLen < allLength)
             {
@@ -1123,6 +1171,7 @@ namespace BlockFillTest
 
             if (entId == ObjectId.Null)
             {
+                Application.ShowAlertDialog("未正确选择封闭多段线。");
                 return;
             }
 
@@ -1279,6 +1328,15 @@ namespace BlockFillTest
 
                 br = trans.GetObject(entId, OpenMode.ForRead) as BlockReference;
 
+                if (br == null)
+                {
+                    Application.ShowAlertDialog("请先把要填充的块变为块定义，\n并指定块定义的基点为块的中心点。");
+
+                    trans.Commit();
+
+                    return;
+                }
+
                 blockName = br.Name;
 
                 trans.Commit();
@@ -1389,26 +1447,26 @@ namespace BlockFillTest
 
             BlockReference temp = new BlockReference(ptPos, BlkRec.Id);
 
-            temp.ScaleFactors = new Scale3d(1);
+            //temp.ScaleFactors = new Scale3d(SCAle);
 
             Point3d t1 = (Point3d)temp.Bounds?.MinPoint;
             Point3d t2 = (Point3d)temp.Bounds?.MaxPoint;
-            SCAle = 1;
+            
             BlockW = Math.Abs(t2.X - t1.X);
 
-            double scale = SCAle;
+            //double scale = SCAle;
 
-            double r = MaxW / BlockW;
+            //double r = MaxW / BlockW;
 
-            if (r >= Normal)
-            {
-                scale = r / Normal;
-            }
-            SCAle = 0.3*scale;
+            //if (r >= Normal)
+            //{
+            //    scale = r / Normal;
+            //}
+            //SCAle = 0.3*scale;
 
             if (zf)
             {
-                SCAle *= 0.5;
+                //SCAle *= 0.5;
             }
 
 
