@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{5DDFCADA-BEA4-402C-B3E4-5C7F83C2F09E}</ProjectGuid>
+    <ProjectGuid>{9B96014F-E76A-43E0-87E8-FC33D6A2DF5D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetARX</RootNamespace>
-    <AssemblyName>DotNetARX</AssemblyName>
+    <RootNamespace>MouseTip</RootNamespace>
+    <AssemblyName>MouseTip</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -22,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\DotNetARX.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -37,73 +36,32 @@
   <ItemGroup>
     <Reference Include="accoremgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\accoremgd.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="AcCui">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\AcCui.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="acdbmgd">
+    <Reference Include="AcDbMgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acdbmgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="acmgd">
+    <Reference Include="AcMgd">
       <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acmgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="DotNetARX, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\2010\bin\Debug\DotNetARX.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnnotateTools.cs" />
-    <Compile Include="ArcTools.cs" />
-    <Compile Include="BlockTools.cs" />
-    <Compile Include="CircleTools.cs" />
-    <Compile Include="CommandTools.cs" />
-    <Compile Include="COMTools.cs" />
-    <Compile Include="CUITools.cs" />
-    <Compile Include="DictTools.cs" />
-    <Compile Include="DimStyleTools.cs" />
-    <Compile Include="DimTools.cs" />
-    <Compile Include="DocumentTools.cs" />
-    <Compile Include="Draw3DTools.cs" />
-    <Compile Include="EllipseTools.cs" />
-    <Compile Include="EntTools.cs" />
-    <Compile Include="GeTools.cs" />
-    <Compile Include="GroupTools.cs" />
-    <Compile Include="HatchTools.cs" />
-    <Compile Include="LayerTools.cs" />
-    <Compile Include="LayoutTools.cs" />
-    <Compile Include="LineTypeTools.cs" />
-    <Compile Include="LinqToCAD.cs" />
-    <Compile Include="ListTools.cs" />
-    <Compile Include="MessageFilter.cs" />
-    <Compile Include="MLineTools.cs" />
-    <Compile Include="PInvoke.cs" />
-    <Compile Include="PlotSettingsEx.cs" />
-    <Compile Include="PlotTools.cs" />
-    <Compile Include="PolylineTools.cs" />
-    <Compile Include="ProgressManager.cs" />
+    <Compile Include="MouseTip.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegionTools.cs" />
-    <Compile Include="Register.cs" />
-    <Compile Include="SelectionTools.cs" />
-    <Compile Include="SummaryInfoTools.cs" />
-    <Compile Include="TableTools.cs" />
-    <Compile Include="TextStyleTools.cs" />
-    <Compile Include="TextTools.cs" />
-    <Compile Include="Tools.cs" />
-    <Compile Include="UCSTools.cs" />
-    <Compile Include="ViewportTools.cs" />
-    <Compile Include="ViewTableTools.cs" />
-    <Compile Include="XDataTools.cs" />
-    <Compile Include="XrefTools.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

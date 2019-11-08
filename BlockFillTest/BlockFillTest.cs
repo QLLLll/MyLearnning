@@ -71,7 +71,7 @@ namespace BlockFillTest
 
         double SCAle = 1;
 
-        [CommandMethod("ECDBT")]
+        [CommandMethod("ECDFillBlk")]
         public void Test()
         {
             //Sw = new StreamWriter(File.Open("d:\\性能.txt", FileMode.OpenOrCreate));
