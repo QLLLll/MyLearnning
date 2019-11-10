@@ -32,19 +32,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="accoremgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\accoremgd.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\accoremgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="AcCui">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\AcCui.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\AcCui.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="acdbmgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acdbmgd.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\acdbmgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="acmgd">
-      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acmgd.dll</HintPath>
+      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\acmgd.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -59,6 +59,12 @@
   <ItemGroup>
     <Compile Include="MovePolyline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\2010\DotNetARX.csproj">
+      <Project>{5ddfcada-bea4-402c-b3e4-5c7f83c2f09e}</Project>
+      <Name>DotNetARX</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
