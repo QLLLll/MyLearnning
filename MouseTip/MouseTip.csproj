@@ -41,10 +41,10 @@
       <HintPath>C:\Users\LLLLL_PC\Desktop\dll\AcCui.dll</HintPath>
     </Reference>
     <Reference Include="acdbmgd">
-      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\acdbmgd.dll</HintPath>
+      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acdbmgd.dll</HintPath>
     </Reference>
     <Reference Include="acmgd">
-      <HintPath>C:\Users\LLLLL_PC\Desktop\dll\acmgd.dll</HintPath>
+      <HintPath>..\..\..\Users\liu.qiang\Desktop\dll\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="DotNetARX, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

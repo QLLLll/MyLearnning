@@ -25,6 +25,7 @@ namespace MouseTip
             //获取命令行对象（鼠标监视事件的发起者），用于获取文档对象
             Editor ed=(Editor)sender;
             Document doc=ed.Document;
+            InputPointContext ic = e.Context;
             //获取鼠标停留处的实体
             FullSubentityPath[] paths=e.Context.GetPickedEntities();
             using (Transaction trans=doc.TransactionManager.StartTransaction())
