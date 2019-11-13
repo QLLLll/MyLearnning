@@ -254,8 +254,44 @@ namespace OperateLayer
         }
 
         [CommandMethod("hideLayer")]
-        public static void HiddenSelectLayer()
+        public  void HiddenSelectLayer()
         {
+            var propSel = new PromptSelectionOptions();
+
+            var propRes = Ed.GetSelection(propSel);
+
+            if (propRes.Status != PromptStatus.OK)
+            {
+
+                return;
+
+            }
+
+            ObjectId[] oIds = propRes.Value.GetObjectIds();
+
+            using(var trans = Db.TransactionManager.StartTransaction())
+            {
+
+                var lyTbl = trans.GetObject(Db.LayerTableId, OpenMode.ForRead) as LayerTable;
+
+                var blkTbl = trans.GetObject(Db.BlockTableId, OpenMode.ForRead) as BlockTable;
+
+                for (int i = 0; i < oIds.Length; i++)
+                {
+
+                    var ent = trans.GetObject(oIds[i], OpenMode.ForRead) as Entity;
+
+                    var layerId = ent.LayerId;  
+
+                    var lyTblRec = trans.GetObject(layerId, OpenMode.ForWrite) as LayerTableRecord;
+                    lyTblRec.IsFrozen = true;
+                    lyTblRec.IsHidden = true;
+
+                }
+                trans.Commit();
+
+            }
+
 
         }
     }
