@@ -77,5 +77,12 @@ namespace MouseTip
             //停止鼠标监视事件
             ed.PointMonitor -= new PointMonitorEventHandler(ed_PointMonitor);
         }
+
+        [CommandMethod("hideLayer")]
+        public static void HiddenSelectLayer()
+        {
+
+        }
+
     }
 }
