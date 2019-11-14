@@ -253,7 +253,7 @@ namespace OperateLayer
 
         }
 
-        [CommandMethod("hideLayer")]
+        [CommandMethod("ECDLayerHide")]
         public  void HiddenSelectLayer()
         {
             var propSel = new PromptSelectionOptions();
@@ -284,6 +284,9 @@ namespace OperateLayer
                     var layerId = ent.LayerId;  
 
                     var lyTblRec = trans.GetObject(layerId, OpenMode.ForWrite) as LayerTableRecord;
+
+                    if (lyTblRec.Name == "0") { return; }
+
                     lyTblRec.IsFrozen = true;
                     lyTblRec.IsHidden = true;
 
