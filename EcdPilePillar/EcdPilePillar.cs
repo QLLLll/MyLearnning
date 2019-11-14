@@ -61,8 +61,8 @@ namespace EcdPilePillar
             Line zLine = new Line(ptZStart, ptZEnd);
 
 
-            hLine.LineWeight = LineWeight.LineWeight015;
-            zLine.LineWeight = LineWeight.LineWeight015;
+            hLine.LineWeight = LineWeight.LineWeight030;
+            zLine.LineWeight = LineWeight.LineWeight030;
 
 
             Point3d ptYx1 = centerPt + Vector3d.XAxis * (r + 800);
