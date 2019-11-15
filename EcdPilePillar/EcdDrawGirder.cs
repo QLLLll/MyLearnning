@@ -21,12 +21,12 @@ namespace EcdPilePillar
         Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
         Database Db = Application.DocumentManager.MdiActiveDocument.Database;
 
-        [CommandMethod("ECDLiang")]
+        [CommandMethod("ECDXieLiang")]
         public void DrawGirder()
         {
             Entity ent = GetBlockCondition();
 
-            if (ent == null) { Application.ShowAlertDialog("请选择第一个实体"); return; }
+            if (ent == null) { Application.ShowAlertDialog("请选择一个实体"); return; }
 
             var extends = ent.GeometricExtents;
 
@@ -39,7 +39,7 @@ namespace EcdPilePillar
 
             Entity ent2 = GetBlockCondition();
 
-            if (ent2 == null) { Application.ShowAlertDialog("请选择第二个实体"); return; }
+            if (ent2 == null) { Application.ShowAlertDialog("请选择一个实体"); return; }
 
             var extends2 = ent2.GeometricExtents;
 
@@ -126,6 +126,13 @@ namespace EcdPilePillar
             list.Add(line2);
             list.Add(line3);
 
+            ObjectId layer1 = AddLayer(Db, "ECD斜梁1", System.Drawing.Color.DeepPink);
+            ObjectId layer2 = AddLayer(Db, "ECD斜梁2", System.Drawing.Color.DeepPink);
+
+            line2.LayerId = layer1;
+            line3.LayerId = layer1;
+            list[0].LayerId = layer2;
+
             list.ForEach(l => { l.Color = Color.FromColor(System.Drawing.Color.DeepPink); });
 
             DBHelper.ToSpace(list);
@@ -174,6 +181,35 @@ namespace EcdPilePillar
             }
 
             return ent;
+        }
+
+        public ObjectId AddLayer(Database db, string layerName, System.Drawing.Color color)
+        {
+            ObjectId oId = ObjectId.Null;
+
+            using (var trans = db.TransactionManager.StartTransaction())
+            {
+                var lyerTbl = db.LayerTableId.GetObject(OpenMode.ForWrite) as LayerTable;
+
+                if (lyerTbl.Has(layerName))
+                {
+                    trans.Commit();
+                    return lyerTbl[layerName];
+                }
+                var lyerTblRec = new LayerTableRecord();
+                lyerTblRec.Name = layerName;
+
+                lyerTblRec.Color = Color.FromColor(color);
+
+                lyerTbl.Add(lyerTblRec);
+                trans.AddNewlyCreatedDBObject(lyerTblRec, true);
+
+                lyerTbl.DowngradeOpen();
+
+                trans.Commit();
+
+                return lyerTbl[layerName];
+            }
         }
     }
 }
