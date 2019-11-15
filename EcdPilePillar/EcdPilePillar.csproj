@@ -55,6 +55,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBHelper.cs" />
+    <Compile Include="EcdDrawGirder.cs" />
     <Compile Include="EcdPilePillar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

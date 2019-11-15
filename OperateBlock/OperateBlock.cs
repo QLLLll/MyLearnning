@@ -140,6 +140,7 @@ namespace OperateBlock
             {
                 var blkTbl = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
 
+
                 if (!blkTbl.Has(blockName)) return ObjectId.Null;
 
                 var oId = blkTbl[blockName];
@@ -157,6 +158,12 @@ namespace OperateBlock
                 br.Rotation = rotation;
 
                 br.Layer = layerName;
+               
+
+                spaceRec.UpgradeOpen();
+                ObjectId brId = spaceRec.AppendEntity(br);
+                trans.AddNewlyCreatedDBObject(br, true);
+                spaceRec.DowngradeOpen();
 
                 if (blkTblRec.HasAttributeDefinitions)
                 {
@@ -186,29 +193,47 @@ namespace OperateBlock
                             }
 
                             br.AttributeCollection.AppendAttribute(attrRef);
-                            trans.AddNewlyCreatedDBObject(attrRef, true);
-
-
+                            trans.AddNewlyCreatedDBObject(attrRef, true);  
                         }
-
-
                     }
 
                 }
-
-                spaceRec.UpgradeOpen();
-
-                ObjectId brId = spaceRec.AppendEntity(br);
-
-                trans.AddNewlyCreatedDBObject(br, true);
-
-                spaceRec.DowngradeOpen();
-
                 trans.Commit();
-
                 return brId;
             }
         }
+
+        public void UpdateAttributesInBlock(Database db, ObjectId blockRefId,Dictionary<string,string>attNameValues)
+        {
+
+            using (var trans = db.TransactionManager.StartTransaction()) {
+
+                BlockReference blockRef = trans.GetObject(blockRefId, OpenMode.ForRead) as BlockReference;
+
+                if (blockRef != null)
+                {
+
+                    foreach(ObjectId id in blockRef.AttributeCollection)
+                    {
+
+                        AttributeReference attref = trans.GetObject(id, OpenMode.ForRead) as AttributeReference;
+
+                        if (attNameValues.ContainsKey(attref.Tag.ToUpper()))
+                        {
+
+                            attref.UpgradeOpen();
+
+                            attref.TextString = attNameValues[attref.Tag.ToUpper()].ToString();
+
+                            attref.DowngradeOpen();
+
+                        }
+                    }
+                }
+                    trans.Commit();
+            }
+        }
+
 
 
         public void InsertAttrDef(Database db, ObjectId blockId, List<AttributeDefinition> listAttrDefs)
@@ -232,13 +257,8 @@ namespace OperateBlock
         {
             InsertAttrDef(db, blockId, listAttrDefs.ToList());
         }
-
-
-
-
-
         [CommandMethod("EcdDoor")]
-        public void MakeDoor()
+        public ObjectId MakeDoor()
         {
 
             Point3d pt1 = Point3d.Origin;
@@ -259,15 +279,56 @@ namespace OperateBlock
 
             rightLine.IntersectWith(arc, Intersect.OnBothOperands, pts, IntPtr.Zero, IntPtr.Zero);
 
-            if (pts.Count == 0) return;
+            if (pts.Count == 0) return ObjectId.Null;
 
             rightLine.EndPoint = pts[0];
 
-            AddBlock(Db, "DOOR", leftLine, bottomLine, rightLine, arc);
+          ObjectId blockId=  AddBlock(Db, "DOOR", leftLine, bottomLine, rightLine, arc);
+
+            return blockId;
 
         }
 
-        [CommandMethod("EcdInsertDoor")]
+        [CommandMethod("ECDAddAtt")]
+        public void AddAttributes()
+        {
+            ObjectId blockId = MakeDoor();
+
+            using(var trans = Db.TransactionManager.StartTransaction())
+            {
+
+                AttributeDefinition attSYM = new AttributeDefinition(Point3d.Origin, "1", "SYM", "输入门的符号", ObjectId.Null);
+
+                SetStyleForAtt(attSYM, false);
+
+                attSYM.AlignmentPoint = new Point3d(32, 28, 0);
+
+                AttributeDefinition attWidth=new AttributeDefinition(Point3d.Origin,"1m","WIDTH","输入门的宽度",ObjectId.Null);
+                SetStyleForAtt(attWidth, true);
+
+                AttributeDefinition attHeight = new AttributeDefinition(Point3d.Origin, "2m", "HEIGHT", "输入门的高度", ObjectId.Null);
+                SetStyleForAtt(attHeight, true);
+
+                AttributeDefinition attStyle = new AttributeDefinition(Point3d.Origin, "TWO PANEL", "Style", "输入门的样式", ObjectId.Null);
+                SetStyleForAtt(attStyle, true);
+
+                AttributeDefinition attRef = new AttributeDefinition(Point3d.Origin, "TS 3010", "REF", "输入门的参考图编号", ObjectId.Null);
+                SetStyleForAtt(attRef, true);
+
+                AttributeDefinition attManufacturer = new AttributeDefinition(Point3d.Origin, "TRU STYLE", "MANUFACTURER", "输入生产产家", ObjectId.Null);
+                SetStyleForAtt(attManufacturer, true);
+
+                AttributeDefinition attCost = new AttributeDefinition(Point3d.Origin, "189.00", "COST", "输入门的单价", ObjectId.Null);
+                SetStyleForAtt(attCost, true);
+
+                InsertAttrDef(Db, blockId, attSYM, attWidth, attHeight, attStyle, attRef, attManufacturer, attCost);
+            }
+
+
+        }
+
+
+        [CommandMethod("EcdAddDoor")]
         public void InsertDoor()
         {
 
@@ -275,6 +336,49 @@ namespace OperateBlock
 
         }
 
+        [CommandMethod("EcdInsertDoor")]
+        public void InsertDoor2()
+        {
+
+                Dictionary<string, string> atts = new Dictionary<string, string>();
+
+                atts.Add("SYM", "1");
+                atts.Add("WIDTH", "0.90m");
+                atts.Add("HEIGHT", "2.2m");
+                atts.Add("COST", "200.0");
+
+                InsertBlockReference(Db, "0","DOOR", Point3d.Origin, 0, new Scale3d(20), atts);
+        }
+        [CommandMethod("EcdUpdateDoor")]
+        public void UpdarteDoor()
+        {
+
+            PromptEntityOptions opt = new PromptEntityOptions("请选择一个块参照");
+
+            opt.SetRejectMessage("你选择的不是块");
+
+            opt.AddAllowedClass(typeof(BlockReference), true);
+
+            var result = Ed.GetEntity(opt);
+
+            if (result.Status != PromptStatus.OK) return;
+
+            Dictionary<string,string> atts = new Dictionary<string, string>();
+
+            atts.Add("SYM", "2");
+            atts.Add("COST", "300.0");
+            UpdateAttributesInBlock(Db, result.ObjectId, atts);
+
+        }
+
+
+        public void SetStyleForAtt(AttributeDefinition att,bool isvisible)
+        {
+            att.Height = 60;
+            att.HorizontalMode = TextHorizontalMode.TextCenter;
+            att.VerticalMode = TextVerticalMode.TextVerticalMid;
+            att.Invisible = isvisible;
+        }
 
     }
 }
