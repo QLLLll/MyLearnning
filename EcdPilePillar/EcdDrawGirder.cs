@@ -86,9 +86,9 @@ namespace EcdPilePillar
             Point3d[] ptArr1 = new Point3d[3];
             Point3d[] ptArr2 = new Point3d[3];
 
-            listLines[0].IntersectWith(ent1, Intersect.OnBothOperands,pt3dColl,IntPtr.Zero,IntPtr.Zero);
-            ptArr1[0] = pt3dColl[0];
-            pt3dColl.Clear();
+            //listLines[0].IntersectWith(ent1, Intersect.OnBothOperands,pt3dColl,IntPtr.Zero,IntPtr.Zero);
+            //ptArr1[0] = pt3dColl[0];
+            //pt3dColl.Clear();
 
             listLines[1].IntersectWith(ent1, Intersect.OnBothOperands, pt3dColl, IntPtr.Zero, IntPtr.Zero);
             ptArr1[1] = pt3dColl[0];
@@ -100,9 +100,9 @@ namespace EcdPilePillar
 
             ////////////////////////
 
-            listLines[0].IntersectWith(ent2, Intersect.OnBothOperands, pt3dColl, IntPtr.Zero, IntPtr.Zero);
-            ptArr2[0] = pt3dColl[0];
-            pt3dColl.Clear();
+            //listLines[0].IntersectWith(ent2, Intersect.OnBothOperands, pt3dColl, IntPtr.Zero, IntPtr.Zero);
+            //ptArr2[0] = pt3dColl[0];
+            //pt3dColl.Clear();
 
             listLines[1].IntersectWith(ent2, Intersect.OnBothOperands, pt3dColl, IntPtr.Zero, IntPtr.Zero);
             ptArr2[1] = pt3dColl[0];
@@ -112,23 +112,25 @@ namespace EcdPilePillar
             ptArr2[2] = pt3dColl[0];
             pt3dColl.Clear();
 
-            listLines.ForEach(ll => ll.Dispose());
+           
 
 
-            Line line1 = new Line(ptArr1[0], ptArr2[0]);
+            //Line line1 = new Line(ptArr1[0], ptArr2[0]);
             Line line2 = new Line(ptArr1[1], ptArr2[1]);
             Line line3 = new Line(ptArr1[2], ptArr2[2]);
 
 
             List<Entity> list = new List<Entity>();
 
-            list.Add(line1);
+            list.Add(listLines[0]);
             list.Add(line2);
             list.Add(line3);
 
             list.ForEach(l => { l.Color = Color.FromColor(System.Drawing.Color.DeepPink); });
 
             DBHelper.ToSpace(list);
+            listLines.ForEach(ll => ll.Dispose());
+            list.ForEach(lll => lll.Dispose());
         }
 
         public Entity GetBlockCondition()
