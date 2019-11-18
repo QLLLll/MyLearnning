@@ -47,15 +47,7 @@ namespace OperateBlock
                 trans.Commit();
 
                 return oId;
-
-
-
-
-
-
             }
-
-
         }
 
         public ObjectId AddBlock(Database db,string blockName,params Entity[] enti)

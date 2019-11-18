@@ -11,7 +11,6 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Colors;
 
 
-
 namespace EcdPilePillar
 {
     public class EcdDrawGirder
@@ -112,13 +111,9 @@ namespace EcdPilePillar
             ptArr2[2] = pt3dColl[0];
             pt3dColl.Clear();
 
-           
-
-
             //Line line1 = new Line(ptArr1[0], ptArr2[0]);
             Line line2 = new Line(ptArr1[1], ptArr2[1]);
             Line line3 = new Line(ptArr1[2], ptArr2[2]);
-
 
             List<Entity> list = new List<Entity>();
 
