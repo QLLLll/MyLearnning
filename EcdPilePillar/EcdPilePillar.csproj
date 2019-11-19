@@ -67,7 +67,6 @@
   <ItemGroup>
     <Compile Include="DBHelper.cs" />
     <Compile Include="EcdDrawGirder.cs" />
-    <Compile Include="EcdMirror.cs" />
     <Compile Include="EcdMirrorCopy.cs" />
     <Compile Include="EcdPilePillar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

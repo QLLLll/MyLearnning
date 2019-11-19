@@ -70,109 +70,6 @@ namespace EcdPilePillar
                 trans.Commit();
             }
 
-            //app.ActiveDocument.SendCommand("mirror ");
-
-            //app.ActiveDocument.EndCommand += ActiveDocument_EndCommand;
-
-
-            /*using (var trans = Db.TransactionManager.StartTransaction())
-            {
-
-                var blkRef = trans.GetObject(br.ObjectId, OpenMode.ForWrite) as BlockReference;
-
-                blkRef.Visible = true;
-
-                blkRef.DowngradeOpen();
-
-                for (int i = 0; oIdColl != null && i < oIdColl.Count; i++)
-                {
-
-                    var ent = trans.GetObject(oIdColl[i], OpenMode.ForWrite) as Entity;
-
-                    if (ent != null)
-                    {
-
-                        ent.Erase(true);
-
-                    }
-                }
-
-                trans.Commit();
-            }
-
-            var selRes = Ed.GetSelection();
-
-            if (selRes.Status != PromptStatus.OK) return;
-
-            var list = selRes.Value.GetObjectIds()?.ToList();
-
-            ObjectId recId = ObjectId.Null;
-            Point3d ptPosC = Point3d.Origin;
-            using (var trans = Db.TransactionManager.StartTransaction())
-            {
-
-                var blkTbl = trans.GetObject(Db.BlockTableId, OpenMode.ForWrite) as BlockTable;
-
-                BlockTableRecord blkRec = new BlockTableRecord();
-
-                blkRec.Units = br.BlockUnit;
-
-                string blkName = br.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff");
-
-                blkRec.Name = blkName;
-
-                for (int i = 0; list != null && i < list.Count; i++)
-                {
-
-                    var ent = trans.GetObject(list[i], OpenMode.ForWrite);
-
-                    if (ent != null)
-                    {
-                        bool flag = true;
-                        if (ent is Circle)
-                        {
-                            var cir = ent as Circle;
-
-                            if (cir.Radius == 0.010324)
-                            {
-
-                                ptPosC = cir.Center;
-
-                                cir.Erase(true);
-                                flag = false;
-
-                            }
-
-
-                        }
-                        if (flag)
-                        {
-                            Entity entCopy = ent.Clone() as Entity;
-
-                            ent.Erase(true);
-
-                            blkRec.AppendEntity(entCopy);
-                        }
-
-                    }
-                }
-                blkRec.Origin = ptPosC;
-                recId = blkTbl.Add(blkRec);
-
-                trans.AddNewlyCreatedDBObject(blkRec, true);
-
-
-
-                trans.Commit();
-
-            }
-
-            BlockReference brEnt = new BlockReference(ptPosC, recId);
-
-            brEnt.ToSpace();
-
-            */
-
             m_DocumentLock.Dispose();
         }
 
@@ -453,7 +350,7 @@ namespace EcdPilePillar
                     lineY.TransformBy(Matrix3d.Displacement(Vector3d.XAxis * maxX));
 
 
-                    MyMirror(listEnt, lineY);
+                    MyMirror(listEnt, lineY, "Y");
 
 
                 }
@@ -466,7 +363,7 @@ namespace EcdPilePillar
 
                     lineX.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * maxY));
 
-                    MyMirror(listEnt, lineX);
+                    MyMirror(listEnt, lineX, "X");
                 }
 
                 var brNew = new BlockReference(br.Position, br.BlockTableRecord);
@@ -489,8 +386,9 @@ namespace EcdPilePillar
 
         }
 
-        private void MyMirror(List<Entity> listEnt, Line line)
+        private void MyMirror(List<Entity> listEnt, Line line, string xY)
         {
+            Application.SetSystemVariable("MIRRTEXT", 0);
             List<Entity> list = new List<Entity>();
             if (listEnt == null || line == null) return;
 
@@ -499,60 +397,74 @@ namespace EcdPilePillar
             for (int i = 0; i < listEnt.Count; i++)
             {
                 var entity = listEnt[i];
-                Entity ent = entity as Dimension;
-                //if (entity is DBText || entity is Dimension || entity is MText)
-                //{
-                //    var ptMin = entity.Bounds.Value.MinPoint;
-                //    var ptMax = entity.Bounds.Value.MaxPoint;
 
-                //    var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
+                Entity ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
+                var dim = ent as Dimension;
+               
+                
 
-                //    var pt = line.GetClosestPointTo(ptCenter, true);
+                var ptMin = ent.Bounds.Value.MinPoint;
 
-                //    ent = entity.GetTransformedCopy(Matrix3d.Displacement((pt - ptCenter)*2));
+                var ptMax = ent.Bounds.Value.MaxPoint;
 
-                //}
-
-                if (entity is DBText) //|| entity is Dimension || entity is MText)
+                var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
+                if (ent is DBText) //|| entity is Dimension || entity is MText)
                 {
-                    var t1 = entity as DBText;
 
-                    var pt = line.GetClosestPointTo(t1.Position, true);
+                    Plane p = null;
+                    if (xY == "X")
+                        p = new Plane(ptCenter, Vector3d.YAxis);
+                    else if (xY == "Y")
+                        p = new Plane(ptCenter, Vector3d.XAxis);
 
-                        ent = entity.GetTransformedCopy(Matrix3d.Displacement((pt - t1.Position) *2));
-
-
+                    ent = ent.GetTransformedCopy(Matrix3d.Mirroring(p));
 
                 }
-                else if (ent != null)
+                else if (dim != null)
                 {
-                    Dimension d = ent as Dimension;
+                    Plane p = null;
 
-                    var ptMin = entity.Bounds.Value.MinPoint;
+                    var dimV = dim.Normal;
 
-                    var ptMax = entity.Bounds.Value.MaxPoint;
+                    if (xY == "X")
+                    {
+                        
+                        p = new Plane(dim.TextPosition, dimV);
+                        ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+                    }
+                    else if (xY == "Y")
+                    {
+                        dimV = dimV.RotateBy(Math.PI / 2, Vector3d.ZAxis);
 
-                    var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
+                        p = new Plane(dim.TextPosition, Vector3d.YAxis);
 
-                    var pt = line.GetClosestPointTo(ptCenter, true);
-
-                    ent = entity.GetTransformedCopy(Matrix3d.Displacement((pt - ptCenter) * 2));
-
+                        ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+                    }
+                    
 
                 }
 
-                else if (entity is MText) //|| entity is Dimension || entity is MText)
+                else if (ent is MText) //|| entity is Dimension || entity is MText)
                 {
-                    var m1 = entity as MText;
+                    Plane p = null;
+                    if (xY == "X")
+                    {
 
-                    var pt = line.GetClosestPointTo(m1.Location, true);
+                        var ptMT = ptCenter + Vector3d.XAxis * 100;
 
-                    ent = entity.GetTransformedCopy(Matrix3d.Displacement((pt - m1.Location) * 2));
+                        var l3d = new Line3d(ptCenter, ptMT);
+
+                        ent = ent.GetTransformedCopy(Matrix3d.Mirroring(l3d));
+
+                    }
+                    else if (xY == "Y")
+                    {
+                        p = new Plane(ptCenter, Vector3d.ZAxis);
+
+                        ent = ent.GetTransformedCopy(Matrix3d.Mirroring(p));
+                    }
                 }
-                else
-                {
-                    ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
-                }
+
                 list.Add(ent);
             }
 
