@@ -12,7 +12,7 @@ using Autodesk.AutoCAD.Runtime;
 
 namespace EcdPilePillar
 {
-   public class MirrorTest
+    public class MirrorTest
     {
         Document Doc = Application.DocumentManager.MdiActiveDocument;
         Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
@@ -22,7 +22,7 @@ namespace EcdPilePillar
         List<Entity> list = new List<Entity>();
         string XY = "";
 
-        [CommandMethod("ecdTest")]      
+        [CommandMethod("ecdTest")]
         public void GetJingXiangXY()
         {
             DocumentLock m_DocumentLock = null;
@@ -111,7 +111,7 @@ namespace EcdPilePillar
                     tr.Commit();
 
                 }
-                
+
 
                 var brNew = new BlockReference(br.Position, br.BlockTableRecord);
 
@@ -132,7 +132,7 @@ namespace EcdPilePillar
             }
 
         }
-   
+
         public Entity GetBlockCondition(string s)
         {
 
@@ -184,7 +184,7 @@ namespace EcdPilePillar
 
         private void MyMirror(List<Entity> listEnt, Line line, string xY)
         {
-            
+
             if (listEnt == null || line == null) return;
 
             Line3d line3d = new Line3d(line.StartPoint, line.EndPoint);
@@ -197,7 +197,7 @@ namespace EcdPilePillar
 
                 Entity ent = entity;
                 if (ent is DBText || ent is MText)
-                {                  
+                {
                     ent = entity;
                     ent.ToSpace();
                 }
@@ -274,7 +274,7 @@ namespace EcdPilePillar
 
                 }
 
-                else if (ent is MText) 
+                else if (ent is MText)
                 {
                     var a = ent as MText;
 
@@ -425,13 +425,13 @@ namespace EcdPilePillar
 
         }
 
-
         void MirrorText(MText ent, Line3d mirrorLine)
 
         {
 
             Database db = ent.ObjectId.Database;
-            
+
+            MText mText = new MText();
 
 
             using (Transaction tr = db.TransactionManager.StartTransaction())
@@ -448,153 +448,131 @@ namespace EcdPilePillar
 
                 // Get text entity
 
-                MText dbText = tr.GetObject(ent.ObjectId, OpenMode.ForRead) as MText;
+                MText dbText = tr.GetObject(ent.ObjectId, OpenMode.ForRead)
 
-                double rotation = dbText.Rotation;
+                    as MText;
 
-                Ed.WriteMessage((rotation * 180 / Math.PI).ToString() + "\n");
+
 
                 // Clone original entity
 
-                MText mirroredTxt = dbText.Clone() as MText;
 
 
+                DBObjectCollection dbColl = new DBObjectCollection();
 
+                dbText.Explode(dbColl);
+
+                
                 // Create a mirror matrix
 
                 Matrix3d mirrorMatrix = Matrix3d.Mirroring(mirrorLine);
 
-
-
                 // Do a geometric mirror on the cloned text
 
-                mirroredTxt.TransformBy(mirrorMatrix);
+                
+                var location = ent.Location.TransformBy(mirrorMatrix);
+                mText.Location = location;
+                //mText.Rotation = Math.PI * 2 - ent.Rotation;
+                double rot = Math.PI * 2 - ent.Rotation;
 
-
-
-                // Get text bounding box
-
-                Point3d pt1, pt2, pt3, pt4;
-
-                GetTextBoxCorners(
-
-                    dbText,
-
-                    out pt1,
-
-                    out pt2,
-
-                    out pt3,
-
-                    out pt4);
-
-
-
-                // Get the perpendicular direction to the original text
-
-                Vector3d rotDir =
-
-                    pt4.Subtract(pt1.GetAsVector()).GetAsVector();
-
-
-
-                // Get the colinear direction to the original text
-
-                Vector3d linDir =
-
-                    pt3.Subtract(pt1.GetAsVector()).GetAsVector();
-
-
-
-                // Compute mirrored directions
-
-                Vector3d mirRotDir = rotDir.TransformBy(mirrorMatrix);
-
-                Vector3d mirLinDir = linDir.TransformBy(mirrorMatrix);
-
-
-
-                //Check if we need to mirror in Y or in X
-
-                if (Math.Abs(mirrorLine.Direction.Y) >
-
-                    Math.Abs(mirrorLine.Direction.X))
-
+                
+                foreach (DBText txt in dbColl)
                 {
+                    DBText mirroredTxt = txt.Clone() as DBText;
+                    mirroredTxt.TransformBy(mirrorMatrix);
+                    // Get text bounding box
 
-                    // Handle the case where text is mirrored twice
+                    Point3d pt1, pt2, pt3, pt4;
 
-                    // instead of doing "oMirroredTxt.IsMirroredInX = true"
+                    GetTextBoxCorners(
 
-                    //mirroredTxt. = !mirroredTxt.IsMirroredInX;
+                        dbText,
 
-                    mirroredTxt.Location = mirroredTxt.Location + mirLinDir;
+                        out pt1,
 
+                        out pt2,
+
+                        out pt3,
+
+                        out pt4);
+
+
+
+                    // Get the perpendicular direction to the original text
+
+                    Vector3d rotDir =
+
+                        pt4.Subtract(pt1.GetAsVector()).GetAsVector();
+
+
+
+                    // Get the colinear direction to the original text
+
+                    Vector3d linDir =
+
+                        pt3.Subtract(pt1.GetAsVector()).GetAsVector();
+
+
+
+                    // Compute mirrored directions
+
+                    Vector3d mirRotDir = rotDir.TransformBy(mirrorMatrix);
+
+                    Vector3d mirLinDir = linDir.TransformBy(mirrorMatrix);
+
+
+
+                    //Check if we need to mirror in Y or in X
+
+                    if (Math.Abs(mirrorLine.Direction.Y) >
+
+                        Math.Abs(mirrorLine.Direction.X))
+
+                    {
+
+                        // Handle the case where text is mirrored twice
+
+                        // instead of doing "oMirroredTxt.IsMirroredInX = true"
+
+                        mirroredTxt.IsMirroredInX = !mirroredTxt.IsMirroredInX;
+
+                        mirroredTxt.Position = mirroredTxt.Position + mirLinDir;
+
+                    }
+
+                    else
+
+                    {
+
+                        mirroredTxt.IsMirroredInY = !mirroredTxt.IsMirroredInY;
+
+                        mirroredTxt.Position = mirroredTxt.Position + mirRotDir;
+
+                    }
+                    mText.TextStyleId = mirroredTxt.TextStyleId;
+                    mText.Contents += mirroredTxt.TextString + "\\P";
+
+                    list.Add(mirroredTxt);
                 }
-
-                else
-
-                {
-
-                    //mirroredTxt.IsMirroredInY = !mirroredTxt.IsMirroredInY;
-
-                    mirroredTxt.Location = mirroredTxt.Location + mirRotDir;
-
-                }
-
-
-
-                // Add mirrored text to database
-
-                //btr.AppendEntity(mirroredTxt);
-
-                //tr.AddNewlyCreatedDBObject(mirroredTxt, true);
-
-
-                var ptMin = mirroredTxt.Bounds.Value.MinPoint;
-
-                var ptMax = mirroredTxt.Bounds.Value.MaxPoint;
-
-                var w = Math.Abs(ptMax.X - ptMin.X);
-                var h = Math.Abs(ptMax.Y - ptMin.Y);
-
+                
+                
+                mText.TextHeight = ent.TextHeight;
+                mText.LineSpaceDistance = ent.LineSpaceDistance;
+                mText.LineSpacingFactor = ent.LineSpacingFactor;
+                mText.LinetypeId = ent.LinetypeId;
+                
+                var ptMin = mText.Bounds.Value.MinPoint;
+                var ptMax = mText.Bounds.Value.MaxPoint;
                 var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
-                if (XY == "X")
-                {
-                    Polyline pl = new Polyline();
-                    pl.AddVertexAt(pl.NumberOfVertices, new Point2d(ptMin.X, ptMin.Y),0,0,0);
-                    pl.AddVertexAt(pl.NumberOfVertices, new Point2d(ptMax.X, ptMax.Y), 0, 0, 0);
-                    
-
-                    pl.ToSpace();
-
-                    // mirroredTxt = mirroredTxt.GetTransformedCopy(Matrix3d.Mirroring(l3d)) as MText;
-                }
-                else if (XY == "Y")
-                {
-                    
-
-                }
-             
-
-              
-
-
-
-                list.Add(mirroredTxt);
+                mText.Location = ptCenter;
+                mText.TransformBy(Matrix3d.Rotation(rot, Vector3d.ZAxis, ptCenter));
+                
 
                 tr.Commit();
 
             }
 
         }
-
-
-        // We need a bunch of P/Invoked functions to retrieve a DBtext
-
-        // bounding box because "acedTextBox" API is not exposed to .Net
-
-
 
         public struct ads_name
 
@@ -688,7 +666,7 @@ namespace EcdPilePillar
 
 
 
-        void GetTextBoxCorners(DBText dbText,out Point3d pt1,out Point3d pt2,out Point3d pt3,out Point3d pt4)
+        void GetTextBoxCorners(DBText dbText, out Point3d pt1, out Point3d pt2, out Point3d pt3, out Point3d pt4)
 
         {
 
@@ -783,7 +761,7 @@ namespace EcdPilePillar
         }
 
 
-        void GetTextBoxCorners(MText dbText, out Point3d pt1,out Point3d pt2,out Point3d pt3, out Point3d pt4)
+        void GetTextBoxCorners(MText dbText, out Point3d pt1, out Point3d pt2, out Point3d pt3, out Point3d pt4)
 
         {
 
