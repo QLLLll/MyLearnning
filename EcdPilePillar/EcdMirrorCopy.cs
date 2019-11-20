@@ -388,37 +388,117 @@ namespace EcdPilePillar
 
         private void MyMirror(List<Entity> listEnt, Line line, string xY)
         {
-            Application.SetSystemVariable("MIRRTEXT", 0);
+            
             List<Entity> list = new List<Entity>();
             if (listEnt == null || line == null) return;
 
             Line3d line3d = new Line3d(line.StartPoint, line.EndPoint);
 
+            double rotation = 0;
+
             for (int i = 0; i < listEnt.Count; i++)
             {
                 var entity = listEnt[i];
 
-                Entity ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
+                Entity ent = entity;
+                if (ent is DBText||ent is MText)
+                {
+                    ent = entity;
+                }
+                else
+                {
+                    ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
+                    list.Add(ent);
+
+                    continue;
+                }
+                //Entity ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
+
+                var dbText = ent as DBText;
+
+                if (dbText != null)
+                {
+                    rotation = dbText.Rotation;
+                    Ed.WriteMessage((rotation * 180 / Math.PI).ToString() + "\n");
+                }
+
                 var dim = ent as Dimension;
-               
-                
 
                 var ptMin = ent.Bounds.Value.MinPoint;
 
                 var ptMax = ent.Bounds.Value.MaxPoint;
 
+                var w = Math.Abs(ptMax.X - ptMin.X);
+                var h = Math.Abs(ptMax.Y - ptMin.Y);
+
                 var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
-                if (ent is DBText) //|| entity is Dimension || entity is MText)
+                if (ent is DBText)
                 {
+                    var a = ent as DBText;
 
-                    Plane p = null;
+                    a.Position = ptCenter;
+
+                    /*Plane p = null;
                     if (xY == "X")
+                    {
                         p = new Plane(ptCenter, Vector3d.YAxis);
+                    }
                     else if (xY == "Y")
+                    {
                         p = new Plane(ptCenter, Vector3d.XAxis);
-
+                         
+                    }
                     ent = ent.GetTransformedCopy(Matrix3d.Mirroring(p));
 
+                    a = ent as DBText;
+                    Ed.WriteMessage((a.Rotation * 180 / Math.PI).ToString()+"\n");
+
+                    rotation = double.Parse(rotation.ToString("f4"));
+
+                    if (rotation!=3.1416&&rotation>3.1415 / 2&&rotation<=3*Math.PI/2)
+                        a.Rotation = rotation -2 * Math.PI;
+                    else if (rotation == 0 || rotation==3.1416)
+                    {
+                        a.Rotation = rotation;
+                    }
+                    else
+                        a.Rotation = rotation -  Math.PI;
+                    Ed.WriteMessage((a.Rotation * 180 / Math.PI).ToString()+"\n");*/
+
+
+                    Point3d plan = line.GetClosestPointTo(ptCenter, true);
+
+                    ent = a.GetTransformedCopy(Matrix3d.Displacement(2 * (plan - ptCenter)));
+
+                    a = ent as DBText;
+
+                    if (xY == "X")
+                    {
+                        Ed.WriteMessage((a.Rotation * 180 / Math.PI).ToString() + "\n");
+
+                        a.Rotation = 2 * Math.PI - a.Rotation;
+
+                        var posAfter = a.Position;
+
+                        var ptAfter = posAfter - Vector3d.XAxis * w / 2;
+
+                        ent = a.GetTransformedCopy(Matrix3d.Displacement(ptAfter - posAfter));
+                    }
+                    else
+                    {
+                        rotation = double.Parse(a.Rotation.ToString("f4"));
+
+                        if(rotation!=3.1416&&rotation!=0)
+                        a.Rotation = 2*Math.PI - a.Rotation;
+
+                        var posAfter = a.Position;
+
+                        var ptAfter = posAfter - Vector3d.YAxis * h / 2;
+
+                        ent = a.GetTransformedCopy(Matrix3d.Displacement(ptAfter - posAfter));
+                    }
+
+                    Ed.WriteMessage((a.Rotation * 180 / Math.PI).ToString());
                 }
                 else if (dim != null)
                 {
@@ -428,25 +508,41 @@ namespace EcdPilePillar
 
                     if (xY == "X")
                     {
-                        
+
                         p = new Plane(dim.TextPosition, dimV);
                         ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
                     }
                     else if (xY == "Y")
                     {
-                        dimV = dimV.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+                        //dimV = dimV.RotateBy(Math.PI / 2, Vector3d.ZAxis);
 
-                        p = new Plane(dim.TextPosition, Vector3d.YAxis);
+                        //p = new Plane(dim.TextPosition, Vector3d.YAxis);
 
-                        ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+                        //ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+
+                        //dynamic blockref_com = dim.AcadObject;
+                        //double[] pt1_com = new Point3d(0, 0, 0).ToArray();
+                        //double[] pt2_com = new Point3d(0, -1, 0).ToArray();
+                        //Vector3d v = new Vector3d(0, -1, -1);
+                        p = new Plane(dim.TextPosition, dimV);
+
+                        //ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+                        //blockref_com.Mirror(pt1_com, pt2_com);
+
+                        double d = ptMin.X - dimV.X;
+                        double d2 = ptMax.X - dimV.X;
+                        double d3 = d + d2;
+                        Point3d source = new Point3d(d3, 0, 0);
+                        Vector3d V = source.GetVectorTo(dim.TextPosition);
+                        dim.TransformBy(Matrix3d.Displacement(V));
                     }
-                    
+
 
                 }
 
                 else if (ent is MText) //|| entity is Dimension || entity is MText)
                 {
-                    Plane p = null;
+                    /*Plane p = null;
                     if (xY == "X")
                     {
 
@@ -462,13 +558,56 @@ namespace EcdPilePillar
                         p = new Plane(ptCenter, Vector3d.ZAxis);
 
                         ent = ent.GetTransformedCopy(Matrix3d.Mirroring(p));
+                    }*/
+
+                    MText a = ent as MText;
+
+                    a.Location = ptCenter;
+
+                    Point3d plan = line.GetClosestPointTo(ptCenter, true);
+
+                    ent = a.GetTransformedCopy(Matrix3d.Displacement(2 * (plan - ptCenter)));
+                    //ptCenter.TransformBy(Matrix3d.Displacement(2*(plan - ptCenter)));
+                    a = ent as MText;
+
+                    if (xY == "X")
+                    {
+                        Ed.WriteMessage((a.Rotation * 180 / Math.PI).ToString() + "\n");
+                        //a.Location = ptCenter;
+                        a.Rotation = 2 * Math.PI - a.Rotation;
+
+                        var posAfter = a.Location;
+
+                        var ptAfter = posAfter - Vector3d.XAxis * w / 2;
+
+                        //ent = a.GetTransformedCopy(Matrix3d.Displacement(ptAfter - posAfter));
                     }
+                    else
+                    {
+                        rotation = double.Parse(a.Rotation.ToString("f4"));
+                        //a.Location = ptCenter;
+                        if (rotation != 3.1416 && rotation != 0)
+                            a.Rotation = 2 * Math.PI - a.Rotation;
+
+                        var posAfter = a.Location;
+
+                        var ptAfter = posAfter - Vector3d.YAxis * h / 2;
+
+                        //ent = a.GetTransformedCopy(Matrix3d.Displacement(ptAfter - posAfter));
+                    }
+
+                    Ed.WriteMessage((a.Rotation * 180 / Math.PI).ToString());
+
                 }
 
                 list.Add(ent);
             }
 
             list.ToSpace();
+
+            list.ForEach(ent => ent.Dispose());
+
+            listEnt.ForEach(ent => ent.Dispose());
 
         }
     }
