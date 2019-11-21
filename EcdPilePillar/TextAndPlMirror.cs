@@ -9,316 +9,183 @@ using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Interop;
 using Autodesk.AutoCAD.Runtime;
 
-
 namespace EcdPilePillar
 {
-    public class MirrorTest
+    public class TextAndPlMirror
     {
         Document Doc = Application.DocumentManager.MdiActiveDocument;
         Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
         Database Db = Application.DocumentManager.MdiActiveDocument.Database;
 
-        BlockReference blkRef = null;
         List<Entity> list = new List<Entity>();
         List<ObjectId> listOId = new List<ObjectId>();
-        string XY = "";
 
-        [CommandMethod("ECDKuaiJX")]
-        public void GetJingXiangXY()
+        [CommandMethod("EceShiTiJX")]
+        public void MirrorTextAndPl()
         {
-            DocumentLock m_DocumentLock = null;           
-            blkRef = null;
+            DocumentLock docLock = null;
+
             list.Clear();
             listOId.Clear();
-            XY = "";
-
-            
-          
 
             try
             {
-                m_DocumentLock = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.LockDocument();
 
-                var br = GetBlockCondition("请选择要镜像的块") as BlockReference;
-                string name = br.Name;
+                docLock = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument.LockDocument();
+                var res = Ed.GetSelection();
 
-                if (br == null)
-                {
-                    return;
-                }
-                blkRef = br;
+                if (res.Status != PromptStatus.OK) return;
 
-                Circle circle = new Circle(blkRef.Position, Vector3d.ZAxis, 0.001);
+                var listOids = res.Value.GetObjectIds().ToList();
 
-             listOId.Add(circle.ToSpace());
+                List<Entity> listEnt = new List<Entity>();
+                List<Point3d> listPt = new List<Point3d>();
 
-                Circle mirrorCircle = null;
-
-                string xYJingXiang = "";
-
-                PromptKeywordOptions pkOpts = new PromptKeywordOptions("请选择镜像方向[X/Y]", "X Y");
-                var propRes = Ed.GetKeywords(pkOpts);
-
-                if (propRes.Status != PromptStatus.OK) return;
-
-                xYJingXiang = propRes.StringResult;
-
-                DBObjectCollection coll = new DBObjectCollection();
-
-                br.Explode(coll);
-
-                var listEnt = coll.Cast<Entity>().ToList();
-
-
-                Point3d ptPos = br.Position;
-
-                Point3d ptMax = br.Bounds.Value.MaxPoint;
-                Point3d ptMin = br.Bounds.Value.MinPoint;
-
-                double maxY = Math.Abs(ptMax.Y - ptMin.Y);
-                double maxX = Math.Abs(ptMax.X - ptMin.X);
-
-                using (Transaction tr = blkRef.Database.TransactionManager.StartTransaction())
-
+                using (var trans = Db.TransactionManager.StartTransaction())
                 {
 
-                    if (xYJingXiang == "Y")
-                    {
+                    List<Point3d[]> listPtArr = new List<Point3d[]>();
 
-                        Point3d ptEnd = ptPos + Vector3d.YAxis * 100;
-
-                        Line lineY = new Line(ptPos, ptEnd);
-
-                        lineY.TransformBy(Matrix3d.Displacement(Vector3d.XAxis * maxX));
-
-                        XY = "Y";
-                        mirrorCircle = circle.GetTransformedCopy(Matrix3d.Mirroring(new Line3d(lineY.StartPoint,lineY.EndPoint))) as Circle;
-                        MyMirror(listEnt, lineY, "Y");
-
-                    }
-                    else if (xYJingXiang == "X")
-                    {
-
-                        Point3d ptEnd = ptPos + Vector3d.XAxis * 100;
-
-                        Line lineX = new Line(ptPos, ptEnd);
-
-                        lineX.TransformBy(Matrix3d.Displacement(Vector3d.YAxis * maxY));
-
-                        XY = "X";
-                        mirrorCircle = circle.GetTransformedCopy(Matrix3d.Mirroring(new Line3d(lineX.StartPoint, lineX.EndPoint))) as Circle;
-                        MyMirror(listEnt, lineX, "X");
-
-                    }
-
-                    tr.Commit();
-
-                }
-
-                ObjectId breNewId = ObjectId.Null;
-                
-                using (var trans = blkRef.Database.TransactionManager.StartTransaction())
-                {
-
-                    var blkTbl = trans.GetObject(blkRef.Database.BlockTableId, OpenMode.ForWrite) as BlockTable;
-
-                    BlockTableRecord blkRec = new BlockTableRecord();
-
-                    blkRec.Units = br.BlockUnit;
-
-                    string blkName = br.Name + "_" + DateTime.Now.ToString("yyyyMMddHHmmssffff");
-
-                    blkRec.Name = blkName;
-                    blkRec.Origin = mirrorCircle.Center;
-
-                    for (int i = 0; list != null && i < list.Count; i++)
-                    {
-
-                        var ent = list[i];
-
-                        if (ent != null)
-                        {                          
-                                //Entity entCopy = ent.Clone() as Entity;
-
-                               // ent.Erase(true);
-
-                                blkRec.AppendEntity(ent);
-                        }
-                    }
-                    
-                    breNewId=blkTbl.Add(blkRec);
-
-                    trans.AddNewlyCreatedDBObject(blkRec, true);
-
-                    foreach (var oId in listOId)
+                    foreach (var oId in listOids)
                     {
 
                         var ent = trans.GetObject(oId, OpenMode.ForWrite) as Entity;
 
-                        ent.Erase(true);
+                        listPtArr.Add(GetSizePt(ent));
 
+                        if (ent is DBText)
+                        {
+
+                            var dbText = ent as DBText;
+
+                            listPt.Add(dbText.Position);
+
+                        }
+                        else if (ent is MText)
+                        {
+                            var mText = ent as MText;
+
+                            listPt.Add(mText.Location);
+
+                        }
+
+                        listEnt.Add(ent);
                     }
 
-                    listOId.Clear();
 
+
+                    Point3d[] ptArr = new Point3d[2];
+
+                    var listPtSort = listPt.OrderBy(p => p.X).ToList();
+
+                    ptArr[0] = listPtSort.First();
+
+                    ptArr[1] = listPtSort[listPtSort.Count - 1];
+
+                    Line lPt = new Line(ptArr[0], ptArr[1]);
+
+                    lPt.ToSpace();
+
+                    Point3d centerPt = new Point3d((ptArr[1].X + ptArr[0].X) / 2, ptArr[0].Y, ptArr[0].Z);
+
+                    var ptEnd = centerPt + Vector3d.YAxis * 100;
+
+                    var line = new Line(centerPt, ptEnd);
+
+                    line.ColorIndex = 20;
+
+                    line.ToSpace();
+
+                    /*Line3d l3d = new Line3d(centerPt, ptEnd);
+
+                    var mtrix = Matrix3d.Mirroring(l3d);*/
+
+
+
+                    foreach (var i in Enumerable.Range(0, listEnt.Count))
+                    {
+
+                        var ent = listEnt[i];
+
+                        var cPt = listPtArr[i][2];
+
+                        var cic = new Circle(cPt, Vector3d.ZAxis, 1000);
+
+                        cic.ColorIndex = 6;
+                        cic.ToSpace();
+
+                        double len1 = Math.Abs(ptArr[0].X - ptArr[1].X);
+
+                        if (ent is DBText || ent is MText)
+                        {
+                            var pt = Point3d.Origin;
+                            var ptTxt = Point3d.Origin;
+                            if (ent is DBText)
+                                ptTxt = ((DBText)ent).Position;
+                            else
+                                ptTxt = ((MText)ent).Location;
+                            pt = line.GetClosestPointTo(ptTxt, true);
+
+                            var vec = pt - ptTxt;
+
+                            if (vec.X > 0)
+                                ent.TransformBy(Matrix3d.Displacement(vec.GetNormal() * len1));
+                            else
+                            {
+                                double txtWidth = (Math.Abs(listPtArr[i][0].X - listPtArr[i][1].X));
+
+                                ent.TransformBy(Matrix3d.Displacement(vec.GetNormal() * len1 + vec.GetNormal() *txtWidth/3));
+
+                            }
+                            //if (ent is DBText)
+                            //    MirrorText((DBText)ent, l3d);
+                            //else
+                            //    MirrorText((MText)ent, l3d);
+                        }
+                        else
+                        {
+                            var ptE = cPt + Vector3d.YAxis * 10000;
+
+                            var line2 = new Line(cPt, ptE);
+
+                            line2.ColorIndex = 3;
+
+                            line2.ToSpace();
+
+                            Line3d l3d2 = new Line3d(cPt, ptE);
+
+                            var mtrix2 = Matrix3d.Mirroring(l3d2);
+
+                            ent.TransformBy(mtrix2);
+                        }
+                        ent.DowngradeOpen();
+                    }
                     trans.Commit();
-
                 }
 
-                list.ForEach(ent => ent.Dispose());
 
-                var brOld = new BlockReference(br.Position, br.BlockTableRecord);
-
-                var brNew = new BlockReference(mirrorCircle.Center, breNewId);
-
-                brNew.ToSpace();
-
-                brOld.ToSpace();
- 
             }
             catch (System.Exception e)
             {
 
                 Ed.WriteMessage(e.ToString());
+
             }
             finally
-            {               
-                m_DocumentLock.Dispose();
+            {
+                docLock.Dispose();
             }
-
         }
 
-        public Entity GetBlockCondition(string s)
+        Point3d[] GetSizePt(Entity ent)
         {
+            var ptMin = ent.GeometricExtents.MinPoint;
+            var ptMax = ent.GeometricExtents.MaxPoint;
 
-
-            var entOpts = new PromptEntityOptions(s + "\n");
-
-            var entRes = Ed.GetEntity(entOpts);
-
-            ObjectId entId = ObjectId.Null;
-            if (entRes.Status == PromptStatus.OK)
-            {
-                entId = entRes.ObjectId;
-
-            }
-
-            if (entId == ObjectId.Null)
-            {
-                return null;
-            }
-
-            Entity br = null;
-            using (var trans = Db.TransactionManager.StartTransaction())
-            {
-
-                br = trans.GetObject(entId, OpenMode.ForRead) as Entity;
-
-                if (br == null)
-                {
-                    Application.ShowAlertDialog("一定要选择块定义");
-
-                    trans.Commit();
-
-                    return null;
-                }
-                br.UpgradeOpen();
-
-                br.Visible = false;
-
-                //br.ColorIndex = 20;
-
-                br.DowngradeOpen();
-
-
-                trans.Commit();
-            }
-
-            return br;
+            var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, (ptMin.Z + ptMax.Z) / 2);
+            return new[] { ptMin, ptMax, ptCenter };
         }
 
-        private void MyMirror(List<Entity> listEnt, Line line, string xY)
-        {
-
-            if (listEnt == null || line == null) return;
-
-            Line3d line3d = new Line3d(line.StartPoint, line.EndPoint);
-
-            for (int i = 0; i < listEnt.Count; i++)
-            {
-
-                var entity = listEnt[i];
-
-                Entity ent = entity;
-
-                if((ent as Dimension) != null)
-                {
-                    continue;
-                }
-
-
-                if (ent is DBText || ent is MText)
-                {
-
-                    listOId.Add(ent.ToSpace(blkRef.Database));
-                }
-                else
-                {
-                    ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
-                    list.Add(ent);
-
-                    continue;
-                }
-                
-               /* var ptMin = ent.Bounds.Value.MinPoint;
-
-                var ptMax = ent.Bounds.Value.MaxPoint;
-
-                var w = Math.Abs(ptMax.X - ptMin.X);
-                var h = Math.Abs(ptMax.Y - ptMin.Y);
-
-                var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);*/
-                if (ent is DBText)
-                {
-                    var a = ent as DBText;
-                    MirrorText(a, line3d);
-                    
-                }
-                else if (ent is MText)
-                {
-                    var a = ent as MText;
-
-                    MirrorText(a, line3d);
-                    
-                }
-                /* else if (dim != null)
-                 {
-                     Plane p = null;
-
-                     if (xY == "X")
-                     {
-
-                         p = new Plane(dim.TextPosition, Vector3d.ZAxis);
-                         ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
-                     }
-                     else if (xY == "Y")
-                     {
-
-                         p = new Plane(dim.TextPosition, Vector3d.YAxis);
-
-                         ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
-
-                     }
-                 }
-                 */
-
-            }
-
-            
-
-            listEnt.ForEach(ent => ent.Dispose());
-
-        }
 
         void MirrorText(DBText ent, Line3d mirrorLine)
 
@@ -330,7 +197,7 @@ namespace EcdPilePillar
 
             using (Transaction tr = db.TransactionManager.StartTransaction())
 
-            {                
+            {
 
                 // Get text entity
 
@@ -338,9 +205,11 @@ namespace EcdPilePillar
 
                     as DBText;
 
+
+
                 // Clone original entity
 
-                DBText mirroredTxt = dbText.Clone() as DBText;
+                DBText mirroredTxt = dbText;
 
 
 
@@ -426,13 +295,15 @@ namespace EcdPilePillar
 
                 }
 
+
+
                 // Add mirrored text to database
 
                 //btr.AppendEntity(mirroredTxt);
 
                 //tr.AddNewlyCreatedDBObject(mirroredTxt, true);
 
-                list.Add(mirroredTxt);
+                //list.Add(mirroredTxt);
 
                 tr.Commit();
 
@@ -462,19 +333,20 @@ namespace EcdPilePillar
                 dbText.Explode(dbColl);
 
                 Matrix3d mirrorMatrix = Matrix3d.Mirroring(mirrorLine);
-   
+
                 var location = ent.Location.TransformBy(mirrorMatrix);
                 mText.Location = location;
-               
+
                 double rot = Math.PI * 2 - ent.Rotation;
 
-                
+
                 foreach (DBText txt in dbColl)
                 {
-                    listOId.Add( txt.ToSpace());
-                    DBText mirroredTxt = txt.Clone() as DBText;
 
-                    
+                    listOId.Add(txt.ToSpace());
+
+                    DBText mirroredTxt = txt.Clone() as DBText;
+                    //DBText mirroredTxt = txt;
 
                     mirroredTxt.TransformBy(mirrorMatrix);
                     // Get text bounding box
@@ -546,24 +418,24 @@ namespace EcdPilePillar
                         mirroredTxt.Position = mirroredTxt.Position + mirRotDir;
 
                     }
-                    mText.TextStyleId = mirroredTxt.TextStyleId;
-                    mText.Contents += mirroredTxt.TextString + "\\P";
+                    //mText.TextStyleId = mirroredTxt.TextStyleId;
+                    //mText.Contents += mirroredTxt.TextString + "\\P";
 
-                    list.Add(mirroredTxt);
+                    //list.Add(mirroredTxt);
                 }
-                
-                
-                mText.TextHeight = ent.TextHeight;
-                mText.LineSpaceDistance = ent.LineSpaceDistance;
-                mText.LineSpacingFactor = ent.LineSpacingFactor;
-                mText.LinetypeId = ent.LinetypeId;
-                
-                var ptMin = mText.Bounds.Value.MinPoint;
-                var ptMax = mText.Bounds.Value.MaxPoint;
-                var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
-                mText.Location = ptCenter;
-                mText.TransformBy(Matrix3d.Rotation(rot, Vector3d.ZAxis, ptCenter));
-                
+
+
+                //mText.TextHeight = ent.TextHeight;
+                //mText.LineSpaceDistance = ent.LineSpaceDistance;
+                //mText.LineSpacingFactor = ent.LineSpacingFactor;
+                //mText.LinetypeId = ent.LinetypeId;
+
+                //var ptMin = mText.Bounds.Value.MinPoint;
+                //var ptMax = mText.Bounds.Value.MaxPoint;
+                //var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
+                //mText.Location = ptCenter;
+                //mText.TransformBy(Matrix3d.Rotation(rot, Vector3d.ZAxis, ptCenter));
+
 
                 tr.Commit();
 
@@ -572,7 +444,7 @@ namespace EcdPilePillar
         }
         #region p/Invoke
 
-      
+
         public struct ads_name
 
         {
@@ -758,7 +630,8 @@ namespace EcdPilePillar
             pt4 = pt2.Subtract(linDir * actualWidth);
 
         }
-        
-       #endregion
+
+        #endregion
+
     }
 }
