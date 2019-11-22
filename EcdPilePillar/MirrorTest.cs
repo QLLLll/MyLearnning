@@ -26,14 +26,14 @@ namespace EcdPilePillar
         [CommandMethod("ECDKuaiJX")]
         public void GetJingXiangXY()
         {
-            DocumentLock m_DocumentLock = null;           
+            DocumentLock m_DocumentLock = null;
             blkRef = null;
             list.Clear();
             listOId.Clear();
             XY = "";
 
-            
-          
+
+
 
             try
             {
@@ -50,7 +50,7 @@ namespace EcdPilePillar
 
                 Circle circle = new Circle(blkRef.Position, Vector3d.ZAxis, 0.001);
 
-             listOId.Add(circle.ToSpace());
+                listOId.Add(circle.ToSpace());
 
                 Circle mirrorCircle = null;
 
@@ -92,7 +92,7 @@ namespace EcdPilePillar
                         lineY.TransformBy(Matrix3d.Displacement(Vector3d.XAxis * maxX));
 
                         XY = "Y";
-                        mirrorCircle = circle.GetTransformedCopy(Matrix3d.Mirroring(new Line3d(lineY.StartPoint,lineY.EndPoint))) as Circle;
+                        mirrorCircle = circle.GetTransformedCopy(Matrix3d.Mirroring(new Line3d(lineY.StartPoint, lineY.EndPoint))) as Circle;
                         MyMirror(listEnt, lineY, "Y");
 
                     }
@@ -116,7 +116,7 @@ namespace EcdPilePillar
                 }
 
                 ObjectId breNewId = ObjectId.Null;
-                
+
                 using (var trans = blkRef.Database.TransactionManager.StartTransaction())
                 {
 
@@ -137,16 +137,17 @@ namespace EcdPilePillar
                         var ent = list[i];
 
                         if (ent != null)
-                        {                          
-                                //Entity entCopy = ent.Clone() as Entity;
+                        {
+                            //Entity entCopy = ent.Clone() as Entity;
 
-                               // ent.Erase(true);
+                            // ent.Erase(true);
 
-                                blkRec.AppendEntity(ent);
+                            blkRec.AppendEntity(ent);
+                            //ent.ToSpace();
                         }
                     }
-                    
-                    breNewId=blkTbl.Add(blkRec);
+
+                    breNewId = blkTbl.Add(blkRec);
 
                     trans.AddNewlyCreatedDBObject(blkRec, true);
 
@@ -174,7 +175,7 @@ namespace EcdPilePillar
                 brNew.ToSpace();
 
                 brOld.ToSpace();
- 
+
             }
             catch (System.Exception e)
             {
@@ -182,7 +183,7 @@ namespace EcdPilePillar
                 Ed.WriteMessage(e.ToString());
             }
             finally
-            {               
+            {
                 m_DocumentLock.Dispose();
             }
 
@@ -251,10 +252,10 @@ namespace EcdPilePillar
 
                 Entity ent = entity;
 
-                if((ent as Dimension) != null)
-                {
-                    continue;
-                }
+                //if((ent as Dimension) != null)
+                //{
+                //    continue;
+                //}
 
 
                 if (ent is DBText || ent is MText)
@@ -265,60 +266,190 @@ namespace EcdPilePillar
                 else
                 {
                     ent = entity.GetTransformedCopy(Matrix3d.Mirroring(line3d));
-                    list.Add(ent);
 
-                    continue;
+                    if ((ent as Dimension) == null)
+                    { list.Add(ent); }
+
+                    //continue;
                 }
-                
-               /* var ptMin = ent.Bounds.Value.MinPoint;
 
-                var ptMax = ent.Bounds.Value.MaxPoint;
+                /* var ptMin = ent.Bounds.Value.MinPoint;
 
-                var w = Math.Abs(ptMax.X - ptMin.X);
-                var h = Math.Abs(ptMax.Y - ptMin.Y);
+                 var ptMax = ent.Bounds.Value.MaxPoint;
 
-                var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);*/
+                 var w = Math.Abs(ptMax.X - ptMin.X);
+                 var h = Math.Abs(ptMax.Y - ptMin.Y);
+
+                 var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);*/
                 if (ent is DBText)
                 {
                     var a = ent as DBText;
                     MirrorText(a, line3d);
-                    
+
                 }
                 else if (ent is MText)
                 {
                     var a = ent as MText;
 
                     MirrorText(a, line3d);
-                    
+
                 }
-                /* else if (dim != null)
-                 {
-                     Plane p = null;
+                else if ((ent as Dimension) != null)
+                {
 
-                     if (xY == "X")
-                     {
+                    var dim = ent as Dimension;
 
-                         p = new Plane(dim.TextPosition, Vector3d.ZAxis);
-                         ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
-                     }
-                     else if (xY == "Y")
-                     {
 
-                         p = new Plane(dim.TextPosition, Vector3d.YAxis);
 
-                         ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+                    Plane p = null;
 
-                     }
-                 }
-                 */
+                    if (xY == "X")
+                    {
 
+                        p = new Plane(dim.TextPosition, dim.Normal);
+                        ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+
+                    }
+                    else if (xY == "Y")
+                    {
+
+                        p = new Plane(dim.TextPosition, dim.Normal);
+
+                        ent = dim.GetTransformedCopy(Matrix3d.Mirroring(p));
+
+
+
+
+                    }
+                    if (ent is RotatedDimension)
+                    {
+
+                        var rDim = ent as RotatedDimension;
+
+                       var rDim1 = new RotatedDimension(rDim.Rotation, rDim.XLine1Point, rDim.XLine2Point, rDim.DimLinePoint, rDim.DimensionText, rDim.DimensionStyle);
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+
+                    }
+
+                    else if (ent is AlignedDimension)
+                    {
+                        var rDim = ent as AlignedDimension;
+
+                       var rDim1 = new AlignedDimension(rDim.XLine1Point, rDim.XLine2Point, rDim.DimLinePoint, rDim.DimensionText, rDim.DimensionStyle);
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                        
+                    }
+                    else if (ent is ArcDimension)
+                    {
+                        var rDim = ent as ArcDimension;
+
+                       var rDim1 = new ArcDimension(rDim.CenterPoint, rDim.XLine1Point, rDim.XLine2Point, rDim.ArcPoint, rDim.DimensionText, rDim.DimensionStyle);
+
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                    }
+                    else if (ent is DiametricDimension)
+                    {
+                        var rDim = ent as DiametricDimension;
+
+                       var rDim1 = new DiametricDimension(rDim.ChordPoint, rDim.FarChordPoint, rDim.LeaderLength, rDim.DimensionText, rDim.DimensionStyle);
+
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                    }
+                    else if (ent is LineAngularDimension2)
+                    {
+                        var rDim = ent as LineAngularDimension2;
+
+                       var rDim1 = new LineAngularDimension2(rDim.XLine1Start, rDim.XLine1End, rDim.XLine2Start, rDim.XLine2End, rDim.ArcPoint, rDim.DimensionText, rDim.DimensionStyle);
+
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                    }
+                    else if (ent is Point3AngularDimension)
+                    {
+                        var rDim = ent as Point3AngularDimension;
+
+                      var  rDim1 = new Point3AngularDimension(rDim.CenterPoint, rDim.XLine1Point, rDim.XLine2Point, rDim.ArcPoint, rDim.DimensionText, rDim.DimensionStyle);
+
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                    }
+                    else if (ent is RadialDimension)
+                    {
+                        var rDim = ent as RadialDimension;
+
+                        var rDim1 = new RadialDimension(rDim.Center, rDim.ChordPoint, rDim.LeaderLength, rDim.DimensionText, rDim.DimensionStyle);
+
+
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                    }
+                    else if (ent is RadialDimensionLarge)
+                    {
+                        var rDim = ent as RadialDimensionLarge;
+
+                       var rDim1= new RadialDimensionLarge(rDim.Center, rDim.ChordPoint, rDim.OverrideCenter, rDim.JogPoint, rDim.JogAngle, rDim.DimensionText, rDim.DimensionStyle);
+
+                        Dim2Dim(rDim1, rDim);
+                        list.Add(rDim1);
+                    }
+
+                }
             }
 
-            
+
 
             listEnt.ForEach(ent => ent.Dispose());
 
         }
+
+
+        void Dim2Dim(Dimension rDim1, Dimension rDim)
+        {
+
+            rDim1.TextStyleId = rDim.TextStyleId;
+            rDim1.TextRotation = rDim.TextRotation;
+            rDim1.TextPosition = rDim.TextPosition;
+            rDim1.ToleranceSuppressLeadingZeros = rDim.ToleranceSuppressLeadingZeros;
+            rDim1.ToleranceSuppressTrailingZeros = rDim.ToleranceSuppressTrailingZeros;
+            rDim1.ToleranceSuppressZeroFeet = rDim.ToleranceSuppressZeroFeet;
+            rDim1.ToleranceSuppressZeroInches = rDim.ToleranceSuppressZeroInches;
+            rDim1.Transparency = rDim.Transparency;
+            rDim1.UsingDefaultTextPosition = rDim.UsingDefaultTextPosition;
+            rDim1.Visible = rDim.Visible;
+            rDim1.VisualStyleId = rDim.VisualStyleId;
+            rDim1.XData = rDim.XData;
+            rDim1.TextLineSpacingStyle = rDim.TextLineSpacingStyle;
+            rDim1.TextLineSpacingFactor = rDim.TextLineSpacingFactor;
+            rDim1.TextDefinedSize = rDim.TextDefinedSize;
+            rDim1.TextAttachment = rDim.TextAttachment;
+            rDim1.SuppressZeroInches = rDim.SuppressZeroInches;
+            rDim1.SuppressZeroFeet = rDim.SuppressZeroFeet;
+            rDim1.SuppressTrailingZeros = rDim.SuppressTrailingZeros;
+            rDim1.SuppressLeadingZeros = rDim.SuppressLeadingZeros;
+            rDim1.SuppressAngularTrailingZeros = rDim.SuppressAngularTrailingZeros;
+            rDim1.SuppressAngularLeadingZeros = rDim.SuppressAngularLeadingZeros;
+            rDim1.Suffix = rDim.Suffix;
+            rDim1.Prefix = rDim.Prefix;
+            rDim1.PlotStyleNameId = rDim.PlotStyleNameId;
+                       
+         
+           
+            rDim1.LineWeight = rDim.LineWeight;
+            rDim1.LinetypeScale = rDim.LinetypeScale;
+            rDim1.Linetype = rDim.Linetype;
+            rDim1.LayerId = rDim.LayerId;
+            
+            rDim1.HasSaveVersionOverride = rDim.HasSaveVersionOverride;
+            rDim1.ForceAnnoAllVisible = rDim.ForceAnnoAllVisible;
+            rDim1.FaceStyleId = rDim.FaceStyleId;
+            rDim1.Elevation = rDim.Elevation;
+            rDim1.EdgeStyleId = rDim.EdgeStyleId;
+        }
+
 
         void MirrorText(DBText ent, Line3d mirrorLine)
 
@@ -330,7 +461,7 @@ namespace EcdPilePillar
 
             using (Transaction tr = db.TransactionManager.StartTransaction())
 
-            {                
+            {
 
                 // Get text entity
 
@@ -462,19 +593,19 @@ namespace EcdPilePillar
                 dbText.Explode(dbColl);
 
                 Matrix3d mirrorMatrix = Matrix3d.Mirroring(mirrorLine);
-   
+
                 var location = ent.Location.TransformBy(mirrorMatrix);
                 mText.Location = location;
-               
+
                 double rot = Math.PI * 2 - ent.Rotation;
 
-                
+
                 foreach (DBText txt in dbColl)
                 {
-                    listOId.Add( txt.ToSpace());
+                    listOId.Add(txt.ToSpace());
                     DBText mirroredTxt = txt.Clone() as DBText;
 
-                    
+
 
                     mirroredTxt.TransformBy(mirrorMatrix);
                     // Get text bounding box
@@ -551,19 +682,19 @@ namespace EcdPilePillar
 
                     list.Add(mirroredTxt);
                 }
-                
-                
+
+
                 mText.TextHeight = ent.TextHeight;
                 mText.LineSpaceDistance = ent.LineSpaceDistance;
                 mText.LineSpacingFactor = ent.LineSpacingFactor;
                 mText.LinetypeId = ent.LinetypeId;
-                
+
                 var ptMin = mText.Bounds.Value.MinPoint;
                 var ptMax = mText.Bounds.Value.MaxPoint;
                 var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0);
                 mText.Location = ptCenter;
                 mText.TransformBy(Matrix3d.Rotation(rot, Vector3d.ZAxis, ptCenter));
-                
+
 
                 tr.Commit();
 
@@ -572,7 +703,7 @@ namespace EcdPilePillar
         }
         #region p/Invoke
 
-      
+
         public struct ads_name
 
         {
@@ -758,7 +889,7 @@ namespace EcdPilePillar
             pt4 = pt2.Subtract(linDir * actualWidth);
 
         }
-        
-       #endregion
+
+        #endregion
     }
 }

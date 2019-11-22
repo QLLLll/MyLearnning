@@ -20,7 +20,7 @@ namespace EcdPilePillar
         List<Entity> list = new List<Entity>();
         List<ObjectId> listOId = new List<ObjectId>();
 
-        [CommandMethod("EceShiTiJX")]
+        [CommandMethod("EcdShiTiJX")]
         public void MirrorTextAndPl()
         {
             DocumentLock docLock = null;
@@ -82,9 +82,9 @@ namespace EcdPilePillar
 
                     ptArr[1] = listPtSort[listPtSort.Count - 1];
 
-                    Line lPt = new Line(ptArr[0], ptArr[1]);
+                    //Line lPt = new Line(ptArr[0], ptArr[1]);
 
-                    lPt.ToSpace();
+                    //lPt.ToSpace();
 
                     Point3d centerPt = new Point3d((ptArr[1].X + ptArr[0].X) / 2, ptArr[0].Y, ptArr[0].Z);
 
@@ -92,9 +92,9 @@ namespace EcdPilePillar
 
                     var line = new Line(centerPt, ptEnd);
 
-                    line.ColorIndex = 20;
+                    //line.ColorIndex = 20;
 
-                    line.ToSpace();
+                    //line.ToSpace();
 
                     /*Line3d l3d = new Line3d(centerPt, ptEnd);
 
@@ -109,10 +109,10 @@ namespace EcdPilePillar
 
                         var cPt = listPtArr[i][2];
 
-                        var cic = new Circle(cPt, Vector3d.ZAxis, 1000);
+                        //var cic = new Circle(cPt, Vector3d.ZAxis, 1000);
 
-                        cic.ColorIndex = 6;
-                        cic.ToSpace();
+                        //cic.ColorIndex = 6;
+                        //cic.ToSpace();
 
                         double len1 = Math.Abs(ptArr[0].X - ptArr[1].X);
 
@@ -134,7 +134,7 @@ namespace EcdPilePillar
                             {
                                 double txtWidth = (Math.Abs(listPtArr[i][0].X - listPtArr[i][1].X));
 
-                                ent.TransformBy(Matrix3d.Displacement(vec.GetNormal() * len1 + vec.GetNormal() *txtWidth/3));
+                                ent.TransformBy(Matrix3d.Displacement(vec.GetNormal() * len1 + vec.GetNormal() * txtWidth / 3));
 
                             }
                             //if (ent is DBText)
@@ -146,11 +146,11 @@ namespace EcdPilePillar
                         {
                             var ptE = cPt + Vector3d.YAxis * 10000;
 
-                            var line2 = new Line(cPt, ptE);
+                            //var line2 = new Line(cPt, ptE);
 
-                            line2.ColorIndex = 3;
+                            //line2.ColorIndex = 3;
 
-                            line2.ToSpace();
+                            //line2.ToSpace();
 
                             Line3d l3d2 = new Line3d(cPt, ptE);
 
@@ -161,6 +161,8 @@ namespace EcdPilePillar
                         ent.DowngradeOpen();
                     }
                     trans.Commit();
+
+                    line.Dispose();
                 }
 
 
