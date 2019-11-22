@@ -38,8 +38,16 @@ namespace EcdPilePillar
 
                 var listOids = res.Value.GetObjectIds().ToList();
 
-                List<Entity> listEnt = new List<Entity>();
+                List<List<Entity>> listEntGroup = new List<List<Entity>>();
+
+                List<Polyline> listPL = new List<Polyline>();
+
+
+
+                //List<Entity> listEnt = new List<Entity>();
                 List<Point3d> listPt = new List<Point3d>();
+
+                Dictionary<Entity, Point3d> dicTxtPos = new Dictionary<Entity, Point3d>();
 
                 using (var trans = Db.TransactionManager.StartTransaction())
                 {
@@ -51,118 +59,97 @@ namespace EcdPilePillar
 
                         var ent = trans.GetObject(oId, OpenMode.ForWrite) as Entity;
 
-                        listPtArr.Add(GetSizePt(ent));
+                        //listPtArr.Add(GetSizePt(ent));
 
-                        if (ent is DBText)
+                        if (ent is Polyline)
+                        {
+                            listPL.Add((Polyline)ent);
+                        }
+
+                        else if (ent is DBText)
                         {
 
-                            var dbText = ent as DBText;
-
-                            listPt.Add(dbText.Position);
+                            dicTxtPos.Add(ent, (ent as DBText).Position);
 
                         }
                         else if (ent is MText)
                         {
-                            var mText = ent as MText;
-
-                            listPt.Add(mText.Location);
+                            dicTxtPos.Add(ent, (ent as MText).Location);
 
                         }
 
-                        listEnt.Add(ent);
                     }
 
-
-
-                    Point3d[] ptArr = new Point3d[2];
-
-                    var listPtSort = listPt.OrderBy(p => p.X).ToList();
-
-                    ptArr[0] = listPtSort.First();
-
-                    ptArr[1] = listPtSort[listPtSort.Count - 1];
-
-                    //Line lPt = new Line(ptArr[0], ptArr[1]);
-
-                    //lPt.ToSpace();
-
-                    Point3d centerPt = new Point3d((ptArr[1].X + ptArr[0].X) / 2, ptArr[0].Y, ptArr[0].Z);
-
-                    var ptEnd = centerPt + Vector3d.YAxis * 100;
-
-                    var line = new Line(centerPt, ptEnd);
-
-                    //line.ColorIndex = 20;
-
-                    //line.ToSpace();
-
-                    /*Line3d l3d = new Line3d(centerPt, ptEnd);
-
-                    var mtrix = Matrix3d.Mirroring(l3d);*/
-
-
-
-                    foreach (var i in Enumerable.Range(0, listEnt.Count))
+                    //求最大字宽
+                    double maxLen = 0.0;
+                    dicTxtPos.Keys.ForEach(ent =>
                     {
-
-                        var ent = listEnt[i];
-
-                        var cPt = listPtArr[i][2];
-
-                        //var cic = new Circle(cPt, Vector3d.ZAxis, 1000);
-
-                        //cic.ColorIndex = 6;
-                        //cic.ToSpace();
-
-                        double len1 = Math.Abs(ptArr[0].X - ptArr[1].X);
-
-                        if (ent is DBText || ent is MText)
+                        var len = GetMaxLength(ent);
+                        if (maxLen < len)
                         {
-                            var pt = Point3d.Origin;
-                            var ptTxt = Point3d.Origin;
-                            if (ent is DBText)
-                                ptTxt = ((DBText)ent).Position;
-                            else
-                                ptTxt = ((MText)ent).Location;
-                            pt = line.GetClosestPointTo(ptTxt, true);
+                            maxLen = len;
+                        }
+                    });
+                    maxLen *= 3;
 
-                            var vec = pt - ptTxt;
+                    //把靠近中心线的文字和中心线放在一组
+                    foreach (Polyline pl in listPL)
+                    {
+                        List<Entity> listEachGroup = new List<Entity>();
 
-                            if (vec.X > 0)
-                                ent.TransformBy(Matrix3d.Displacement(vec.GetNormal() * len1));
-                            else
+                        var lineCenter = new Line(pl.GetPoint3dAt(1), pl.GetPoint3dAt(2));
+
+                        listEachGroup.Add(lineCenter);
+                        listEachGroup.Add(pl);
+                        
+
+                        dicTxtPos.Keys.ForEach(ent =>
+                        {
+
+                            var pt = dicTxtPos[ent];
+
+                            var ptOnLine = lineCenter.GetClosestPointTo(pt, true);
+
+                            if ((ptOnLine - pt).Length <= maxLen)
                             {
-                                double txtWidth = (Math.Abs(listPtArr[i][0].X - listPtArr[i][1].X));
 
-                                ent.TransformBy(Matrix3d.Displacement(vec.GetNormal() * len1 + vec.GetNormal() * txtWidth / 3));
-
+                                listEachGroup.Add(ent);
                             }
-                            //if (ent is DBText)
-                            //    MirrorText((DBText)ent, l3d);
-                            //else
-                            //    MirrorText((MText)ent, l3d);
-                        }
-                        else
-                        {
-                            var ptE = cPt + Vector3d.YAxis * 10000;
 
-                            //var line2 = new Line(cPt, ptE);
+                        });
 
-                            //line2.ColorIndex = 3;
-
-                            //line2.ToSpace();
-
-                            Line3d l3d2 = new Line3d(cPt, ptE);
-
-                            var mtrix2 = Matrix3d.Mirroring(l3d2);
-
-                            ent.TransformBy(mtrix2);
-                        }
-                        ent.DowngradeOpen();
+                        listEachGroup = listEachGroup.Distinct().ToList();
+                        listEntGroup.Add(listEachGroup);
                     }
-                    trans.Commit();
 
-                    line.Dispose();
+
+                    foreach (var listEnt in listEntGroup)
+                    {
+                        var line = listEnt[0] as Line;
+
+                        line.ColorIndex = 22;
+
+                        line.ToSpace();
+
+                        var l3d = new Line3d(line.StartPoint, line.EndPoint);
+
+                        Matrix3d mtrix = Matrix3d.Mirroring(l3d);
+
+                        foreach (var ent in listEnt)
+                        {
+                            if (ent is DBText)
+                                MirrorText((DBText)ent, l3d);
+                            else if (ent is MText)
+                                MirrorText((MText)ent, l3d);
+                            else
+                                ent.TransformBy(mtrix);
+                        }
+                        
+                    }
+
+
+                    trans.Commit();
+ 
                 }
 
 
@@ -186,6 +173,17 @@ namespace EcdPilePillar
 
             var ptCenter = new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, (ptMin.Z + ptMax.Z) / 2);
             return new[] { ptMin, ptMax, ptCenter };
+        }
+
+        double GetMaxLength(Entity ent)
+        {
+            double maxLength = 0;
+            var ptMin = ent.GeometricExtents.MinPoint;
+            var ptMax = ent.GeometricExtents.MaxPoint;
+
+            maxLength = Math.Abs(ptMax.X - ptMin.X);
+
+            return maxLength;
         }
 
 
