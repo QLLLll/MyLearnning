@@ -42,9 +42,6 @@ namespace EcdPilePillar
 
                 List<Polyline> listPL = new List<Polyline>();
 
-
-
-                //List<Entity> listEnt = new List<Entity>();
                 List<Point3d> listPt = new List<Point3d>();
 
                 Dictionary<Entity, Point3d> dicTxtPos = new Dictionary<Entity, Point3d>();
@@ -147,6 +144,14 @@ namespace EcdPilePillar
                         
                     }
 
+                    listOId.ForEach(oId =>
+                    {
+                        var ent1 = trans.GetObject(oId, OpenMode.ForWrite) as Entity;
+                        ent1.Erase(true);
+
+                    });
+
+                    dicTxtPos.Keys.ForEach(ent1 => { ent1.Erase(true); });
 
                     trans.Commit();
  
@@ -209,7 +214,7 @@ namespace EcdPilePillar
 
                 // Clone original entity
 
-                DBText mirroredTxt = dbText;
+                DBText mirroredTxt = dbText.Clone() as DBText;
 
 
 
@@ -304,7 +309,7 @@ namespace EcdPilePillar
                 //tr.AddNewlyCreatedDBObject(mirroredTxt, true);
 
                 //list.Add(mirroredTxt);
-
+                mirroredTxt.ToSpace();
                 tr.Commit();
 
             }
@@ -422,6 +427,7 @@ namespace EcdPilePillar
                     //mText.Contents += mirroredTxt.TextString + "\\P";
 
                     //list.Add(mirroredTxt);
+                    mirroredTxt.ToSpace();
                 }
 
 
@@ -436,7 +442,7 @@ namespace EcdPilePillar
                 //mText.Location = ptCenter;
                 //mText.TransformBy(Matrix3d.Rotation(rot, Vector3d.ZAxis, ptCenter));
 
-
+               
                 tr.Commit();
 
             }
