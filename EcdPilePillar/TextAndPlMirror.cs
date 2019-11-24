@@ -372,14 +372,14 @@ namespace EcdPilePillar
 
 
 
-                    // Get the perpendicular direction to the original text
+                    //原DBText 垂直方向的向量
 
                     Vector3d rotDir =
 
                         pt4.Subtract(pt1.GetAsVector()).GetAsVector();
 
 
-
+                    //得到原始文本的共线方向
                     // Get the colinear direction to the original text
 
                     Vector3d linDir =
