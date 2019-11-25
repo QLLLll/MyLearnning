@@ -83,6 +83,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcdPilePillar", "EcdPilePil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearnMyMirror", "LearnMyMirror\LearnMyMirror.csproj", "{F64E2BC3-6828-400D-9089-7E58F738BF43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECDQiangWuCha", "ECDQiangWuCha\ECDQiangWuCha.csproj", "{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -409,6 +411,14 @@ Global
 		{F64E2BC3-6828-400D-9089-7E58F738BF43}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F64E2BC3-6828-400D-9089-7E58F738BF43}.Release|x86.ActiveCfg = Release|Any CPU
 		{F64E2BC3-6828-400D-9089-7E58F738BF43}.Release|x86.Build.0 = Release|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Debug|x86.Build.0 = Debug|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Release|x86.ActiveCfg = Release|Any CPU
+		{9FD935FF-B9DE-4ED8-91DF-90808EDC67FE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

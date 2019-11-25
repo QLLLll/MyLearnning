@@ -124,9 +124,9 @@ namespace EcdPilePillar
                     {
                         var line = listEnt[0] as Line;
 
-                        line.ColorIndex = 22;
+                        //line.ColorIndex = 22;
 
-                        line.ToSpace();
+                        //line.ToSpace();
 
                         var l3d = new Line3d(line.StartPoint, line.EndPoint);
 
