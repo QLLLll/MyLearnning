@@ -197,7 +197,7 @@ namespace ECDQiangWuCha
 
                     plJz.ToSpace();
 
-                    DimToSpace(ptArr, listDim);
+                    DimToSpace(ptArr, listDim,pt1, wrongPt, indexPt2);
 
                     Ed.WriteMessage($"{v1.Length}\n,{v2.Length}\n{v3.Length}\n{v4.Length}\n");
                     Ed.WriteMessage($"{v1.GetAngleTo(v2) * 180 / Math.PI}\n");
@@ -208,43 +208,140 @@ namespace ECDQiangWuCha
             }
         }
 
-        private void DimToSpace(List<Point3d> ptArr, List<Dimension> listDim)
+        private void DimToSpace(List<Point3d> ptArr, List<Dimension> listDim,Point3d pt1,Point3d wrongPt,int indexPt2)
         {
-            for (int i = 0; i < ptArr.Count - 1; i++)
+
+            RotatedDimension dimOld = null;
+            RotatedDimension dimOld2 = null;
+            int indexPt = ptArr.IndexOf(pt1);
+
+            Point3d pt3 = Point3d.Origin;
+
+            if (indexPt < indexPt2)
             {
-                var pt1 = ptArr[i];
-                var pt2 = ptArr[i + 1];
+                pt3 = ptArr[(indexPt2 + 1) % ptArr.Count];
+            }
+            else
+            {
+                pt3= ptArr[(indexPt2 - 1) % ptArr.Count];
+            }
 
-                var dim = new RotatedDimension();
-
-                RotatedDimension findDim = null;
-
-                bool flag = false;
-
-                foreach (var d in listDim)
+            foreach (var d in listDim)
+            {
+               
+                if ((d as RotatedDimension) != null)
                 {
-                    if ((d as RotatedDimension) != null)
-                    {
-                        var rd = (d as RotatedDimension);
 
-                        if (PtEqual(pt1, rd.XLine1Point) && !PtEqual(pt2, rd.XLine2Point))
+                    dimOld = d as RotatedDimension;
+                    
+
+                    if((PtEqual(dimOld.XLine1Point, pt1) && PtEqual(dimOld.XLine2Point, wrongPt))
+                        ||(PtEqual(dimOld.XLine1Point, wrongPt) && PtEqual(dimOld.XLine2Point, pt1)))
+                    {
+                        dimOld = d as RotatedDimension;
+                        break;
+
+                    }
+                    
+                }
+
+            }
+
+            foreach (var d in listDim)
+            {
+
+                if ((d as RotatedDimension) != null)
+                {
+                    
+                    dimOld2 = d as RotatedDimension;
+
+                    
+                    if ((PtEqual(dimOld2.XLine1Point, pt3) && PtEqual(dimOld2.XLine2Point, wrongPt)) ||
+                        (PtEqual(dimOld2.XLine1Point, wrongPt) && PtEqual(dimOld2.XLine2Point, pt3)))
+                    {
+                        dimOld2 = d as RotatedDimension;
+
+                        if (dimOld2 != dimOld)
                         {
-                            findDim = rd;
-                            flag = false;
                             break;
                         }
-                        else if(!PtEqual(pt1, rd.XLine1Point) && PtEqual(pt2, rd.XLine2Point))
-                        {
-                            findDim = rd;
-                            flag = true;
-                            break;
-                        }
+
                     }
                 }
 
-
-                
             }
+            double dimLen = 20d;
+            if (null != dimOld)
+            {
+
+                var line = new Line(dimOld.XLine1Point, dimOld.XLine2Point);
+                var ptDim = dimOld.DimLinePoint;
+
+                var ptDim2 = line.GetClosestPointTo(ptDim, true);
+
+                dimLen = (ptDim2 - ptDim).Length;
+
+                Vector3d v = ptArr[indexPt2] - pt1;
+
+                Vector3d v2 = v.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+
+                var ptGet = pt1 + v2.GetNormal() * dimLen;
+
+                var dimNew = new RotatedDimension(0, pt1, ptArr[indexPt2], ptGet, v.Length.ToString(), dimOld.DimensionStyle);
+                Dim2Dim(dimNew, dimOld);
+                dimNew.ToSpace();
+
+               
+
+                using (var trans = Db.TransactionManager.StartTransaction())
+                {
+                    var ent = trans.GetObject(dimOld.ObjectId, OpenMode.ForWrite) as Entity;
+
+                    ent.Erase(true);
+
+                    trans.Commit();
+
+                }
+            }
+            if (dimOld2 != null)
+                {
+                    Vector3d v3 = ptArr[indexPt2] - pt3;
+
+                    Vector3d v4 = v3.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+
+                    var ptGet2 = ptArr[indexPt2] + v4.GetNormal() * dimLen;
+
+                Point3d midPoint = new Point3d((ptArr[indexPt2].X + pt3.X) / 2.0,
+                                        (ptArr[indexPt2].Y + pt3.Y) / 2.0,
+                                        (ptArr[indexPt2].Z + pt3.Z) / 2.0);
+
+                var pt4 = new Point3d(midPoint.X + dimLen * Math.Cos(-Math.PI / 2), midPoint.Y + dimLen * Math.Sin(-Math.PI / 2), midPoint.Z);
+                var dimNew2 = new RotatedDimension(0, ptArr[indexPt2], pt3, pt4, v3.Length.ToString(), dimOld2.DimensionStyle);
+                    Dim2Dim(dimNew2, dimOld2);
+
+                var line = new Line(ptArr[indexPt2], pt3);
+
+                line.ColorIndex = 1;
+                line.ToSpace();
+
+                    dimNew2.ToSpace();
+
+                using (var trans = Db.TransactionManager.StartTransaction())
+                {
+                    //var ent = trans.GetObject(dimOld.ObjectId, OpenMode.ForWrite) as Entity;
+
+                   // ent.Erase(true);
+
+                    var ent2 = trans.GetObject(dimOld2.ObjectId, OpenMode.ForWrite) as Entity;
+
+                    ent2.Erase(true);
+
+                    trans.Commit();
+
+                }
+
+            }
+            
         }
 
         private bool PtEqual(Point3d p1, Point3d p2)
