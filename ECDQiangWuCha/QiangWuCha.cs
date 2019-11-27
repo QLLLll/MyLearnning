@@ -71,28 +71,46 @@ namespace ECDQiangWuCha
             double lMin = length - dbRes.Value;
             double lMax = length + dbRes.Value;
 
-            Dictionary<Vector3d, double> dicVecDb = new Dictionary<Vector3d, double>();
-            Dictionary<Vector3d, Line> dicVecL = new Dictionary<Vector3d, Line>();
+            //Dictionary<Vector3d, double> dicVecDb = new Dictionary<Vector3d, double>();
+
+            List<Vector3d> listVec3d = new List<Vector3d>();
+            List<double> listDis = new List<double>();
+
+
             List<Point3d> ptArr = new List<Point3d>();
 
             Polyline plSF = null;
             Polyline plST = null;
+            Polyline plSW = null;
+
 
             int indexSF = 0;
             int indexST = 0;
-            
+            int indexSW = 0;
+
+            List<Polyline> listJoinPL = new List<Polyline>();
             //找到相连的pl组成一组加入到集合中
-            foreach (var pl in  listPl)
+            foreach (var pl in listPl)
             {
                 ptArr = Get4Pt(pl);
                 if (ptArr.Count == 3)
                 {
                     plST = pl;
                     indexST = listPl.IndexOf(plST);
+                    listJoinPL.Add(plST);
+                    continue;
+                }
+                else if (ptArr.Count == 2)
+                {
+                    plSW = pl;
+                    indexSW = listPl.IndexOf(plSW);
+                    listJoinPL.Add(plSW);
                     continue;
                 }
                 else if (ptArr.Count == 4)
                 {
+                    var listVec = new List<Vector3d>();
+                    var listDb = new List<double>();
                     for (int i = 0; i < ptArr.Count - 1; i++)
                     {
                         var ptF1 = ptArr[i];
@@ -100,21 +118,22 @@ namespace ECDQiangWuCha
 
                         var vecF = ptF2 - ptF1;
 
-                        dicVecDb.Add(vecF, Math.Round(vecF.Length, 3));
-
+                        listVec.Add(vecF);
+                        listDb.Add(Math.Round(vecF.Length, 3));
                     }
-                    var listVec = dicVecDb.Keys.ToList();
+
 
                     var v1 = listVec[0];
                     var v2 = listVec[1];
                     var v3 = listVec[2];
 
 
-                    if (Math.Abs(dicVecDb[v1] - dicVecDb[v3]) > 2 * dbRes.Value)
+                    if (Math.Abs(listDb[listVec.IndexOf(v1)] - listDb[listVec.IndexOf(v3)]) > 2 * dbRes.Value)
                     {
 
                         plSF = pl;
                         indexSF = listPl.IndexOf(plSF);
+                        listJoinPL.Add(plSF);
 
                         continue;
 
@@ -127,7 +146,94 @@ namespace ECDQiangWuCha
 
             bool flag = false;
 
-            if (plSF != null && plST != null)
+
+            List<int> listInt = new List<int>();
+            List<Polyline> listMerged = new List<Polyline>();
+            //if (plSW != null) listJoinPL.Add(plSW);
+            //if (plST != null) listJoinPL.Add(plST);
+            //if (plSF != null) listJoinPL.Add(plSF);
+
+
+            if (listJoinPL.Count > 1)
+            {
+
+
+                using (var trans = Db.TransactionManager.StartTransaction())
+                {
+                    for (int j = 0; j < listJoinPL.Count; j++)
+                    {
+                        if (listInt.Contains(listPl.IndexOf(listJoinPL[j])))
+                        {
+                            continue;
+                        }
+
+
+                        var plJoin = trans.GetObject(listJoinPL[j].ObjectId, OpenMode.ForWrite) as Polyline;
+                        listInt.Add(listPl.IndexOf(plJoin));
+                        for (int i = j + 1; i < listJoinPL.Count; i++)
+                        {
+                            if (listInt.Contains(listPl.IndexOf(listJoinPL[i])))
+                            {
+                                continue;
+                            }
+
+                            var plJoin2 = trans.GetObject(listJoinPL[i].ObjectId, OpenMode.ForWrite) as Polyline;
+
+                            try
+                            {
+                                plJoin.JoinEntity(plJoin2);
+                                flag = true;
+                                listInt.Add(listPl.IndexOf(plJoin2));
+
+                            }
+                            catch (System.Exception ex)
+                            {
+
+
+                                plJoin2.DowngradeOpen();
+
+                                Ed.WriteMessage(ex.ToString());
+
+                                continue;
+                            }
+                        }
+
+                        if (flag)
+                        {
+                            listMerged.Add(plJoin);
+                            flag = false;
+                            plJoin.DowngradeOpen();
+                        }
+                    }
+                    trans.Commit();
+                }
+
+            }
+            listInt = listInt.Distinct().ToList();
+
+            if (listInt.Count > 1)
+            {
+
+                for (int i = 0; i < listInt.Count; i++)
+                {
+
+                    listPl[listInt[i]] = null;
+
+                }
+
+                listPl = listPl.Where(p => p != null).ToList();
+
+            }
+
+            listPl.AddRange(listMerged);
+
+            //listInt.Clear();
+            listJoinPL.Clear();
+            listMerged.Clear();
+
+
+
+            /*if (plSF != null && plST != null)
             {
 
                 using (var trans = Db.TransactionManager.StartTransaction())
@@ -163,17 +269,29 @@ namespace ECDQiangWuCha
                 flag = false;
                 indexST = 0;
                 indexSF = 0;
-            }
+            }*/
+
+
 
             //分点的个数分别处理
             foreach (Polyline pl in listPl)
             {
 
-                dicVecDb.Clear();
+                //dicVecDb.Clear();
+                listVec3d.Clear();
+                listDis.Clear();
                 ptArr.Clear();
 
 
                 ptArr = Get4Pt(pl);
+
+                if (ptArr.Count == 5 && !pl.Closed && ptArr[0] != ptArr[4])
+                {
+
+                    ptArr = ptArr.Distinct(new PointCompare()).ToList();
+
+                }
+
                 if (ptArr.Count == 5)
                 {
                     Vector3d v1 = ptArr[1] - ptArr[0];
@@ -181,15 +299,21 @@ namespace ECDQiangWuCha
                     Vector3d v3 = ptArr[3] - ptArr[2];
                     Vector3d v4 = ptArr[4] - ptArr[3];
 
-                    dicVecDb.Add(v1, Math.Round(v1.Length, 3));
-                    dicVecDb.Add(v2, Math.Round(v2.Length, 3));
-                    dicVecDb.Add(v3, Math.Round(v3.Length, 3));
-                    dicVecDb.Add(v4, Math.Round(v4.Length, 3));
+                    //dicVecDb.Add(v1, Math.Round(v1.Length, 3));
+                    //dicVecDb.Add(v2, Math.Round(v2.Length, 3));
+                    //dicVecDb.Add(v3, Math.Round(v3.Length, 3));
+                    //dicVecDb.Add(v4, Math.Round(v4.Length, 3));
 
-                    dicVecL.Add(v1, new Line(ptArr[0], ptArr[1]));
-                    dicVecL.Add(v2, new Line(ptArr[1], ptArr[2]));
-                    dicVecL.Add(v3, new Line(ptArr[2], ptArr[3]));
-                    dicVecL.Add(v4, new Line(ptArr[3], ptArr[4]));
+                    listVec3d.Add(v1);
+                    listVec3d.Add(v2);
+                    listVec3d.Add(v3);
+                    listVec3d.Add(v4);
+
+                    listDis.Add(Math.Round(v1.Length, 3));
+                    listDis.Add(Math.Round(v2.Length, 3));
+                    listDis.Add(Math.Round(v3.Length, 3));
+                    listDis.Add(Math.Round(v4.Length, 3));
+
 
                     double v1agl = Math.Abs(v1.GetAngleTo(v2) - Math.PI / 2);
                     double v3agl = Math.Abs(v2.GetAngleTo(v3) - Math.PI / 2);
@@ -199,11 +323,13 @@ namespace ECDQiangWuCha
                     int indexPt2 = 0;
                     //求有问题得点
                     //v1不是需要计算的误差
-                    if (dicVecDb[v1] > lMax || dicVecDb[v1] < lMin)
+                    if (listDis[listVec3d.IndexOf(v1)] > lMax || listDis[listVec3d.IndexOf(v1)] < lMin)
+                    //if (dicVecDb[v1] > lMax || dicVecDb[v1] < lMin)
                     {
-                        var v2Db = Math.Abs(length - dicVecDb[v2]);
-                        var v4Db = Math.Abs(length - dicVecDb[v4]);
-                        if (dicVecDb[v1] < dicVecDb[v3] || v1agl < v3agl)
+                        var v2Db = Math.Abs(length - listDis[listVec3d.IndexOf(v2)]);
+                        var v4Db = Math.Abs(length - listDis[listVec3d.IndexOf(v4)]);
+                        if (listDis[listVec3d.IndexOf(v1)] < listDis[listVec3d.IndexOf(v3)] || v1agl < v3agl)
+                        //if (dicVecDb[v1] < dicVecDb[v3] || v1agl < v3agl)
                         {
 
                             if (v2Db > v4Db)
@@ -236,11 +362,13 @@ namespace ECDQiangWuCha
 
                     }
                     else
-                    {    
+                    {
 
-                        var v1Db = Math.Abs(length - dicVecDb[v1]);
-                        var v3Db = Math.Abs(length - dicVecDb[v3]);
-                        if (dicVecDb[v2] < dicVecDb[v4]|| v1agl < v4agl)
+                        var v1Db = Math.Abs(length - listDis[listVec3d.IndexOf(v1)]);
+                        var v3Db = Math.Abs(length - listDis[listVec3d.IndexOf(v3)]);
+
+                        //if (dicVecDb[v2] < dicVecDb[v4] || v1agl < v4agl)
+                        if (listDis[listVec3d.IndexOf(v2)] < listDis[listVec3d.IndexOf(v4)] || v1agl < v4agl)
                         {
 
                             if (v1Db > v3Db)
@@ -283,21 +411,6 @@ namespace ECDQiangWuCha
                         ptArr[0] = jzPt;
                     }
 
-
-                    Polyline plJz = new Polyline();
-
-                    foreach (var point in ptArr)
-                    {
-                        plJz.AddVertexAt(plJz.NumberOfVertices, new Point2d(point.X, point.Y), 0, 0, 0);
-                    }
-
-                    //plJz.TransformBy(Matrix3d.Displacement(Vector3d.ZAxis * 100));
-                    plJz.ColorIndex = 6;
-
-                    Pl2Pl(plJz, pl);
-
-                    plJz.ToSpace();
-
                     DimToSpace(ptArr, listDim, pt1, wrongPt, indexPt2);
 
                     //Ed.WriteMessage($"{v1.Length}\n,{v2.Length}\n{v3.Length}\n{v4.Length}\n");
@@ -306,7 +419,7 @@ namespace ECDQiangWuCha
                     //Ed.WriteMessage($"{v3.GetAngleTo(v4) * 180 / Math.PI}\n");
                     //Ed.WriteMessage($"{v4.GetAngleTo(v1) * 180 / Math.PI}\n");
                 }
-                else if (ptArr.Count == 4)
+                else if (ptArr.Count == 4 && !pl.Closed)
                 {
                     for (int i = 0; i < ptArr.Count - 1; i++)
                     {
@@ -315,14 +428,16 @@ namespace ECDQiangWuCha
 
                         var vecF = ptF2 - ptF1;
 
-                        dicVecDb.Add(vecF, Math.Round(vecF.Length, 3));
+                        //dicVecDb.Add(vecF, Math.Round(vecF.Length, 3));
+
+                        listVec3d.Add(vecF);
+                        listDis.Add(Math.Round(vecF.Length, 3));
 
                     }
-                    var listVec = dicVecDb.Keys.ToList();
 
-                    var v1 = listVec[0];
-                    var v2 = listVec[1];
-                    var v3 = listVec[2];
+                    var v1 = listVec3d[0];
+                    var v2 = listVec3d[1];
+                    var v3 = listVec3d[2];
                     var v4 = ptArr[0] - ptArr[3];
 
                     double v1agl = Math.Abs(v1.GetAngleTo(v2) - Math.PI / 2);
@@ -331,11 +446,11 @@ namespace ECDQiangWuCha
                     int indexPt1 = 0;
                     int indexPt2 = 0;
 
-                    double diffV1 = Math.Abs(dbRes.Value - Math.Abs(length - dicVecDb[v1]));
-                    double diffV3= Math.Abs(dbRes.Value-Math.Abs(length - dicVecDb[v3]));
-                    if (diffV1<diffV3)
+                    double diffV1 = Math.Abs(dbRes.Value - Math.Abs(length - listDis[listVec3d.IndexOf(v1)]));
+                    double diffV3 = Math.Abs(dbRes.Value - Math.Abs(length - listDis[listVec3d.IndexOf(v3)]));
+                    if (diffV1 < diffV3)
                     {
-                        if (v1.X < 0)
+                        if (v1.X > 0)
                         {
                             indexPt1 = 0;
                             indexPt2 = 1;
@@ -369,19 +484,9 @@ namespace ECDQiangWuCha
 
                     ptArr[indexPt2] = jzPt;
 
-                    Polyline plJz = new Polyline();
 
-                    foreach (var point in ptArr)
-                    {
-                        plJz.AddVertexAt(plJz.NumberOfVertices, new Point2d(point.X, point.Y), 0, 0, 0);
-                    }
 
-                    //plJz.TransformBy(Matrix3d.Displacement(Vector3d.ZAxis * 100));
-                    plJz.ColorIndex = 6;
 
-                    Pl2Pl(plJz, pl);
-
-                    plJz.ToSpace();
 
                     //这里单独弄个方法
                     DimToSpace(ptArr, listDim, pt1, wrongPt, indexPt2);
@@ -390,185 +495,271 @@ namespace ECDQiangWuCha
                 else if (ptArr.Count == 6 && !pl.Closed)
                 {
 
-                    
+
                     Vector3d v1 = ptArr[2] - ptArr[1];
                     Vector3d v2 = ptArr[3] - ptArr[2];
                     Vector3d v3 = ptArr[4] - ptArr[3];
                     Vector3d v4 = ptArr[4] - ptArr[1];
                     Vector3d v5 = ptArr[0] - ptArr[1];
-                    Vector3d v6= ptArr[4] - ptArr[5];
-                    dicVecDb.Add(v1, Math.Round(v1.Length, 3));
-                    dicVecDb.Add(v2, Math.Round(v2.Length, 3));
-                    dicVecDb.Add(v3, Math.Round(v3.Length, 3));
-                    dicVecDb.Add(v4, Math.Round(v4.Length, 3));
-                    dicVecDb.Add(v5, Math.Round(v5.Length, 3));
-                    dicVecDb.Add(v6, Math.Round(v6.Length, 3));
+                    Vector3d v6 = ptArr[4] - ptArr[5];
+                    //dicVecDb.Add(v1, Math.Round(v1.Length, 3));
+                    //dicVecDb.Add(v2, Math.Round(v2.Length, 3));
+                    //dicVecDb.Add(v3, Math.Round(v3.Length, 3));
+                    //dicVecDb.Add(v4, Math.Round(v4.Length, 3));
+                    //dicVecDb.Add(v5, Math.Round(v5.Length, 3));
+                    //dicVecDb.Add(v6, Math.Round(v6.Length, 3));
+
+                    listVec3d.Add(v1);
+                    listVec3d.Add(v2);
+                    listVec3d.Add(v3);
+                    listVec3d.Add(v4);
+                    listVec3d.Add(v5);
+                    listVec3d.Add(v6);
+
+                    listDis.Add(Math.Round(v1.Length, 3));
+                    listDis.Add(Math.Round(v2.Length, 3));
+                    listDis.Add(Math.Round(v3.Length, 3));
+                    listDis.Add(Math.Round(v4.Length, 3));
+                    listDis.Add(Math.Round(v5.Length, 3));
+                    listDis.Add(Math.Round(v6.Length, 3));
+
+
 
                     double v1agl = Math.Abs(v1.GetAngleTo(v2) - Math.PI / 2);
                     double v3agl = Math.Abs(v2.GetAngleTo(v3) - Math.PI / 2);
                     double v4agl = Math.Abs(v1.GetAngleTo(v4) - Math.PI / 2);
                     int indexPt1 = 0;
                     int indexPt2 = 0;
-                    //求有问题得点
-                    //v1 不是要求误差的边
-                    if (dicVecDb[v1] > lMax || dicVecDb[v1] < lMin)
-                    {
-                        var v2Db = Math.Abs(length - dicVecDb[v2]);
-                        var v4Db = Math.Abs(length - dicVecDb[v4]);
-                        if (dicVecDb[v1] < dicVecDb[v3]||v1agl<v3agl)
-                        {
 
-                            if (v2Db > v4Db)
+
+                    for (int m = 0; m <= 3; m++)
+                    {
+
+
+                        //求有问题得点
+                        //v1 不是要求误差的边
+                        if (listDis[m] >= lMax || listDis[m] <= lMin)
+                        {
+                            var v2Db = Math.Abs(length - listDis[(m+1)%2]);
+                            var v4Db = Math.Abs(length - listDis[(m+3)%2+2]);
+                            if (listDis[m] < listDis[(m+2)%2] || v1agl < v3agl)
                             {
-                                indexPt1 = 2;
-                                indexPt2 = 3;
+
+                                if (v2Db > v4Db)
+                                {
+                                    indexPt1 = 2;
+                                    indexPt2 = 3;
+                                }
+                                else
+                                {
+
+                                    indexPt1 = 1;
+                                    indexPt2 = 4;
+                                }
+
                             }
                             else
                             {
+                                if (v2Db > v4Db)
+                                {
+                                    indexPt1 = 3;
+                                    indexPt2 = 2;
+                                }
+                                else
+                                {
 
-                                indexPt1 = 1;
-                                indexPt2 = 4;
+                                    indexPt1 = 4;
+                                    indexPt2 = 1;
+                                }
                             }
 
                         }
                         else
                         {
-                            if (v2Db > v4Db)
+
+                            var v1Db = Math.Abs(length - listDis[m]);
+                            var v3Db = Math.Abs(length - listDis[m+2]);
+                            if (listDis[(m + 1) % 2] < listDis[(m + 3) % 2+2] || v1agl < v4agl)
                             {
-                                indexPt1 = 3;
-                                indexPt2 = 2;
+
+                                if (v1Db > v3Db)
+                                {
+                                    indexPt1 = 2;
+                                    indexPt2 = 1;
+                                }
+                                else
+                                {
+                                    indexPt1 = 3;
+                                    indexPt2 = 4;
+                                }
                             }
                             else
                             {
-
-                                indexPt1 = 4;
-                                indexPt2 = 1;
+                                if (v1Db > v3Db)
+                                {
+                                    indexPt1 = 1;
+                                    indexPt2 = 2;
+                                }
+                                else
+                                {
+                                    indexPt1 = 4;
+                                    indexPt2 = 3;
+                                }
                             }
                         }
-
-                    }
-                    else
-                    {
-
-                        var v1Db = Math.Abs(length - dicVecDb[v1]);
-                        var v3Db = Math.Abs(length - dicVecDb[v3]);
-                        if (dicVecDb[v2] < dicVecDb[v4] || v1agl < v4agl)
+                        var wrongPt = Point3d.Origin;
+                        var pt1 = Point3d.Origin;
+                        if (!((indexPt1 == 1 && indexPt2 == 4) && (indexPt1 == 4 && indexPt2 == 1)))
                         {
+                            pt1 = ptArr[indexPt1];
+                            wrongPt = ptArr[indexPt2];
 
-                            if (v1Db > v3Db)
+                            var vec1 = wrongPt - pt1;
+                            var vec2 = pt1 - wrongPt;
+
+                            int index = -1;
+
+                            if (listVec3d.IndexOf(vec1) != -1)
                             {
-                                indexPt1 = 2;
-                                indexPt2 = 1;
+                                index = listVec3d.IndexOf(vec1);
+
                             }
-                            else
+                            else if (listVec3d.IndexOf(vec2) != -1)
                             {
-                                indexPt1 = 3;
-                                indexPt2 = 4;
+                                index = listVec3d.IndexOf(vec2);
+                            }
+
+
+                            var vec = (wrongPt - pt1).GetNormal();
+
+                            var jzPt = pt1 + vec * length;
+
+                            ptArr[indexPt2] = jzPt;
+
+                            if (index != -1)
+                            {
+                                listVec3d[index] = pt1 - jzPt;
+                                listDis[index] = (pt1 - jzPt).Length;
                             }
                         }
                         else
                         {
-                            if (v1Db > v3Db)
+
+                            if (indexPt1 == 1 && indexPt2 == 4)
                             {
-                                indexPt1 = 1;
-                                indexPt2 = 2;
+                                wrongPt = ptArr[indexPt2];
+                                var ptSpecial = ptArr[indexPt1];
+                                var vec1 = wrongPt - ptSpecial;
+                                var vec2 = ptSpecial - wrongPt;
+
+                                if (ptArr[0].Y < ptArr[5].Y || ptArr[0].X < ptArr[5].X)
+
+                                    pt1 = ptArr[0];
+                                else
+                                    pt1 = ptArr[5];
+
+                                
+
+                                var vec = wrongPt - pt1;
+
+
+                                int index = -1;
+                                
+                                if (listVec3d.IndexOf(vec1) != -1)
+                                {
+                                    index = listVec3d.IndexOf(vec1);
+
+                                }
+                                else if (listVec3d.IndexOf(vec2) != -1)
+                                {
+                                    index = listVec3d.IndexOf(vec2);
+                                }
+
+                                var jzPt = pt1 + vec.GetNormal() * (vec.Length + dbRes.Value);
+
+                                ptArr[indexPt2] = jzPt;
+
+                                if (index != -1)
+                                {
+                                    listVec3d[index] = ptSpecial - jzPt;
+                                    listDis[index] = (ptSpecial - jzPt).Length;
+                                }
+
                             }
-                            else
+                            if (indexPt1 == 4 && indexPt2 == 1)
                             {
-                                indexPt1 = 4;
-                                indexPt2 = 3;
+                                wrongPt = ptArr[indexPt2];
+                                var ptSpecial = ptArr[indexPt1];
+                                var vec1 = wrongPt - ptSpecial;
+                                var vec2 = ptSpecial - wrongPt;
+
+                                if (ptArr[0].Y < ptArr[5].Y || ptArr[0].X < ptArr[5].X)
+
+                                    pt1 = ptArr[5];
+                                else
+                                    pt1 = ptArr[0];
+
+                                int index = -1;
+                                
+                                if (listVec3d.IndexOf(vec1) != -1)
+                                {
+                                    index = listVec3d.IndexOf(vec1);
+
+                                }
+                                else if (listVec3d.IndexOf(vec2) != -1)
+                                {
+                                    index = listVec3d.IndexOf(vec2);
+                                }
+
+                                var vec = wrongPt - pt1;
+
+                                var jzPt = pt1 + vec.GetNormal() * (vec.Length + dbRes.Value);
+
+                                ptArr[indexPt2] = jzPt;
+
+                                if (index != -1)
+                                {
+                                    listVec3d[index] = ptSpecial - jzPt;
+                                    listDis[index] = (ptSpecial - jzPt).Length;
+                                }
+
+                            }
+
+                        }
+
+                        if (!((indexPt1 == 1 && indexPt2 == 4) && (indexPt1 == 4 && indexPt2 == 1)))
+                        {
+                            DimToSpace(ptArr, listDim, pt1, wrongPt, indexPt2);
+
+                        }
+                        else
+                        {
+                            if (indexPt1 == 1 && indexPt2 == 4)
+                            {
+                                DimToSpace2(ptArr, listDim, ptArr[1], wrongPt, indexPt2);
+                            }
+                            if (indexPt1 == 4 && indexPt2 == 1)
+                            {
+                                DimToSpace2(ptArr, listDim, ptArr[4], wrongPt, indexPt2);
                             }
                         }
-                    }
-                    var wrongPt = Point3d.Origin;
-                    var pt1 = Point3d.Origin;
-                    if ((indexPt1 != 1 && indexPt2 != 4) && (indexPt1 != 4 && indexPt2 != 1))
-                    {
-                         pt1 = ptArr[indexPt1];
-                        wrongPt = ptArr[indexPt2];
-
-                        var vec = (wrongPt - pt1).GetNormal();
-
-                        var jzPt = pt1 + vec * length;
-
-                        ptArr[indexPt2] = jzPt;
 
                     }
-                    else
-                    {
-
-                        if(indexPt1 == 1 && indexPt2 == 4)
-                        {
-
-                            if (ptArr[0].Y < ptArr[5].Y || ptArr[0].X < ptArr[5].X)
-
-                                pt1 = ptArr[0];
-                            else
-                                pt1 = ptArr[5];
-                           
-                            wrongPt = ptArr[indexPt2];
-
-                            var vec = wrongPt - pt1;
-
-                            var jzPt = pt1 + vec.GetNormal() * (vec.Length + dbRes.Value);
-
-                            ptArr[indexPt2] = jzPt;
-
-                        }
-                        if(indexPt1 == 4 && indexPt2 == 1)
-                        {
-                            if (ptArr[0].Y < ptArr[5].Y || ptArr[0].X < ptArr[5].X)
-
-                                pt1 = ptArr[5];
-                            else
-                                pt1 = ptArr[0];
-
-                            wrongPt = ptArr[indexPt2];
-
-                            var vec = wrongPt - pt1;
-
-                            var jzPt = pt1 + vec.GetNormal() * (vec.Length + dbRes.Value);
-
-                            ptArr[indexPt2] = jzPt;
-
-                        }
-
-                    }
-
-
-                    Polyline plJz = new Polyline();
-
-                    foreach (var point in ptArr)
-                    {
-                        plJz.AddVertexAt(plJz.NumberOfVertices, new Point2d(point.X, point.Y), 0, 0, 0);
-                    }
-
-                    //plJz.TransformBy(Matrix3d.Displacement(Vector3d.ZAxis * 100));
-                    plJz.ColorIndex = 6;
-
-                    Pl2Pl(plJz, pl);
-
-                    plJz.ToSpace();
-
-                    if ((indexPt1 != 1 && indexPt2 != 4) && (indexPt1 != 4 && indexPt2 != 1))
-                    {
-                        DimToSpace(ptArr, listDim, pt1, wrongPt, indexPt2);
-
-                    }
-                    else
-                    {
-                        if (indexPt1 == 1 && indexPt2 == 4)
-                        {
-                            DimToSpace2(ptArr, listDim, ptArr[1], wrongPt, indexPt2);
-                        }
-                        if (indexPt1 == 4 && indexPt2 == 1)
-                        {
-                            DimToSpace2(ptArr, listDim, ptArr[4], wrongPt, indexPt2);
-                        }
-                    }
-
                 }
 
+                Polyline plJz2 = new Polyline();
+
+                foreach (var point in ptArr)
+                {
+                    plJz2.AddVertexAt(plJz2.NumberOfVertices, new Point2d(point.X, point.Y), 0, 0, 0);
+                }
+
+                //plJz.TransformBy(Matrix3d.Displacement(Vector3d.ZAxis * 100));
+                plJz2.ColorIndex = 6;
+
+                Pl2Pl(plJz2, pl);
+
+                plJz2.ToSpace();
 
                 using (var trans = Db.TransactionManager.StartTransaction())
                 {
@@ -613,15 +804,15 @@ namespace ECDQiangWuCha
             int indexPt = ptArr.IndexOf(pt1);
 
             Point3d pt3 = Point3d.Origin;
-            
-                if (indexPt < indexPt2)
-                {
-                    pt3 = ptArr[(indexPt2 + 1) % ptArr.Count];
-                }
-                else
-                {
-                    pt3 = ptArr[Math.Abs((indexPt2 - 1)) % ptArr.Count];
-                }                       
+
+            if (indexPt < indexPt2)
+            {
+                pt3 = ptArr[(indexPt2 + 1) % ptArr.Count];
+            }
+            else
+            {
+                pt3 = ptArr[Math.Abs((indexPt2 - 1)) % ptArr.Count];
+            }
             foreach (var d in listDim)
             {
 
@@ -687,15 +878,17 @@ namespace ECDQiangWuCha
 
                 var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
-                dimLen = (ptDim2 - ptDim).Length;
+                var v2 = ptDim - ptDim2;
 
-                Vector3d v = ptArr[indexPt2] - pt1;
+                dimLen = v2.Length;
 
-                Vector3d v2 = v.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+                var ptGet = pt1 + v2;
 
-                var ptGet = pt1 + v2.GetNormal() * dimLen;
+                Vector3d v = pt1 - ptArr[indexPt2];
 
-                var dimNew = new RotatedDimension(0, pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
+                //var dimNew = new RotatedDimension(0, pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
+
+                var dimNew = new AlignedDimension(pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
                 Dim2Dim(dimNew, dimOld);
                 dimNew.ToSpace();
 
@@ -711,19 +904,24 @@ namespace ECDQiangWuCha
             }
             if (dimOld2 != null)
             {
-                Vector3d v3 = pt3 - ptArr[indexPt2];
+                var line = new Line(dimOld2.XLine1Point, dimOld2.XLine2Point);
+                var ptDim = dimOld2.DimLinePoint;
 
-                Vector3d v4 = v3.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+                var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
-                var ptGet2 = ptArr[indexPt2] + v4.GetNormal() * dimLen;
+                var v2 = ptDim - ptDim2;
 
-                Point3d midPoint = new Point3d((ptArr[indexPt2].X + pt3.X) / 2.0,
-                                        (ptArr[indexPt2].Y + pt3.Y) / 2.0,
-                                        (ptArr[indexPt2].Z + pt3.Z) / 2.0);
+                dimLen = v2.Length;
 
-                var pt4 = midPoint + v4.GetNormal() * dimLen;
+                var ptGet = ptArr[indexPt2] + v2;
+                Vector3d v3 = ptArr[indexPt2] - pt3;
+                //Point3d midPoint = new Point3d((ptArr[indexPt2].X + pt3.X) / 2.0,
+                //(ptArr[indexPt2].Y + pt3.Y) / 2.0,
+                //                  (ptArr[indexPt2].Z + pt3.Z) / 2.0);
+
+                //var pt4 = midPoint + v4.GetNormal() * dimLen;
                 //var dimNew2 = new RotatedDimension(0, ptArr[indexPt2], pt3, pt4, v3.Length.ToString(), dimOld2.DimensionStyle);
-                var dimNew2 = new AlignedDimension(ptArr[indexPt2], pt3, pt4, v3.Length.ToString("f2"), dimOld2.DimensionStyle);
+                var dimNew2 = new AlignedDimension(ptArr[indexPt2], pt3, ptGet, v3.Length.ToString("f2"), dimOld2.DimensionStyle);
 
                 Dim2Dim(dimNew2, dimOld2);
 
@@ -758,7 +956,7 @@ namespace ECDQiangWuCha
 
             if (indexPt < indexPt2)
             {
-                pt3 = ptArr[Math.Abs((indexPt2 -1)) % ptArr.Count];
+                pt3 = ptArr[Math.Abs((indexPt2 - 1)) % ptArr.Count];
             }
             else
             {
@@ -829,16 +1027,16 @@ namespace ECDQiangWuCha
 
                 var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
-                dimLen = (ptDim2 - ptDim).Length;
+                var v2 = ptDim - ptDim2;
 
-                Vector3d v = pt1-ptArr[indexPt2];
+                dimLen = v2.Length;
 
-                Vector3d v2 = v.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+                var ptGet = pt1 + v2;
 
-                var ptGet = pt1 + v2.GetNormal() * dimLen;
+                Vector3d v = pt1 - ptArr[indexPt2];
 
                 //var dimNew = new RotatedDimension(0, pt1, ptArr[indexPt2], ptGet, v.Length.ToString(), dimOld.DimensionStyle);
-                var dimNew = new AlignedDimension( pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
+                var dimNew = new AlignedDimension(pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
                 Dim2Dim(dimNew, dimOld);
                 dimNew.ToSpace();
 
@@ -854,19 +1052,19 @@ namespace ECDQiangWuCha
             }
             if (dimOld2 != null)
             {
-                Vector3d v3 = ptArr[indexPt2]-pt3;
+                var line = new Line(dimOld2.XLine1Point, dimOld2.XLine2Point);
+                var ptDim = dimOld2.DimLinePoint;
 
-                Vector3d v4 = v3.RotateBy(Math.PI / 2, Vector3d.ZAxis);
+                var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
-                var ptGet2 = ptArr[indexPt2] + v4.GetNormal() * dimLen;
+                var v2 = ptDim - ptDim2;
 
-                Point3d midPoint = new Point3d((ptArr[indexPt2].X + pt3.X) / 2.0,
-                                        (ptArr[indexPt2].Y + pt3.Y) / 2.0,
-                                        (ptArr[indexPt2].Z + pt3.Z) / 2.0);
+                dimLen = v2.Length;
 
-                var pt4 = midPoint + v4.GetNormal() * dimLen;
+                var ptGet = ptArr[indexPt2] + v2;
+                Vector3d v3 = ptArr[indexPt2] - pt3;
                 //var dimNew2 = new RotatedDimension(0, ptArr[indexPt2], pt3, pt4, v3.Length.ToString(), dimOld2.DimensionStyle);
-                var dimNew2 = new AlignedDimension(ptArr[indexPt2], pt3, pt4, v3.Length.ToString("f2"), dimOld2.DimensionStyle);
+                var dimNew2 = new AlignedDimension(ptArr[indexPt2], pt3, ptGet, v3.Length.ToString("f2"), dimOld2.DimensionStyle);
 
                 Dim2Dim(dimNew2, dimOld2);
 
@@ -960,6 +1158,29 @@ namespace ECDQiangWuCha
                 listPt.Add(pl.GetPoint3dAt(i));
             }
             return listPt;
+        }
+    }
+
+    public class PointCompare : IEqualityComparer<Point3d>
+    {
+        public bool Equals(Point3d x, Point3d y)
+        {
+
+            return PtEqual(x, y);
+
+        }
+
+        public int GetHashCode(Point3d obj)
+        {
+            return obj.GetHashCode();
+        }
+
+        private bool PtEqual(Point3d p1, Point3d p2)
+        {
+
+            if (p1.X.ToString("f7") == p2.X.ToString("f7") && p1.Y.ToString("f7") == p2.Y.ToString("f7") && p1.Z.ToString("f7") == p2.Z.ToString("f7"))
+                return true;
+            return false;
         }
     }
 }
