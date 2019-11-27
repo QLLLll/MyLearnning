@@ -71,8 +71,11 @@ namespace ECDQiangWuCha
             double lMin = length - dbRes.Value;
             double lMax = length + dbRes.Value;
 
+            //Dictionary<Vector3d, double> dicVecDb = new Dictionary<Vector3d, double>();
+
             List<Vector3d> listVec3d = new List<Vector3d>();
             List<double> listDis = new List<double>();
+
 
             List<Point3d> ptArr = new List<Point3d>();
 
@@ -224,22 +227,63 @@ namespace ECDQiangWuCha
 
             listPl.AddRange(listMerged);
 
-            listInt.Clear();
+            //listInt.Clear();
             listJoinPL.Clear();
             listMerged.Clear();
+
+
+
+            /*if (plSF != null && plST != null)
+            {
+
+                using (var trans = Db.TransactionManager.StartTransaction())
+                {
+
+                    plST = trans.GetObject(plST.ObjectId, OpenMode.ForWrite) as Polyline;
+                    plSF = trans.GetObject(plSF.ObjectId, OpenMode.ForWrite) as Polyline;
+
+                    try
+                    {
+                        plST.JoinEntity(plSF);
+                        flag = true;
+
+                    }
+                    catch (System.Exception ex)
+                    {
+
+                        flag = false;
+                        Ed.WriteMessage(ex.ToString());
+                    }
+
+                    plST.DowngradeOpen();
+                    plSF.DowngradeOpen();
+
+                    trans.Commit();
+                }
+            }
+
+            if (flag)
+            {
+                listPl[indexST] = plST;
+                listPl.RemoveAt(indexSF);
+                flag = false;
+                indexST = 0;
+                indexSF = 0;
+            }*/
+
+
 
             //分点的个数分别处理
             foreach (Polyline pl in listPl)
             {
 
+                //dicVecDb.Clear();
                 listVec3d.Clear();
                 listDis.Clear();
                 ptArr.Clear();
 
 
                 ptArr = Get4Pt(pl);
-
-                int idxAngle90 = GetAngle(ref ptArr);
 
                 if (ptArr.Count == 5 && !pl.Closed && ptArr[0] != ptArr[4])
                 {
@@ -496,9 +540,9 @@ namespace ECDQiangWuCha
                         //v1 不是要求误差的边
                         if (listDis[m] >= lMax || listDis[m] <= lMin)
                         {
-                            var v2Db = Math.Abs(length - listDis[(m + 1) % 2]);
-                            var v4Db = Math.Abs(length - listDis[(m + 3) % 2 + 2]);
-                            if (listDis[m] < listDis[(m + 2) % 2] || v1agl < v3agl)
+                            var v2Db = Math.Abs(length - listDis[(m+1)%2]);
+                            var v4Db = Math.Abs(length - listDis[(m+3)%2+2]);
+                            if (listDis[m] < listDis[(m+2)%2] || v1agl < v3agl)
                             {
 
                                 if (v2Db > v4Db)
@@ -534,8 +578,8 @@ namespace ECDQiangWuCha
                         {
 
                             var v1Db = Math.Abs(length - listDis[m]);
-                            var v3Db = Math.Abs(length - listDis[m + 2]);
-                            if (listDis[(m + 1) % 2] < listDis[(m + 3) % 2 + 2] || v1agl < v4agl)
+                            var v3Db = Math.Abs(length - listDis[m+2]);
+                            if (listDis[(m + 1) % 2] < listDis[(m + 3) % 2+2] || v1agl < v4agl)
                             {
 
                                 if (v1Db > v3Db)
@@ -614,13 +658,13 @@ namespace ECDQiangWuCha
                                 else
                                     pt1 = ptArr[5];
 
-
+                                
 
                                 var vec = wrongPt - pt1;
 
 
                                 int index = -1;
-
+                                
                                 if (listVec3d.IndexOf(vec1) != -1)
                                 {
                                     index = listVec3d.IndexOf(vec1);
@@ -656,7 +700,7 @@ namespace ECDQiangWuCha
                                     pt1 = ptArr[0];
 
                                 int index = -1;
-
+                                
                                 if (listVec3d.IndexOf(vec1) != -1)
                                 {
                                     index = listVec3d.IndexOf(vec1);
@@ -750,162 +794,6 @@ namespace ECDQiangWuCha
              }
              */
 
-        }
-
-        private int GetAngle(ref List<Point3d> ptArr)
-        {
-            int count = ptArr.Count;
-
-            int sIndex = 0;
-            int eIndex = 0;
-
-            if (count == 4)
-            {
-                sIndex = 0;
-                eIndex = 4;
-
-            }
-            else if (count == 5)
-            {
-                sIndex = 0;
-                eIndex = 5;
-            }
-            else if (count == 6)
-            {
-
-                sIndex = 1;
-                eIndex = 5;
-            }
-
-            List<Vector3d> listVec = new List<Vector3d>();
-            List<double> listAngle = new List<double>();
-
-            for (int i = sIndex; i < eIndex; i++)
-            {
-                Vector3d vecF = new Vector3d();
-                if (eIndex == 5 && sIndex == 0)
-                {
-                    var ptF1 = ptArr[i];
-                    var ptF2 = ptArr[(i + 1) % eIndex];
-                    vecF = ptF2 - ptF1;
-                }
-                else if (eIndex == 4 && sIndex == 0)
-                {
-                    if (i == 3)
-                    {
-                        break;
-                    }
-
-                    var ptF1 = ptArr[i];
-                    var ptF2 = ptArr[i + 1];
-                    vecF = ptF2 - ptF1;
-                }
-                else if (eIndex == 5 && sIndex == 1)
-                {
-                    var ptF1 = ptArr[i];
-                    Point3d ptF2 = Point3d.Origin;
-
-                    if (i != 4)
-                        ptF2 = ptArr[i + 1];
-                    else
-                        ptF2 = ptArr[(i + 2) % eIndex];
-
-                    vecF = ptF2 - ptF1;
-                }
-
-                listVec.Add(vecF);
-            }
-            for (int j = 0; j < listVec.Count; j++)
-            {
-                var v0 = listVec[j];
-                var v1 = listVec[(j + 1) % listVec.Count];
-
-                listAngle.Add(v0.GetAngleTo(v1));
-            }
-
-            int bigangleIndex = -1;
-
-            double find90 = 90.0d;
-
-            for (int m = 0; m < listAngle.Count; m++)
-            {
-                double diff = Math.Abs(Math.PI / 2 - listAngle[m]);
-
-                if (find90 >= diff)
-                {
-                    find90 = diff;
-                    bigangleIndex = m;
-                }
-            }
-            var findVec = new Vector3d();
-            var findPt = Point3d.Origin;
-            if (listVec.Count == 3)
-            {
-
-                findVec = listVec[1 + bigangleIndex];
-                findPt = ptArr[1 + bigangleIndex];
-
-            }
-            else if (listVec.Count == 4 && ptArr.Count == 5)
-            {
-                findVec = listVec[(bigangleIndex + 1) % listAngle.Count];
-                findPt = ptArr[(bigangleIndex + 1) % listAngle.Count];
-            }
-            else if (listVec.Count == 4 && ptArr.Count == 6)
-            {
-                findVec = listVec[(bigangleIndex + 1) % listAngle.Count];
-                if(bigangleIndex!=3)
-                findPt = ptArr[(bigangleIndex +2)];
-                else
-                    findPt= ptArr[1];
-            }
-
-            if (find90 >= 1.0 / 180 * Math.PI)
-            {
-
-                var vn = findVec.GetNormal();
-
-                var v = new Vector3d(Math.Round(vn.X), Math.Round(vn.Y), Math.Round(vn.Z));
-
-                var ptNew = findPt + v * findVec.Length;
-
-                int i = ptArr.IndexOf(findPt);
-
-
-                if (count == 5)
-                {
-
-                    if (i != 3)
-                    {
-                        ptArr[(i + 1)] = ptNew;
-
-                    }
-                    else
-                    {
-                        ptArr[0] = ptNew;
-                    }
-
-                }
-                else if (count == 6)
-                {
-                    if (i != 4)
-                    {
-                        ptArr[(i + 1)] = ptNew;
-                    }
-                    else
-                    {
-                        ptArr[1] = ptNew;
-                    }
-
-                }
-                else
-                {
-                    ptArr[(i + 1)] = ptNew;
-                }
-
-            }
-
-            return bigangleIndex;
         }
 
         private void DimToSpace(List<Point3d> ptArr, List<Dimension> listDim, Point3d pt1, Point3d wrongPt, int indexPt2)
