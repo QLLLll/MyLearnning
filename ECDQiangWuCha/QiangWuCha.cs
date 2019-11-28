@@ -146,11 +146,7 @@ namespace ECDQiangWuCha
 
             List<int> listInt = new List<int>();
             List<Polyline> listMerged = new List<Polyline>();
-            //if (plSW != null) listJoinPL.Add(plSW);
-            //if (plST != null) listJoinPL.Add(plST);
-            //if (plSF != null) listJoinPL.Add(plSF);
-
-
+ 
             if (listJoinPL.Count > 1)
             {
 
@@ -240,7 +236,7 @@ namespace ECDQiangWuCha
                 ptArr = Get4Pt(pl);
 
                 int idxAngle90 = GetAngle(ref ptArr);
-
+                /*
                 if (ptArr.Count == 5 && !pl.Closed && ptArr[0] != ptArr[4])
                 {
 
@@ -440,11 +436,6 @@ namespace ECDQiangWuCha
 
                     ptArr[indexPt2] = jzPt;
 
-
-
-
-
-                    //这里单独弄个方法
                     DimToSpace(ptArr, listDim, pt1, wrongPt, indexPt2);
 
                 }
@@ -458,13 +449,7 @@ namespace ECDQiangWuCha
                     Vector3d v4 = ptArr[4] - ptArr[1];
                     Vector3d v5 = ptArr[0] - ptArr[1];
                     Vector3d v6 = ptArr[4] - ptArr[5];
-                    //dicVecDb.Add(v1, Math.Round(v1.Length, 3));
-                    //dicVecDb.Add(v2, Math.Round(v2.Length, 3));
-                    //dicVecDb.Add(v3, Math.Round(v3.Length, 3));
-                    //dicVecDb.Add(v4, Math.Round(v4.Length, 3));
-                    //dicVecDb.Add(v5, Math.Round(v5.Length, 3));
-                    //dicVecDb.Add(v6, Math.Round(v6.Length, 3));
-
+                   
                     listVec3d.Add(v1);
                     listVec3d.Add(v2);
                     listVec3d.Add(v3);
@@ -709,8 +694,7 @@ namespace ECDQiangWuCha
                 {
                     plJz2.AddVertexAt(plJz2.NumberOfVertices, new Point2d(point.X, point.Y), 0, 0, 0);
                 }
-
-                //plJz.TransformBy(Matrix3d.Displacement(Vector3d.ZAxis * 100));
+               
                 plJz2.ColorIndex = 6;
 
                 Pl2Pl(plJz2, pl);
@@ -727,28 +711,8 @@ namespace ECDQiangWuCha
 
                     trans.Commit();
 
-                }
+                }*/
             }
-
-
-            /* if (plSF != null && plST != null)
-             {
-
-                 using (var trans = Db.TransactionManager.StartTransaction())
-                 {
-
-                     plST = trans.GetObject(plST.ObjectId, OpenMode.ForWrite) as Polyline;
-                     plSF = trans.GetObject(plSF.ObjectId, OpenMode.ForWrite) as Polyline;
-
-                     plST.JoinEntity(plSF);
-
-                     plST.DowngradeOpen();
-                     plSF.DowngradeOpen();
-
-                     trans.Commit();
-                 }
-             }
-             */
 
         }
 
@@ -785,6 +749,8 @@ namespace ECDQiangWuCha
                 Vector3d vecF = new Vector3d();
                 if (eIndex == 5 && sIndex == 0)
                 {
+                    if (i == 4) { continue; }
+
                     var ptF1 = ptArr[i];
                     var ptF2 = ptArr[(i + 1) % eIndex];
                     vecF = ptF2 - ptF1;
@@ -843,7 +809,7 @@ namespace ECDQiangWuCha
             {
 
                 findVec = listVec[1 + bigangleIndex];
-                findPt = ptArr[1 + bigangleIndex];
+                findPt = ptArr[1+bigangleIndex];
 
             }
             else if (listVec.Count == 4 && ptArr.Count == 5)
@@ -904,6 +870,7 @@ namespace ECDQiangWuCha
                 }
 
             }
+            Ed.WriteMessage($"find90={find90 / Math.PI * 180.0 }\nbigangleIndex={bigangleIndex}\nfindPt={findPt}");
 
             return bigangleIndex;
         }
