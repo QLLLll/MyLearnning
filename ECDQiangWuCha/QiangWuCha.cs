@@ -20,15 +20,17 @@ namespace ECDQiangWuCha
 
         List<Entity> listDimErase = new List<Entity>();
         List<Dimension> listDimAdd = new List<Dimension>();
+        Dictionary<Dimension, double> dicNewDimDb = new Dictionary<Dimension, double>();
 
         [CommandMethod("EcdQiangWuCha")]
         public void TZWuCha()
         {
 
-            int length = 100;
+            //int length = 100;
 
             listDimAdd.Clear();
             listDimErase.Clear();
+            dicNewDimDb.Clear();
 
             TypedValue[] tv = new TypedValue[2] { new TypedValue((int)DxfCode.Start, "POLYLINE"), new TypedValue((int)DxfCode.Start, "DIMENSION") };
 
@@ -73,8 +75,8 @@ namespace ECDQiangWuCha
 
             if (dbRes.Status != PromptStatus.OK) return;
 
-            double lMin = length - dbRes.Value;
-            double lMax = length + dbRes.Value;
+            //double lMin = length - dbRes.Value;
+            //double lMax = length + dbRes.Value;
 
             List<Vector3d> listVec3d = new List<Vector3d>();
             List<double> listDis = new List<double>();
@@ -167,7 +169,7 @@ namespace ECDQiangWuCha
 
 
                         var plJoin = trans.GetObject(listJoinPL[j].ObjectId, OpenMode.ForWrite) as Polyline;
-                        listInt.Add(listPl.IndexOf(plJoin));
+                        
                         for (int i = j + 1; i < listJoinPL.Count; i++)
                         {
                             if (listInt.Contains(listPl.IndexOf(listJoinPL[i])))
@@ -182,6 +184,7 @@ namespace ECDQiangWuCha
                                 plJoin.JoinEntity(plJoin2);
                                 flag = true;
                                 listInt.Add(listPl.IndexOf(plJoin2));
+                                listInt.Add(listPl.IndexOf(plJoin));
 
                             }
                             catch (System.Exception ex)
@@ -190,7 +193,7 @@ namespace ECDQiangWuCha
 
                                 plJoin2.DowngradeOpen();
 
-                                Ed.WriteMessage(ex.ToString());
+                                //Ed.WriteMessage(ex.ToString());
 
                                 continue;
                             }
@@ -263,11 +266,12 @@ namespace ECDQiangWuCha
 
                         var vec = pt90 - ptNext;
                         int indexPt2 = ptArr.IndexOf(ptNext);
-                        if (IsInWuCha(vec, length, dbRes.Value))
+                        if (IsInWuCha(vec, 0, dbRes.Value))
                         {
                             //var vecNew = GetVHNormal(vec)*-1;
                             var vecNew = vec.GetNormal();
-                            var newPt = ptNext + vecNew * length;
+                            var l = Math.Round(vec.Length, 0);
+                            var newPt = ptNext + vecNew * l;
                              indexPt2 = ptArr.IndexOf(pt90);
                             ptArr[ptArr.IndexOf(pt90)] = newPt;
 
@@ -285,11 +289,12 @@ namespace ECDQiangWuCha
 
                         var vec = pt90 - ptPre;
                         int indexPt2 = ptArr.IndexOf(ptPre);
-                        if (IsInWuCha(vec, length, dbRes.Value))
+                        if (IsInWuCha(vec, 0, dbRes.Value))
                         {
                             //var vecNew = GetVHNormal(vec)*-1;
                             var vecNew = vec.GetNormal();
-                            var newPt = ptPre + vecNew * length;
+                            var l = Math.Round(vec.Length, 0);
+                            var newPt = ptPre + vecNew * l;
                             indexPt2 = ptArr.IndexOf(pt90);
                             ptArr[ptArr.IndexOf(pt90)] = newPt;
                             DimToSpace(ptArr, ptArrCopy, listDim, ptPre, pt90, indexPt2);
@@ -310,11 +315,12 @@ namespace ECDQiangWuCha
 
                         var vec = ptNext - pt90;
                         int indexPt2 = ptArr.IndexOf(ptNext);
-                        if (IsInWuCha(vec, length, dbRes.Value))
+                        if (IsInWuCha(vec, 0, dbRes.Value))
                         {
                             //var vecNew = GetVHNormal(vec)*-1;
                             var vecNew = vec.GetNormal();
-                            var newPt = pt90 + vecNew * length;
+                            var l = Math.Round(vec.Length, 0);
+                            var newPt = pt90 + vecNew * l;
                              indexPt2 = ptArr.IndexOf(ptNext);
                             ptArr[indexPt2] = newPt;
 
@@ -337,11 +343,12 @@ namespace ECDQiangWuCha
 
                         var vec = ptPre - pt90;
                         int indexPt2 = ptArr.IndexOf(ptPre);
-                        if (IsInWuCha(vec, length, dbRes.Value))
+                        if (IsInWuCha(vec, 0, dbRes.Value))
                         {
                             //var vecNew = GetVHNormal(vec)*-1;
                             var vecNew = vec.GetNormal();
-                            var newPt = pt90 + vecNew * length;
+                            var l = Math.Round(vec.Length, 0);
+                            var newPt = pt90 + vecNew * l;
                             indexPt2 = ptArr.IndexOf(ptPre);
                             ptArr[indexPt2] = newPt;
 
@@ -375,10 +382,11 @@ namespace ECDQiangWuCha
 
                         int indexPt2 = ptArr.IndexOf(ptNext);
 
-                        if (IsInWuCha(vec, length, dbRes.Value))
+                        if (IsInWuCha(vec, 0, dbRes.Value))
                         {
                             var vecNew = vec.GetNormal();
-                            var newPt = pt90 + vecNew * length;
+                            var l = Math.Round(vec.Length, 0);
+                            var newPt = pt90 + vecNew * l;
                              indexPt2 = ptArr.IndexOf(ptNext);
                             ptArr[indexPt2] = newPt;
                             DimToSpace2(ptArr, ptArrCopy, listDim, pt90, ptNext, indexPt2);
@@ -395,10 +403,11 @@ namespace ECDQiangWuCha
 
                         var vec = ptPre - pt90;
                         int indexPt2 = ptArr.IndexOf(ptPre);
-                        if (IsInWuCha(vec, length, dbRes.Value))
+                        if (IsInWuCha(vec, 0, dbRes.Value))
                         {
                             var vecNew = vec.GetNormal();
-                            var newPt = pt90 + vecNew * length;
+                            var l = Math.Round(vec.Length, 0);
+                            var newPt = pt90 + vecNew * l;
                              indexPt2 = ptArr.IndexOf(ptPre);
                             ptArr[indexPt2] = newPt;
                             DimToSpace2(ptArr, ptArrCopy, listDim, pt90, ptPre, indexPt2);
@@ -438,7 +447,7 @@ namespace ECDQiangWuCha
                     {
                         double dimLen = Convert.ToDouble(dim.DimensionText);
 
-                        if (Math.Round(dimLen, 0) == length || dimLen < length - 5 * dbRes.Value)
+                        if (Math.Abs(Math.Round(dimLen,0)- dicNewDimDb[dim]) <= dbRes.Value)
                         {
                             dim.ToSpace();
 
@@ -449,7 +458,7 @@ namespace ECDQiangWuCha
                         }
 
                     }
-
+                    
                     foreach (var dimOld in listDimErase)
                     {
 
@@ -464,6 +473,7 @@ namespace ECDQiangWuCha
                 }
                 listDimAdd.Clear();
                 listDimErase.Clear();
+                dicNewDimDb.Clear();
                 #region 不要了
 
 
@@ -957,7 +967,20 @@ namespace ECDQiangWuCha
         //判断长度是否在要计算误差范围内
         private bool IsInWuCha(Vector3d vec, int length, double value)
         {
-            return Math.Round(vec.Length, 1) >= length - value && vec.Length <= length + value;
+            double l1 = vec.Length;
+
+            double l2 = Math.Round(l1, 0);
+
+            if (Math.Abs(l1 - l2) < value)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
         }
 
         //找到90度角的索引，如果最小角与90度差1以上，则新建点构成90度角
@@ -1160,8 +1183,8 @@ namespace ECDQiangWuCha
                     dimOld = d as RotatedDimension;
 
 
-                    if ((PtJSEqual(dimOld.XLine1Point, ptOrgPt1,0.5) && PtJSEqual(dimOld.XLine2Point, ptOrgWrong,0.5))
-                        || (PtJSEqual(dimOld.XLine1Point, ptOrgWrong,0.5) && PtJSEqual(dimOld.XLine2Point, ptOrgPt1,0.5)))
+                    if ((PtJSEqual(dimOld.XLine1Point, ptOrgPt1,1.5) && PtJSEqual(dimOld.XLine2Point, ptOrgWrong,1.5))
+                        || (PtJSEqual(dimOld.XLine1Point, ptOrgWrong,1.5) && PtJSEqual(dimOld.XLine2Point, ptOrgPt1,1.5)))
                     {
                         dimOld = d as RotatedDimension;
                         break;
@@ -1185,8 +1208,8 @@ namespace ECDQiangWuCha
                     dimOld2 = d as RotatedDimension;
 
 
-                    if ((PtJSEqual(dimOld2.XLine1Point, pt3,0.5) && PtJSEqual(dimOld2.XLine2Point, ptOrgWrong,0.5)) ||
-                        (PtJSEqual(dimOld2.XLine1Point, ptOrgWrong,0.5) && PtJSEqual(dimOld2.XLine2Point, pt3,0.5)))
+                    if ((PtJSEqual(dimOld2.XLine1Point, pt3,1.5) && PtJSEqual(dimOld2.XLine2Point, ptOrgWrong,1.5)) ||
+                        (PtJSEqual(dimOld2.XLine1Point, ptOrgWrong,1.5) && PtJSEqual(dimOld2.XLine2Point, pt3,1.5)))
                     {
                         dimOld2 = d as RotatedDimension;
 
@@ -1212,6 +1235,9 @@ namespace ECDQiangWuCha
             {
 
                 var line = new Line(dimOld.XLine1Point, dimOld.XLine2Point);
+
+                var l = (dimOld.XLine1Point - dimOld.XLine2Point).Length;
+
                 var ptDim = dimOld.DimLinePoint;
 
                 var ptDim2 = line.GetClosestPointTo(ptDim, true);
@@ -1229,6 +1255,7 @@ namespace ECDQiangWuCha
                 var dimNew = new AlignedDimension(pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
                 Dim2Dim(dimNew, dimOld);
                 listDimAdd.Add(dimNew);
+                dicNewDimDb.Add(dimNew, l);
                 listDimErase.Add(dimOld);
 
             }
@@ -1236,7 +1263,7 @@ namespace ECDQiangWuCha
             {
                 var line = new Line(dimOld2.XLine1Point, dimOld2.XLine2Point);
                 var ptDim = dimOld2.DimLinePoint;
-
+                var l = (dimOld2.XLine1Point - dimOld2.XLine2Point).Length;
                 var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
                 var v2 = ptDim - ptDim2;
@@ -1254,8 +1281,9 @@ namespace ECDQiangWuCha
                 var dimNew2 = new AlignedDimension(ptArr[indexPt2], pt3, ptGet, v3.Length.ToString("f2"), dimOld2.DimensionStyle);
 
                 Dim2Dim(dimNew2, dimOld2);
-                listDimAdd.Add(dimNew2);
-                listDimErase.Add(dimOld2);
+                //listDimAdd.Add(dimNew2);
+                //dicNewDimDb.Add(dimNew2, l);
+                //listDimErase.Add(dimOld2);
             }
 
         }
@@ -1290,8 +1318,8 @@ namespace ECDQiangWuCha
                     dimOld = d as RotatedDimension;
 
 
-                    if ((PtJSEqual(dimOld.XLine1Point, ptOrgPt1,0.5) && PtJSEqual(dimOld.XLine2Point, ptOrgWrong,0.5))
-                        || (PtJSEqual(dimOld.XLine1Point, ptOrgWrong,0.5) && PtJSEqual(dimOld.XLine2Point, ptOrgPt1,0.5)))
+                    if ((PtJSEqual(dimOld.XLine1Point, ptOrgPt1,1.5) && PtJSEqual(dimOld.XLine2Point, ptOrgWrong,1.5))
+                        || (PtJSEqual(dimOld.XLine1Point, ptOrgWrong,1.5) && PtJSEqual(dimOld.XLine2Point, ptOrgPt1,1.5)))
                     {
                         dimOld = d as RotatedDimension;
                         break;
@@ -1315,8 +1343,8 @@ namespace ECDQiangWuCha
                     dimOld2 = d as RotatedDimension;
 
 
-                    if ((PtJSEqual(dimOld2.XLine1Point, pt3, 0.5) && PtJSEqual(dimOld2.XLine2Point, ptOrgWrong, 0.5)) ||
-                        (PtJSEqual(dimOld2.XLine1Point, ptOrgWrong, 0.5) && PtJSEqual(dimOld2.XLine2Point, pt3, 0.5)))
+                    if ((PtJSEqual(dimOld2.XLine1Point, pt3, 1.5) && PtJSEqual(dimOld2.XLine2Point, ptOrgWrong, 1.5)) ||
+                        (PtJSEqual(dimOld2.XLine1Point, ptOrgWrong, 1.5) && PtJSEqual(dimOld2.XLine2Point, pt3, 1.5)))
                     {
                         dimOld2 = d as RotatedDimension;
 
@@ -1343,7 +1371,7 @@ namespace ECDQiangWuCha
 
                 var line = new Line(dimOld.XLine1Point, dimOld.XLine2Point);
                 var ptDim = dimOld.DimLinePoint;
-
+                var l = (dimOld.XLine1Point - dimOld.XLine2Point).Length;
                 var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
                 var v2 = ptDim - ptDim2;
@@ -1358,6 +1386,7 @@ namespace ECDQiangWuCha
                 var dimNew = new AlignedDimension(pt1, ptArr[indexPt2], ptGet, v.Length.ToString("f2"), dimOld.DimensionStyle);
                 Dim2Dim(dimNew, dimOld);
                 listDimAdd.Add(dimNew);
+                dicNewDimDb.Add(dimNew, l);
                 listDimErase.Add(dimOld);
 
             }
@@ -1365,7 +1394,7 @@ namespace ECDQiangWuCha
             {
                 var line = new Line(dimOld2.XLine1Point, dimOld2.XLine2Point);
                 var ptDim = dimOld2.DimLinePoint;
-
+                var l = (dimOld2.XLine1Point - dimOld2.XLine2Point).Length;
                 var ptDim2 = line.GetClosestPointTo(ptDim, true);
 
                 var v2 = ptDim - ptDim2;
@@ -1377,11 +1406,11 @@ namespace ECDQiangWuCha
                 //var dimNew2 = new RotatedDimension(0, ptArr[indexPt2], pt3, pt4, v3.Length.ToString(), dimOld2.DimensionStyle);
                 var dimNew2 = new AlignedDimension(ptArr[indexPt2], pt3, ptGet, v3.Length.ToString("f2"), dimOld2.DimensionStyle);
 
-                Dim2Dim(dimNew2, dimOld2);
+                //Dim2Dim(dimNew2, dimOld2);
 
-                listDimAdd.Add(dimNew2);
-
-                listDimErase.Add(dimOld2);
+                //listDimAdd.Add(dimNew2);
+                //dicNewDimDb.Add(dimNew2, l);
+                //listDimErase.Add(dimOld2);
 
             }
 
@@ -1442,6 +1471,8 @@ namespace ECDQiangWuCha
             rDim1.Suffix = rDim.Suffix;
             rDim1.Prefix = rDim.Prefix;
             rDim1.PlotStyleNameId = rDim.PlotStyleNameId;
+            rDim1.ColorIndex = rDim.ColorIndex;
+            rDim1.Color = rDim.Color;
 
 
 
