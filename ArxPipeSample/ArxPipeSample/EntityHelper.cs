@@ -219,7 +219,7 @@ namespace ArxDotNetLesson
 
                 hatch.PatternScale = scale;
                 hatch.SetHatchPattern(type, pattern);
-
+              
                 foreach (ObjectId loopId in loops)
                 {
                     hatch.AppendLoop(HatchLoopTypes.Default, new ObjectIdCollection() { loopId });

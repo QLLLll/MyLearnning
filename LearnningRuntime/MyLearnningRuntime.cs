@@ -22,7 +22,28 @@ namespace LearnningRuntime
     public class MyLearnningRuntime : IExtensionApplication
     {
 
-       public class MyWallDrawRule : AcGi.DrawableOverrule
+        class PlaneOverrule : AcGi.DrawableOverrule
+        {
+            public DBObjectCollection copyCollection = new DBObjectCollection();
+            /*重写该方法*/
+            public override bool WorldDraw(AcGi.Drawable drawable, AcGi.WorldDraw wd)
+            {
+                Matrix3d matrix = Matrix3d.Rotation(Math.PI / 2, Vector3d.ZAxis, Point3d.Origin);
+
+                Entity ent1 = drawable as Entity;
+                if (ent1.ObjectId != ObjectId.Null)
+                {
+                    Entity copyEnt = ent1.GetTransformedCopy(matrix);
+                    copyEnt.WorldDraw(wd);
+                    copyCollection.Add(copyEnt);
+                }
+
+                return base.WorldDraw(drawable, wd);
+            }
+
+        }
+
+        public class MyWallDrawRule : AcGi.DrawableOverrule
         {
 
             public override bool WorldDraw(AcGi.Drawable drawable, AcGi.WorldDraw wd)
@@ -40,6 +61,7 @@ namespace LearnningRuntime
                         line.EndPoint-vec,line.StartPoint-vec,
                     };
                     wd.Geometry.Polygon(pts);
+                    
 
                     var hatch = new Hatch();
                     var pts2d = new Point2dCollection();
@@ -92,6 +114,8 @@ namespace LearnningRuntime
 
                 mdlSpc.AppendEntity(line);
 
+                acTrans.AddNewlyCreatedDBObject(line, true);
+
                 if (!line.ExtensionDictionary.IsValid)
                 {
 
@@ -105,7 +129,28 @@ namespace LearnningRuntime
             }
         }
 
-
+        private static PlaneOverrule overrule;
+        [CommandMethod("otdp")]
+        public static void TestOverrideToDifferentPlane()
+        {
+            if (overrule == null)
+            {
+                overrule = new PlaneOverrule();
+                Overrule.AddOverrule(RXObject.GetClass(typeof(Entity)), overrule, false);
+            }
+            else
+            {
+                foreach (DBObject obj in overrule.copyCollection)
+                {
+                    obj.Dispose();
+                }
+                Overrule.RemoveOverrule(RXObject.GetClass(typeof(Entity)), overrule);
+                overrule.Dispose();
+                overrule = null;
+            }
+            Overrule.Overruling = !Overrule.Overruling;
+            Application.DocumentManager.MdiActiveDocument.Editor.Regen();
+        }
         public void Initialize()
         {
             
