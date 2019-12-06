@@ -402,13 +402,15 @@ namespace DevDaysGripMenusSample
                     GripMenu.Add(new RowGripMenuItem(this, null)
                     {
                         Text = "Test-1",
+                        Visible = true,
                         Icon = System.Drawing.Icon.FromHandle(Resource1.MyTestIcon.GetHicon())
                     }
-                                );
+                                ); ;
 
                     GripMenu.Add(new RowGripMenuItem(this, null)
                     {
                         Text = "Test - 2",
+                        Visible = true,
                         Icon = System.Drawing.Icon.FromHandle(Resource1.MyTestIcon.GetHicon())
                     }
                                 );
