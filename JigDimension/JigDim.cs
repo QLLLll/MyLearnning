@@ -89,7 +89,7 @@ namespace JigDimension
                 pointOpts.Message = msg;
 
                 var res = prmpts.AcquirePoint(pointOpts);
-
+                //Point就是我们要更新实体数据的点
                 if (res.Value == Point)
                 {
                     return SamplerStatus.NoChange;
@@ -123,6 +123,7 @@ namespace JigDimension
         {
             if (JigEnts.Count > 0)
             {
+                //这是个委托，主要实现你要如何去更新你的实体
                 JigUpdateAction(this);
                 foreach (var ent in JigEnts)
                 {
