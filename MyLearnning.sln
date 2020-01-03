@@ -99,6 +99,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinRoundCircle", "MinRoundC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetMinDisOfCurve", "GetMinDisOfCurve\GetMinDisOfCurve.csproj", "{4CA82F6C-56CF-45F3-B8F8-BC4EA81F5A13}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QiangTuoDong", "QiangTuoDong\QiangTuoDong.csproj", "{579F2B93-C117-46F8-AEB6-00D0FC197981}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -489,6 +491,14 @@ Global
 		{4CA82F6C-56CF-45F3-B8F8-BC4EA81F5A13}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4CA82F6C-56CF-45F3-B8F8-BC4EA81F5A13}.Release|x86.ActiveCfg = Release|Any CPU
 		{4CA82F6C-56CF-45F3-B8F8-BC4EA81F5A13}.Release|x86.Build.0 = Release|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Debug|x86.Build.0 = Debug|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Release|Any CPU.Build.0 = Release|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Release|x86.ActiveCfg = Release|Any CPU
+		{579F2B93-C117-46F8-AEB6-00D0FC197981}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
