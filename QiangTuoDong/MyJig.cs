@@ -58,7 +58,6 @@ namespace QiangTuoDong
 
             };
 
-
         }
 
         protected override SamplerStatus Sampler(JigPrompts prompts)
@@ -84,6 +83,7 @@ namespace QiangTuoDong
             }
             return true;
         }
+
         public PromptStatus Drag()
         {
             return Application.DocumentManager.MdiActiveDocument.Editor
