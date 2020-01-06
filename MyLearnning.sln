@@ -97,6 +97,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JigDimension", "JigDimensio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinRoundCircle", "MinRoundCircle\MinRoundCircle.csproj", "{DE242809-397C-4941-B8D8-96572A82445C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSqlCon", "TestSqlCon\TestSqlCon.csproj", "{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -479,6 +481,14 @@ Global
 		{DE242809-397C-4941-B8D8-96572A82445C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DE242809-397C-4941-B8D8-96572A82445C}.Release|x86.ActiveCfg = Release|Any CPU
 		{DE242809-397C-4941-B8D8-96572A82445C}.Release|x86.Build.0 = Release|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Debug|x86.Build.0 = Debug|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Release|x86.ActiveCfg = Release|Any CPU
+		{767FFFE8-3B0E-4C57-9A39-B54EA22876E9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
