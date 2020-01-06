@@ -13,23 +13,21 @@ namespace MinRoundCircle
 
     public class GetMinCircle
     {
-        Document Doc = Application.DocumentManager.MdiActiveDocument;
-        Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        //Document Doc = Application.DocumentManager.MdiActiveDocument;
+        //Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
         Database Db = Application.DocumentManager.MdiActiveDocument.Database;
-
-        List<Entity> listEnts = new List<Entity>();
+       //所有的点集
         List<Point3d> listPts = new List<Point3d>();
         List<double> listRadius = new List<double>();
 
         [CommandMethod("GetMinC")]
         public void GetCircle()
         {
-            listEnts.Clear();
             listPts.Clear();
             listRadius.Clear();
 
             GetAllPts();
-            //Ed.WriteMessage(listEnts.Count.ToString());
+            
             Circle minCircle = null;
             if (listPts.Count >= 3)
             {
@@ -52,6 +50,8 @@ namespace MinRoundCircle
                     }
                     else
                     {
+                        //求圆心和pt点构成的直线和圆的交点，
+                        //并求出pt点离圆最远的那个点pt1或者是Pt2，最后用这两个点构成一个新的圆，继续循环，直到所有的点遍历完
                         var line = new Line(pt, cCen);
 
                         Point3dCollection pt3Coll = new Point3dCollection();
@@ -85,13 +85,13 @@ namespace MinRoundCircle
                 minCircle = GetFirstCircle();
             }
             if (minCircle != null)
+                //加入模型空间
                 minCircle.ToSpace();
-
+            minCircle.Dispose();
         }
 
         public void GetAllPts()
         {
-            List<Entity> listAllEnts = new List<Entity>();
 
             using (var trans = Db.TransactionManager.StartTransaction())
             {
@@ -105,6 +105,7 @@ namespace MinRoundCircle
 
                     if (rec != null)
                     {
+                        //块参照
                         if (rec.Bounds.HasValue)
                         {
                             var ptMin = rec.Bounds.Value.MinPoint;
@@ -113,10 +114,12 @@ namespace MinRoundCircle
                             listPts.Add(new Point3d((ptMin.X + ptMax.X) / 2, (ptMin.Y + ptMax.Y) / 2, 0));
                             listRadius.Add(radius);
                         }
+                        //实体
                         foreach (ObjectId entId in rec)
                         {
                             var ent = trans.GetObject(entId, OpenMode.ForRead) as Entity;
 
+                            //在计算边界属性时，dimension的不准确，我就跳过了
                             if ((ent as Dimension) != null)
                             {
                                 continue;
@@ -141,7 +144,7 @@ namespace MinRoundCircle
         }
         public Circle GetFirstCircle()
         {
-
+            //如果只有一个图，就直接返回这个图元的边界圆
             if (listPts.Count == 1)
             {
                 Circle c = new Circle(listPts[0], Vector3d.ZAxis,  listRadius[0]);
