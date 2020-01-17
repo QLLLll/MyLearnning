@@ -13,7 +13,7 @@ using DotNetARX;
 
 namespace OperateBlock
 {
-    public class OperateBlock
+    public class OperateBlock:IExtensionApplication
     {
 
         Document Doc = Application.DocumentManager.MdiActiveDocument;
@@ -319,6 +319,36 @@ namespace OperateBlock
 
         }
 
+        [CommandMethod("EcdUcs")]
+        public void LoopUcs()
+        {
+
+            // Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
+            //Database Db = Application.DocumentManager.MdiActiveDocument.Database;
+            using (var trans = Db.TransactionManager.StartTransaction())
+            {
+
+              var obj= trans.GetObject(Db.UcsTableId, OpenMode.ForRead);
+
+                UcsTable t = obj as UcsTable;
+
+                if (t != null)
+                {
+                    foreach (var oId in t)
+                    {
+                        var uceRec = trans.GetObject(oId,OpenMode.ForRead) as UcsTableRecord;
+                        //XAxis是向量
+                        Ed.WriteMessage("\n orange=[" + uceRec.Origin.X+","+ uceRec.Origin.Y + "," + uceRec.Origin.Z+ "]\n " 
+                            +"XAxis:["+ uceRec.XAxis.X +","+ uceRec.XAxis.Y+ ","+","+ uceRec.XAxis.Z+ "]\n");
+
+                    }
+
+
+                }
+
+            }
+
+        }
 
         [CommandMethod("EcdAddDoor")]
         public void InsertDoor()
@@ -364,6 +394,7 @@ namespace OperateBlock
         }
 
 
+
         public void SetStyleForAtt(AttributeDefinition att,bool isvisible)
         {
             att.Height = 60;
@@ -372,5 +403,16 @@ namespace OperateBlock
             att.Invisible = isvisible;
         }
 
+        public void Initialize()
+        {
+            Editor Ed = Application.DocumentManager.MdiActiveDocument.Editor;
+
+            Ed.WriteMessage("插件加载成功");
+        }
+
+        public void Terminate()
+        {
+           
+        }
     }
 }
